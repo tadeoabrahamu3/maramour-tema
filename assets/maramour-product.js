@@ -94,26 +94,42 @@ document.addEventListener(
   { capture: true }
 );
 
-document.addEventListener('submit', async (event) => {
+/*
+ * Envío del aviso: se hace con el envío normal del formulario (así funciona la verificación
+ * anti-spam de Shopify). Al volver a la página (?mm_notify=ok) se muestra la confirmación.
+ */
+document.addEventListener('submit', (event) => {
   const form = event.target;
   if (!(form instanceof HTMLFormElement) || form.id !== 'mm-notify-form') return;
-  event.preventDefault();
-  const dialog = form.closest('dialog');
-  const error = dialog.querySelector('[data-mm-notify-error]');
-  error.hidden = true;
-  if (!form.reportValidity()) return;
-  const button = form.querySelector('button[type="submit"]');
-  button.disabled = true;
-  try {
-    const response = await fetch(form.action, { method: 'POST', body: new FormData(form) });
-    if (/challenge/.test(response.url)) return form.submit(); /* verificación anti-spam de Shopify */
-    if (!response.ok) throw new Error(String(response.status));
-    dialog.querySelector('[data-mm-notify-body]').hidden = true;
-    dialog.querySelector('[data-mm-notify-done]').hidden = false;
-    form.reset();
-  } catch {
-    error.hidden = false;
-  } finally {
-    button.disabled = false;
+  if (!form.checkValidity()) {
+    event.preventDefault();
+    form.reportValidity();
+    return;
   }
+  try {
+    sessionStorage.setItem('mm-notify', '1');
+  } catch {}
+  form.querySelector('button[type="submit"]')?.setAttribute('disabled', '');
 });
+
+const showNotifyDone = () => {
+  const params = new URLSearchParams(location.search);
+  let pending = false;
+  try {
+    pending = sessionStorage.getItem('mm-notify') === '1';
+    sessionStorage.removeItem('mm-notify');
+  } catch {}
+  if (!pending || !(params.get('mm_notify') === 'ok' || params.get('contact_posted') === 'true')) return;
+  const dialog = document.getElementById('mm-notify');
+  if (!(dialog instanceof HTMLDialogElement)) return;
+  dialog.querySelector('[data-mm-notify-body]').hidden = true;
+  dialog.querySelector('[data-mm-notify-done]').hidden = false;
+  dialog.showModal();
+  params.delete('mm_notify');
+  params.delete('contact_posted');
+  const query = params.toString();
+  history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
+};
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showNotifyDone);
+else showNotifyDone();

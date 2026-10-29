@@ -21,9 +21,9 @@
     {%- endif -%}
 
     <button type="button" class="mm-story__bubble" data-mm-story-open aria-haspopup="dialog" aria-controls="{{ uid }}">
-      <span class="mm-story__ring">
+      <span class="mm-story__card">
         {%- if poster -%}
-          {{ poster | image_url: width: 200, height: 200, crop: 'center' | image_tag: loading: 'lazy', alt: '', class: 'mm-story__thumb', width: 72, height: 72 }}
+          {{ poster | image_url: width: 240, height: 426, crop: 'center' | image_tag: loading: 'lazy', alt: '', class: 'mm-story__thumb', width: 96, height: 171 }}
         {%- endif -%}
         <span class="mm-story__play" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="currentColor"><path d="M7 5.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L7.9 4.7a.6.6 0 0 0-.9.5Z"/></svg>
@@ -130,6 +130,11 @@
     background: #f7f5f3;
   }
 
+  .mm-story__bubble:focus-visible .mm-story__card {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 2px;
+  }
+
   .mm-story__heading {
     margin: 0 0 12px;
     font-size: 0.75rem;
@@ -152,14 +157,14 @@
     cursor: pointer;
   }
 
-  .mm-story__ring {
+  .mm-story__card {
     position: relative;
     flex-shrink: 0;
-    width: 78px;
-    height: 78px;
-    padding: 3px;
-    border-radius: 50%;
-    background: conic-gradient(from 200deg, #f9ce34, #ee2a7b, #6228d7, #f9ce34);
+    width: 96px;
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    background: #ddd;
+    border-radius: 6px;
   }
 
   .mm-story__thumb {
@@ -167,27 +172,24 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border: 3px solid #f7f5f3;
-    border-radius: 50%;
   }
 
   .mm-story__play {
     position: absolute;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     display: grid;
     place-items: center;
-    width: 26px;
-    height: 26px;
     color: #fff;
-    background: #111;
-    border: 2px solid #f7f5f3;
-    border-radius: 50%;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.25), transparent 60%);
   }
 
   .mm-story__play svg {
-    width: 14px;
-    height: 14px;
+    width: 26px;
+    height: 26px;
+    padding: 6px;
+    background: rgb(0 0 0 / 0.35);
+    border-radius: 50%;
+    backdrop-filter: blur(2px);
   }
 
   .mm-story__label {
@@ -222,11 +224,12 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: min(100%, calc(100dvh * 9 / 16));
-    height: 100dvh;
-    margin-inline: auto;
+    width: min(calc(100% - 24px), calc((100dvh - 24px) * 9 / 16));
+    height: calc(100dvh - 24px);
+    margin: 12px auto;
     overflow: hidden;
     background: #000;
+    border-radius: 14px;
   }
 
   .mm-story__media,

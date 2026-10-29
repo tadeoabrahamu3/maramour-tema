@@ -88,7 +88,8 @@
     <div data-mm-notify-body>
       <h2 class="mm-sheet__title" id="mm-notify-title">Avisame cuando vuelva</h2>
       <p class="mm-sheet__sub"><strong data-mm-notify-variant></strong> está agotado. Dejanos tu email y te escribimos apenas vuelva a entrar.</p>
-      {%- form 'contact', id: 'mm-notify-form', class: 'mm-stock__form' -%}
+      {%- assign notify_return = product.url | append: '?mm_notify=ok' -%}
+      {%- form 'contact', id: 'mm-notify-form', class: 'mm-stock__form', return_to: notify_return -%}
         <input type="hidden" name="contact[Motivo]" value="Aviso de stock">
         <input type="hidden" name="contact[Producto]" value="{{ product.title | escape }}">
         <input type="hidden" name="contact[Variante]" value="" data-mm-notify-field="variant">
