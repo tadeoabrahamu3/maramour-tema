@@ -71,7 +71,8 @@
             "drawer_accordion": false,
             "drawer_accordion_expand_first": false,
             "drawer_dividers": false,
-            "show_account_link": true
+            "show_account_link": true,
+            "secondary_menu": "menu-secundario"
           },
           "blocks": {}
         }
