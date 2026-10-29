@@ -240,7 +240,7 @@
           "type": "text",
           "name": "Botón de arrepentimiento",
           "settings": {
-            "text": "<p class=\"mm-arrepentimiento\"><a href=\"/pages/boton-de-arrepentimiento\">Botón de arrepentimiento</a></p>",
+            "text": "<p><a href=\"/pages/boton-de-arrepentimiento\" title=\"Botón de arrepentimiento\">Botón de arrepentimiento</a></p>",
             "width": "100%",
             "max_width": "normal",
             "alignment": "left",
