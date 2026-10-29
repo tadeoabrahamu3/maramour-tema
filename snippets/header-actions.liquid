@@ -85,31 +85,25 @@
     <div
       class="account-button header-actions__action{% if display_style == 'text' %} account-button--text{% endif %} color-custom-popover"
     >
-      <shopify-account
-        menu="{{ customer_account_menu }}"
+      {%- comment -%}
+        MARAMOUR: enlace simple a la cuenta en lugar del componente <shopify-account>
+        (ese componente carga ~300 KB de JavaScript de Shopify en todas las páginas).
+      {%- endcomment -%}
+      <a
+        href="{{ routes.account_url }}"
+        class="account-button__link"
         {% if account_actions_style != blank %}
           style="{{ account_actions_style }}"
         {% endif %}
+        aria-label="{{ 'content.account_title' | t }}"
       >
-        {% if customer %}
-          <div class="account-button__fallback"></div>
-        {% else %}
-          <span
-            slot="signed-out-avatar"
-            class="account-button__text header-actions__text-style {% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}"
-          >
-            {{ 'content.account_title' | t }}
-          </span>
-
-          <span
-            slot="signed-out-avatar"
-            class="{% if display_style != 'icon' %}desktop:hidden{% endif %}"
-            aria-hidden="true"
-          >
-            {{ account_icon }}
-          </span>
-        {% endif %}
-      </shopify-account>
+        <span class="account-button__text header-actions__text-style {% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">
+          {{- 'content.account_title' | t -}}
+        </span>
+        <span class="{% if display_style != 'icon' %}desktop:hidden{% endif %}" aria-hidden="true">
+          {{- account_icon -}}
+        </span>
+      </a>
     </div>
   {% endif %}
 
@@ -152,6 +146,13 @@
 ></script>
 
 {% stylesheet %}
+  .account-button__link {
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+  }
+
   .account-button {
     /* Remove the background color from the color scheme, we want to inherit the color of the header */
     background: transparent;
