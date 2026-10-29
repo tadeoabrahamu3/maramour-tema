@@ -59,13 +59,15 @@
   <div class="mm-footer__wrap mm-footer__main">
     {%- comment -%} Marca {%- endcomment -%}
     <div class="mm-footer__brand">
-      <a class="mm-footer__logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }} — inicio">
-        {%- if s.logo != blank -%}
-          {{ s.logo | image_url: width: 480 | image_tag: loading: 'lazy', widths: '160, 240, 320, 480', sizes: '160px', alt: shop.name, style: 'width: 160px; height: auto;' }}
-        {%- else -%}
-          <span class="mm-footer__wordmark">{{ shop.name | upcase }}</span>
-        {%- endif -%}
-      </a>
+      {%- if s.show_brand -%}
+        <a class="mm-footer__logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }} — inicio">
+          {%- if s.logo != blank -%}
+            {{ s.logo | image_url: width: 480 | image_tag: loading: 'lazy', widths: '160, 240, 320, 480', sizes: '160px', alt: shop.name, style: 'width: 160px; height: auto;' }}
+          {%- else -%}
+            <span class="mm-footer__wordmark">{{ shop.name | upcase }}</span>
+          {%- endif -%}
+        </a>
+      {%- endif -%}
 
       {%- if s.description != blank -%}
         <div class="mm-footer__desc">{{ s.description }}</div>
@@ -309,7 +311,11 @@
   .mm-footer__social {
     display: flex;
     gap: 4px;
-    margin: 12px 0 0 -11px;
+    margin: 0 0 0 -11px;
+  }
+
+  .mm-footer__brand > * + .mm-footer__social {
+    margin-top: 12px;
   }
 
   .mm-footer__social a {
@@ -340,10 +346,9 @@
     align-items: center;
     justify-content: space-between;
     min-height: 56px;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
     list-style: none;
     cursor: pointer;
   }
@@ -481,9 +486,10 @@
     { "type": "text", "id": "newsletter_text", "label": "Texto", "default": "Enterate primero de lanzamientos, cápsulas y promociones." },
     { "type": "text", "id": "newsletter_button", "label": "Botón", "default": "Suscribirme" },
     { "type": "text", "id": "newsletter_success", "label": "Mensaje al suscribirse", "default": "¡Listo! Ya sos parte de Maramour." },
-    { "type": "color", "id": "newsletter_bg", "label": "Fondo", "default": "#F3ECE6" },
+    { "type": "color", "id": "newsletter_bg", "label": "Fondo", "default": "#F9E3E8" },
     { "type": "color", "id": "newsletter_fg", "label": "Texto", "default": "#111111" },
     { "type": "header", "content": "Marca" },
+    { "type": "checkbox", "id": "show_brand", "label": "Mostrar logo / nombre", "default": false },
     { "type": "image_picker", "id": "logo", "label": "Logo", "info": "Si está vacío, se muestra el nombre de la tienda." },
     { "type": "richtext", "id": "description", "label": "Descripción" },
     { "type": "text", "id": "email", "label": "Email visible" },

@@ -18,9 +18,9 @@
         "newsletter_text": "Enterate primero de lanzamientos, cápsulas y promociones.",
         "newsletter_button": "Suscribirme",
         "newsletter_success": "¡Listo! Ya sos parte de Maramour.",
-        "newsletter_bg": "#F3ECE6",
+        "newsletter_bg": "#F9E3E8",
         "newsletter_fg": "#111111",
-        "description": "<p>Maramour es una marca argentina de indumentaria femenina especializada en tejidos.</p>",
+        "description": "",
         "email": "",
         "facebook_url": "https://www.facebook.com/people/Maramour/61566621703277/",
         "instagram_url": "https://www.instagram.com/maramour.ar/",
@@ -30,7 +30,8 @@
         "menu_2_heading": "Ayuda",
         "menu_2": "footer-ayuda",
         "menu_3_heading": "Información",
-        "menu_3": "footer-informacion"
+        "menu_3": "footer-informacion",
+        "show_brand": false
       }
     }
   },
