@@ -14,8 +14,8 @@
 -%}
 
 <script src="{{ 'maramour-product.js' | asset_url }}" type="module"></script>
+{%- render 'maramour-product-styles' -%}
 
-<!-- mmdebug {% for e in product.metafields.shopify["color-pattern"].value %}[{{ e.label.value }}={{ e.color.value }}]{% endfor %} -->
 <div class="mm-size-help" {{ block.shopify_attributes }}>
   <a href="#mm-acc-talles" data-mm-open="mm-acc-talles">{{ bs.table_label | escape }}</a>
   {%- if bs.whatsapp_url != blank -%}

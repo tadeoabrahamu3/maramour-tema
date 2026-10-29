@@ -40,7 +40,7 @@
       {%- endif -%}
       {%- if bs.shipping_text != blank -%}
         <p class="mm-stock__shipping">
-          <span class="mm-stock__flag" aria-hidden="true">🇦🇷</span>
+          <svg class="mm-stock__flag" viewBox="0 0 18 12" aria-hidden="true"><rect width="18" height="12" fill="#74ACDF"/><rect y="4" width="18" height="4" fill="#fff"/><circle cx="9" cy="6" r="1.4" fill="#F6B40E"/></svg>
           <span class="mm-stock__sep" aria-hidden="true">|</span>
           {{ bs.shipping_text | escape }}
         </p>
@@ -133,6 +133,13 @@
     .mm-stock__status--low .mm-stock__dot {
       animation: none;
     }
+  }
+
+  .mm-stock__flag {
+    width: 18px;
+    height: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.15);
   }
 
   .mm-stock__sep {

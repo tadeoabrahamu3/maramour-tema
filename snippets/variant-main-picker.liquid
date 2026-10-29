@@ -53,6 +53,18 @@
     {% endif %}
   >
     <form class="variant-picker__form">
+      {%- comment -%}
+        MARAMOUR: colores reales desde el metacampo de categoría (Color) → muestras cuadradas.
+        Las opciones de texto (Talle) se muestran como texto con subrayado en la elegida.
+      {%- endcomment -%}
+      {%- assign mm_color_names = '' -%}
+      {%- assign mm_color_hexes = '' -%}
+      {%- for mm_entry in product_resource.metafields.shopify['color-pattern'].value -%}
+        {%- assign mm_color_names = mm_color_names | append: mm_entry.label.value | downcase | append: '|' -%}
+        {%- assign mm_color_hexes = mm_color_hexes | append: mm_entry.color.value | append: '|' -%}
+      {%- endfor -%}
+      {%- assign mm_color_names = mm_color_names | split: '|' -%}
+      {%- assign mm_color_hexes = mm_color_hexes | split: '|' -%}
       {%- for product_option in product_resource.options_with_values -%}
         {%- liquid
           assign swatch_count = product_option.values | map: 'swatch' | compact | size
@@ -88,7 +100,14 @@
           </div>
         {%- elsif variant_style == 'swatch' or block_settings.variant_style == 'buttons' -%}
           <fieldset
-            class="variant-option variant-option--buttons{% if variant_style == 'swatch' %} variant-option--swatches{% else %} variant-option--{{ settings.variant_button_width }}{% endif %}"
+            {%- liquid
+              assign mm_opt = 'mm-opt mm-opt--text'
+              assign mm_opt_name = product_option.name | downcase
+              if mm_opt_name == 'color' or mm_opt_name == 'colour'
+                assign mm_opt = 'mm-opt mm-opt--color'
+              endif
+            -%}
+            class="variant-option variant-option--buttons {{ mm_opt }}{% if variant_style == 'swatch' %} variant-option--swatches{% else %} variant-option--{{ settings.variant_button_width }}{% endif %}"
             data-fieldset-index="{{ fieldset_index }}"
             ref="fieldsets[]"
             {{ option_id_attribute }}
@@ -97,14 +116,30 @@
               {{ product_option.name | escape -}}
               {%- if variant_style == 'swatch' -%}
                 <span class="variant-option__swatch-value">{{ product_option.selected_value }}</span>
+              {%- elsif mm_opt contains 'color' -%}
+                <span class="mm-opt__value">{{ product_option.selected_value }}</span>
               {%- endif %}
             </legend>
             {%- for product_option_value in product_option.values -%}
               {% if product_option_value.size > longest_value and option_id_attribute %}
                 {% assign longest_value = product_option_value.size %}
               {% endif %}
+              {%- liquid
+                assign mm_hex = ''
+                if mm_opt contains 'color'
+                  assign mm_key = product_option_value.name | downcase
+                  for mm_n in mm_color_names
+                    if mm_n == mm_key
+                      assign mm_hex = mm_color_hexes[forloop.index0]
+                      break
+                    endif
+                  endfor
+                endif
+              -%}
               <label
                 class="variant-option__button-label{% if variant_style == 'swatch' %} variant-option__button-label--has-swatch{% endif %}"
+                {% if mm_hex != blank %}style="--mm-sw: {{ mm_hex }};"{% endif %}
+                title="{{ product_option_value.name | escape }}"
               >
                 <input
                   type="radio"

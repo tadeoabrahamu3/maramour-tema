@@ -242,7 +242,8 @@
                     "border_width": 1,
                     "border_radius": 0
                   },
-                  "blocks": {}
+                  "blocks": {},
+                  "disabled": true
                 },
                 "add-to-cart": {
                   "type": "add-to-cart",
