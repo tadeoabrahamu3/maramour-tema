@@ -39,9 +39,13 @@
     gap: 10px;
   }
 
+  .variant-option.mm-opt {
+    --variant-min-width: 0px;
+  }
+
   .mm-opt .variant-option__button-label {
     flex: 0 0 auto;
-    min-width: 0;
+    min-width: 0 !important;
     border: 0;
     border-radius: 0;
     background: none;
@@ -100,6 +104,11 @@
     position: relative;
   }
 
+  .mm-opt--text .variant-option__button-label:has(:checked),
+  .mm-opt--text .variant-option__button-label:has(:checked) .variant-option__button-label__text {
+    color: var(--color-foreground);
+  }
+
   .mm-opt--text .variant-option__button-label:has(:checked) .variant-option__button-label__text {
     font-weight: 600;
     text-decoration: underline;
@@ -121,7 +130,12 @@
     text-decoration: line-through underline;
   }
 
-  /* ---------- Botón de compra ---------- */
+  /* ---------- Botón de compra (sin selector de cantidad: una prenda por vez) ---------- */
+  .product-details quantity-selector-component,
+  .product-details .quantity-selector-wrapper {
+    display: none !important;
+  }
+
   .product-details .add-to-cart-button {
     min-height: 52px;
     font-size: 0.8125rem;
