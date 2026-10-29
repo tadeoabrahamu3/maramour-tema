@@ -15,12 +15,12 @@
 -%}
 
 {%- if video != blank -%}
-  <div class="mm-story" data-mm-story {{ block.shopify_attributes }}>
+  <div class="mm-story" data-mm-story style="--mm-story-bg: {{ bs.background | default: '#F9E3E8' }};" {{ block.shopify_attributes }}>
     {%- if bs.heading != blank -%}
       <p class="mm-story__heading">{{ bs.heading | escape }}</p>
     {%- endif -%}
 
-    <button type="button" class="mm-story__bubble" data-mm-story-open aria-haspopup="dialog" aria-controls="{{ uid }}">
+    <button type="button" class="mm-story__bubble" data-mm-story-open aria-haspopup="dialog" aria-controls="{{ uid }}" aria-label="{{ bs.label | escape }}">
       <span class="mm-story__card">
         {%- if poster -%}
           {{ poster | image_url: width: 240, height: 426, crop: 'center' | image_tag: loading: 'lazy', alt: '', class: 'mm-story__thumb', width: 96, height: 171 }}
@@ -29,10 +29,6 @@
           <svg viewBox="0 0 20 20" fill="currentColor"><path d="M7 5.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L7.9 4.7a.6.6 0 0 0-.9.5Z"/></svg>
         </span>
       </span>
-      <span class="mm-story__label">
-        <strong>{{ bs.label | escape }}</strong>
-        {%- if bs.handle != blank -%}<span>{{ bs.handle | escape }}</span>{%- endif -%}
-      </span>
     </button>
 
     <dialog class="mm-story__dialog" id="{{ uid }}" aria-label="{{ bs.label | escape }}">
@@ -40,7 +36,6 @@
         <div class="mm-story__bar" aria-hidden="true"><span data-mm-story-progress></span></div>
         <div class="mm-story__top">
           <span class="mm-story__who">
-            {%- if poster -%}{{ poster | image_url: width: 64, height: 64, crop: 'center' | image_tag: loading: 'lazy', alt: '', width: 28, height: 28 }}{%- endif -%}
             {{ bs.handle | default: shop.name | escape }}
           </span>
           <button type="button" class="mm-story__icon" data-mm-story-mute aria-label="Activar sonido" aria-pressed="false">
@@ -127,7 +122,7 @@
 {% stylesheet %}
   .mm-story {
     padding: 16px;
-    background: #f7f5f3;
+    background: var(--mm-story-bg, #f9e3e8);
   }
 
   .mm-story__bubble:focus-visible .mm-story__card {
@@ -192,18 +187,6 @@
     backdrop-filter: blur(2px);
   }
 
-  .mm-story__label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-size: 0.875rem;
-  }
-
-  .mm-story__label span {
-    font-size: 0.8125rem;
-    opacity: 0.65;
-  }
-
   .mm-story__dialog {
     width: 100%;
     max-width: none;
@@ -263,45 +246,46 @@
 
   .mm-story__top {
     position: absolute;
-    top: 20px;
-    left: 10px;
-    right: 4px;
-    z-index: 2;
+    top: 18px;
+    left: 14px;
+    right: 6px;
+    z-index: 3;
     display: flex;
     align-items: center;
-    gap: 4px;
-    text-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+    gap: 2px;
+    text-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
   }
 
   .mm-story__who {
-    display: inline-flex;
-    flex: 1;
-    align-items: center;
-    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
     font-size: 0.8125rem;
     font-weight: 600;
-  }
-
-  .mm-story__who img {
-    border-radius: 50%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .mm-story__icon {
     display: grid;
+    flex: 0 0 40px;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
+    margin: 0;
     padding: 0;
     color: #fff;
     background: none;
     border: 0;
+    box-shadow: none;
     cursor: pointer;
   }
 
   .mm-story__icon svg {
-    width: 22px;
-    height: 22px;
-    filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.4));
+    display: block;
+    width: 22px !important;
+    height: 22px !important;
+    filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.45));
   }
 
   .mm-story__unmuted,
@@ -341,7 +325,8 @@
   "tag": null,
   "settings": [
     { "type": "text", "id": "heading", "label": "Título", "default": "Visto en Instagram" },
-    { "type": "text", "id": "label", "label": "Texto de la burbuja", "default": "Mirala puesta" },
+    { "type": "text", "id": "label", "label": "Descripción del video (para lectores de pantalla)", "default": "Ver el video de la prenda puesta" },
+    { "type": "color", "id": "background", "label": "Fondo", "default": "#F9E3E8" },
     { "type": "text", "id": "handle", "label": "Cuenta", "default": "@maramour.ar" },
     { "type": "video", "id": "fallback_video", "label": "Video general (opcional)", "info": "Se usa en los productos que no tienen su propio video en el metacampo «Video historia»." },
     { "type": "url", "id": "instagram_url", "label": "Enlace a Instagram (opcional)" },
