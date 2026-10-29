@@ -27,7 +27,7 @@
         "main_tab_label": "Destacados",
         "link_label": "Ver todo",
         "link_url": "/collections/all",
-        "limit": 8,
+        "limit": 5,
         "image_ratio": "3 / 4",
         "show_second_image": true,
         "show_sale_badge": true

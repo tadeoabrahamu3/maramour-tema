@@ -13,11 +13,11 @@
 -%}
 
 {%- capture placeholder_cards -%}
-  {%- for i in (1..4) -%}
+  {%- for i in (1..5) -%}
     <li class="mm-feat__item">
       <div class="mm-card">
         <div class="mm-card__media">
-          {%- capture ph -%}product-apparel-{% cycle '1', '2', '3', '4' %}{%- endcapture -%}
+          {%- capture ph -%}product-apparel-{% cycle '1', '2', '3', '4', '1' %}{%- endcapture -%}
           {{ ph | placeholder_svg_tag: 'mm-card__img' }}
         </div>
         <p class="mm-card__name">Nombre del producto</p>
@@ -44,63 +44,21 @@
     {%- endif -%}
   </div>
 
-  {%- comment -%} Pestañas: la primera es la colección principal; después, una por bloque {%- endcomment -%}
+  {%- comment -%} Pestañas: la primera es esta sección; las demás llevan a cada categoría {%- endcomment -%}
   {%- if section.blocks.size > 0 -%}
-    <div class="mm-feat__tabs" role="tablist" aria-label="{{ s.heading | escape }}">
-      <button
-        type="button"
-        role="tab"
-        class="mm-feat__tab"
-        id="{{ sid }}-tab-0"
-        aria-controls="{{ sid }}-panel-0"
-        aria-selected="true"
-        data-url="{{ s.link_url | default: routes.all_products_collection_url }}"
-      >
-        {{- s.main_tab_label | default: s.heading | escape -}}
-      </button>
+    <nav class="mm-feat__tabs" aria-label="Categorías">
+      <span class="mm-feat__tab" aria-current="true">{{ s.main_tab_label | default: s.heading | escape }}</span>
       {%- for block in section.blocks -%}
         {%- assign c = block.settings.collection -%}
-        <button
-          type="button"
-          role="tab"
-          class="mm-feat__tab"
-          id="{{ sid }}-tab-{{ forloop.index }}"
-          aria-controls="{{ sid }}-panel-{{ forloop.index }}"
-          aria-selected="false"
-          tabindex="-1"
-          data-url="{{ c.url | default: routes.all_products_collection_url }}"
-          {{ block.shopify_attributes }}
-        >
+        <a class="mm-feat__tab" href="{{ c.url | default: routes.all_products_collection_url }}" {{ block.shopify_attributes }}>
           {{- block.settings.label | default: c.title | default: 'Categoría' | escape -}}
-        </button>
+        </a>
       {%- endfor -%}
-    </div>
+    </nav>
   {%- endif -%}
 
-  {%- comment -%} Paneles {%- endcomment -%}
-  {%- liquid
-    assign panel_count = section.blocks.size | plus: 1
-  -%}
-  {%- for p in (1..panel_count) -%}
-    {%- liquid
-      assign index = forloop.index0
-      if index == 0
-        assign collection = s.collection
-      else
-        assign block_index = index | minus: 1
-        assign collection = section.blocks[block_index].settings.collection
-      endif
-    -%}
-    <div
-      class="mm-feat__panel"
-      id="{{ sid }}-panel-{{ index }}"
-      {% if section.blocks.size > 0 %}
-        role="tabpanel" aria-labelledby="{{ sid }}-tab-{{ index }}"
-      {% endif %}
-      {% if index > 0 %}
-        hidden
-      {% endif %}
-    >
+  {%- assign collection = s.collection -%}
+  <div class="mm-feat__panel">
       <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track>
         {%- if collection != blank and collection.products_count > 0 -%}
           {%- for product in collection.products limit: limit -%}
@@ -159,8 +117,7 @@
           {{ placeholder_cards }}
         {%- endif -%}
       </ul>
-    </div>
-  {%- endfor -%}
+  </div>
 
   <div class="mm-feat__progress" aria-hidden="true">
     <span class="mm-feat__progress-thumb" data-mm-feat-thumb></span>
@@ -171,15 +128,12 @@
   (() => {
     const root = document.currentScript.previousElementSibling;
     if (!root || !root.matches('[data-mm-feat]')) return;
-
-    const tabs = [...root.querySelectorAll('[role="tab"]')];
+    const track = root.querySelector('[data-mm-feat-track]');
     const thumb = root.querySelector('[data-mm-feat-thumb]');
-    const all = root.querySelector('[data-mm-feat-all]');
-    let track = root.querySelector('.mm-feat__panel:not([hidden]) [data-mm-feat-track]');
+    if (!track || !thumb) return;
 
     /* Barra de progreso: el ancho muestra cuánto se ve; la posición, en qué parte del carrusel estás */
     const update = () => {
-      if (!track || !thumb) return;
       const { scrollLeft, scrollWidth, clientWidth } = track;
       const visible = Math.min(1, clientWidth / scrollWidth);
       const max = scrollWidth - clientWidth;
@@ -188,35 +142,8 @@
       thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
     };
 
-    root.querySelectorAll('[data-mm-feat-track]').forEach((t) =>
-      t.addEventListener('scroll', () => t === track && requestAnimationFrame(update), { passive: true })
-    );
+    track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
     window.addEventListener('resize', update, { passive: true });
-
-    const select = (tab) => {
-      tabs.forEach((t) => {
-        const on = t === tab;
-        t.setAttribute('aria-selected', on);
-        t.tabIndex = on ? 0 : -1;
-        root.querySelector('#' + t.getAttribute('aria-controls')).hidden = !on;
-      });
-      track = root.querySelector('#' + tab.getAttribute('aria-controls') + ' [data-mm-feat-track]');
-      track.scrollLeft = 0;
-      if (all && tab.dataset.url) all.href = tab.dataset.url;
-      update();
-    };
-
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => select(tab));
-      tab.addEventListener('keydown', (e) => {
-        const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-        if (!dir) return;
-        const next = tabs[(i + dir + tabs.length) % tabs.length];
-        next.focus();
-        select(next);
-      });
-    });
-
     update();
   })();
 </script>
@@ -292,7 +219,15 @@
     cursor: pointer;
   }
 
-  .mm-feat__tab[aria-selected='true'] {
+  a.mm-feat__tab {
+    text-decoration: none;
+  }
+
+  .mm-feat__tab:hover {
+    opacity: 1;
+  }
+
+  .mm-feat__tab[aria-current='true'] {
     opacity: 1;
     border-bottom-color: currentColor;
   }
@@ -301,7 +236,7 @@
   .mm-feat__track {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: calc((100% - var(--mm-feat-gap)) / 2.2);
+    grid-auto-columns: calc((100% - var(--mm-feat-gap)) / 1.6);
     gap: var(--mm-feat-gap);
     overflow-x: auto;
     overscroll-behavior-x: contain;
@@ -325,11 +260,10 @@
   /* Barra de progreso */
   .mm-feat__progress {
     position: relative;
-    height: 3px;
+    height: 2px;
     margin: 22px var(--page-margin, 16px) 0;
     overflow: hidden;
     background: rgb(var(--color-foreground-rgb) / 0.12);
-    border-radius: 3px;
   }
 
   .mm-feat__progress-thumb {
@@ -338,7 +272,6 @@
     left: 0;
     width: 40%;
     background: var(--color-foreground);
-    border-radius: 3px;
     transition: width 0.2s ease;
     will-change: transform;
   }
@@ -448,8 +381,8 @@
     { "type": "collection", "id": "collection", "label": "Colección principal", "info": "Primera pestaña. Cargá acá los productos a destacar, en el orden en que deben aparecer." },
     { "type": "text", "id": "main_tab_label", "label": "Nombre de la primera pestaña", "default": "Destacados" },
     { "type": "text", "id": "link_label", "label": "Texto del enlace", "default": "Ver todo" },
-    { "type": "url", "id": "link_url", "label": "Enlace de la primera pestaña", "info": "En las demás pestañas, «Ver todo» lleva a esa categoría." },
-    { "type": "range", "id": "limit", "label": "Productos por pestaña", "min": 2, "max": 12, "step": 1, "default": 8 },
+    { "type": "url", "id": "link_url", "label": "Enlace de la primera pestaña", "info": "Las demás pestañas llevan directo a cada categoría." },
+    { "type": "range", "id": "limit", "label": "Cantidad de productos", "min": 2, "max": 12, "step": 1, "default": 5 },
     {
       "type": "select",
       "id": "image_ratio",
