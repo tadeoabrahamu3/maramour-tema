@@ -1,0 +1,236 @@
+{%- doc -%}
+  MARAMOUR — Acordeón de dudas de la página de producto (uno abierto por vez).
+  1. Descripción: la descripción del producto.
+  2. Composición y cuidado: metacampo custom.composicion_cuidado (una línea por dato) + cuidados generales.
+  3. ¿Qué talle soy?: metacampo custom.modelo («La modelo mide…»), tabla de talles
+     (metacampo custom.tabla_talles o la tabla general del bloque) y cómo medirse.
+     Tabla: una fila por línea, columnas separadas con «|»; la primera línea son los títulos.
+  4. Envío, devoluciones y cambios: texto general.
+{%- enddoc -%}
+
+{%- liquid
+  assign bs = block.settings
+  assign product = closest.product
+  assign mf = product.metafields.custom
+  assign composition = mf.composicion_cuidado.value
+  assign model_info = mf.modelo.value
+  assign table_src = mf.tabla_talles.value | default: bs.size_table
+  assign table_rows = table_src | strip | newline_to_br | split: '<br />'
+-%}
+
+<div class="mm-acc" {{ block.shopify_attributes }}>
+  {%- if bs.heading != blank -%}
+    <h2 class="mm-acc__heading">{{ bs.heading | escape }}</h2>
+  {%- endif -%}
+
+  {%- if product.description != blank -%}
+    <details class="mm-acc__item" name="mm-pdp-acc" id="mm-acc-descripcion"{% if bs.open_first %} open{% endif %}>
+      <summary class="mm-acc__q">Descripción{% render 'maramour-acc-icon' %}</summary>
+      <div class="mm-acc__a rte">{{ product.description }}</div>
+    </details>
+  {%- endif -%}
+
+  {%- if composition != blank or bs.care_text != blank -%}
+    <details class="mm-acc__item" name="mm-pdp-acc" id="mm-acc-composicion">
+      <summary class="mm-acc__q">Composición y cuidado{% render 'maramour-acc-icon' %}</summary>
+      <div class="mm-acc__a rte">
+        {%- if composition != blank -%}
+          <ul class="mm-acc__list">
+            {%- assign comp_lines = composition | newline_to_br | split: '<br />' -%}
+            {%- for line in comp_lines -%}
+              {%- assign l = line | strip -%}
+              {%- if l != blank -%}<li>{{ l | escape }}</li>{%- endif -%}
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+        {{ bs.care_text }}
+      </div>
+    </details>
+  {%- endif -%}
+
+  <details class="mm-acc__item" name="mm-pdp-acc" id="mm-acc-talles">
+    <summary class="mm-acc__q">¿Qué talle soy?{% render 'maramour-acc-icon' %}</summary>
+    <div class="mm-acc__a rte">
+      {%- if model_info != blank -%}
+        <p class="mm-acc__model">{{ model_info | escape }}</p>
+      {%- endif -%}
+      {%- if table_rows.size > 1 -%}
+        <div class="mm-acc__table-wrap">
+          <table class="mm-acc__table">
+            {%- for row in table_rows -%}
+              {%- assign cells = row | strip | split: '|' -%}
+              {%- if cells.size > 0 -%}
+                {%- if forloop.first -%}<thead>{%- endif -%}
+                <tr>
+                  {%- for c in cells -%}
+                    {%- if forloop.parentloop.first -%}
+                      <th scope="col">{{ c | strip | escape }}</th>
+                    {%- elsif forloop.first -%}
+                      <th scope="row">{{ c | strip | escape }}</th>
+                    {%- else -%}
+                      <td>{{ c | strip | escape }}</td>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </tr>
+                {%- if forloop.first -%}</thead><tbody>{%- endif -%}
+              {%- endif -%}
+              {%- if forloop.last -%}</tbody>{%- endif -%}
+            {%- endfor -%}
+          </table>
+        </div>
+        {%- if bs.table_note != blank -%}
+          <p class="mm-acc__note">{{ bs.table_note | escape }}</p>
+        {%- endif -%}
+      {%- endif -%}
+      {{ bs.size_text }}
+    </div>
+  </details>
+
+  {%- if bs.shipping_text != blank -%}
+    <details class="mm-acc__item" name="mm-pdp-acc" id="mm-acc-envios">
+      <summary class="mm-acc__q">Envío, devoluciones y cambios{% render 'maramour-acc-icon' %}</summary>
+      <div class="mm-acc__a rte">{{ bs.shipping_text }}</div>
+    </details>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .mm-acc__heading {
+    margin: 0 0 4px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .mm-acc__item {
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+  }
+
+  .mm-acc__item:first-of-type {
+    border-top: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+  }
+
+  .mm-acc__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 54px;
+    padding-block: 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .mm-acc__q::-webkit-details-marker {
+    display: none;
+  }
+
+  .mm-acc__icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  .mm-acc__icon::before,
+  .mm-acc__icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 14px;
+    height: 1.3px;
+    background: currentColor;
+    transition: transform 0.2s ease;
+  }
+
+  .mm-acc__icon::after {
+    transform: rotate(90deg);
+  }
+
+  .mm-acc__item[open] .mm-acc__icon::after {
+    transform: rotate(0deg);
+  }
+
+  .mm-acc__a {
+    padding: 0 0 20px;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: rgb(var(--color-foreground-rgb) / 0.78);
+  }
+
+  .mm-acc__a > :first-child {
+    margin-top: 0;
+  }
+
+  .mm-acc__a > :last-child {
+    margin-bottom: 0;
+  }
+
+  .mm-acc__list {
+    margin: 0 0 12px;
+    padding-inline-start: 18px;
+  }
+
+  .mm-acc__model {
+    padding: 10px 12px;
+    background: #f7f5f3;
+    color: var(--color-foreground);
+  }
+
+  .mm-acc__table-wrap {
+    overflow-x: auto;
+    margin: 4px 0 8px;
+  }
+
+  .mm-acc__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .mm-acc__table th,
+  .mm-acc__table td {
+    padding: 9px 8px;
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / 0.1);
+  }
+
+  .mm-acc__table thead th {
+    font-weight: 600;
+    color: var(--color-foreground);
+    background: #f7f5f3;
+  }
+
+  .mm-acc__table tbody th {
+    font-weight: 600;
+    color: var(--color-foreground);
+  }
+
+  .mm-acc__note {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Acordeón de dudas",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título (opcional)" },
+    { "type": "checkbox", "id": "open_first", "label": "Descripción abierta al entrar", "default": false },
+    { "type": "header", "content": "Composición y cuidado" },
+    { "type": "richtext", "id": "care_text", "label": "Cuidados generales", "info": "Se muestra en todos los productos, debajo de la composición de cada prenda (metacampo «Composición y cuidado»).", "default": "<p>Lavar a mano con agua fría y jabón neutro. No retorcer ni centrifugar. Secar en plano, a la sombra. No usar secadora. Planchar con paño, si es necesario. Guardar doblada, no colgada.</p>" },
+    { "type": "header", "content": "¿Qué talle soy?" },
+    { "type": "textarea", "id": "size_table", "label": "Tabla de talles general", "info": "Una fila por línea y columnas separadas con «|». La primera línea son los títulos. Cada producto puede tener la suya en el metacampo «Tabla de talles».", "default": "Talle | Busto (cm) | Largo (cm) | Manga (cm)\nXS | – | – | –\nS | – | – | –\nM | – | – | –\nL | – | – | –\nXL | – | – | –\nXXL | – | – | –" },
+    { "type": "text", "id": "table_note", "label": "Nota de la tabla", "default": "Medidas de la prenda en plano, aproximadas (±2 cm)." },
+    { "type": "richtext", "id": "size_text", "label": "Cómo elegir el talle", "default": "<p>Nuestros talles son reales: elegí tu talle habitual. Si estás entre dos, te recomendamos el más grande. ¿Dudas? Escribinos por WhatsApp y te asesoramos.</p>" },
+    { "type": "header", "content": "Envío, devoluciones y cambios" },
+    { "type": "richtext", "id": "shipping_text", "label": "Texto", "default": "<p>Envíos a todo el país en 1 a 6 días hábiles. Envío gratis desde $100.000.</p><p>Tenés 10 días desde que recibís tu compra para cambiarla o devolverla, sin uso y con etiqueta. <a href=\"/pages/politica-de-cambios\">Ver política de cambios</a>.</p>" }
+  ],
+  "presets": [{ "name": "Acordeón de dudas" }]
+}
+{% endschema %}

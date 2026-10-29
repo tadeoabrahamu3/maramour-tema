@@ -1,0 +1,121 @@
+{%- doc -%}
+  MARAMOUR — «También te puede gustar» en la página de producto.
+  Usa las recomendaciones de Shopify (productos relacionados) con la misma tarjeta y carrusel de
+  la Home. Rendimiento: se piden al servidor recién cuando la clienta se acerca a esta parte de la
+  página (no suma nada a la carga inicial).
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign product_id = product.id | default: closest.product.id
+-%}
+
+<div
+  class="mm-feat mm-recs"
+  data-mm-recs
+  data-url="{{ routes.product_recommendations_url }}?product_id={{ product_id }}&limit={{ s.limit }}&section_id={{ section.id }}&intent=related"
+  style="--mm-feat-ratio: {{ s.image_ratio }}; --mm-card-ratio: {{ s.image_ratio }};"
+>
+  {%- if recommendations.performed and recommendations.products_count > 0 -%}
+    <div class="mm-feat__head">
+      <h2 class="mm-feat__title">{{ s.heading | escape }}</h2>
+    </div>
+    <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track>
+      {%- for rec in recommendations.products -%}
+        <li class="mm-feat__item">
+          {%- render 'maramour-product-card',
+            product: rec,
+            show_second_image: true,
+            show_sale_badge: true,
+            sizes: '(min-width: 990px) 22vw, 60vw'
+          -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+    <div class="mm-feat__progress" aria-hidden="true">
+      <span class="mm-feat__progress-thumb" data-mm-feat-thumb></span>
+    </div>
+  {%- endif -%}
+</div>
+
+<script>
+  (() => {
+    const root = document.currentScript.previousElementSibling;
+    if (!root || !root.matches('[data-mm-recs]')) return;
+
+    const initBar = (el) => {
+      const track = el.querySelector('[data-mm-feat-track]');
+      const thumb = el.querySelector('[data-mm-feat-thumb]');
+      if (!track || !thumb) return;
+      const update = () => {
+        const { scrollLeft, scrollWidth, clientWidth } = track;
+        const visible = Math.min(1, clientWidth / scrollWidth);
+        const max = scrollWidth - clientWidth;
+        const progress = max > 0 ? scrollLeft / max : 0;
+        thumb.style.width = `${visible * 100}%`;
+        thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
+      };
+      track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      update();
+    };
+
+    if (root.querySelector('[data-mm-feat-track]')) return initBar(root);
+
+    const load = () =>
+      fetch(root.dataset.url)
+        .then((r) => r.text())
+        .then((text) => {
+          const html = new DOMParser().parseFromString(text, 'text/html');
+          const fresh = html.querySelector('[data-mm-recs]');
+          if (!fresh || !fresh.querySelector('[data-mm-feat-track]')) return root.remove();
+          root.innerHTML = fresh.innerHTML;
+          initBar(root);
+        })
+        .catch(() => {});
+
+    if (!('IntersectionObserver' in window)) return load();
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          load();
+        }
+      },
+      { rootMargin: '600px 0px' }
+    );
+    io.observe(root);
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-recs:empty {
+    min-height: 1px;
+    padding: 0;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "También te puede gustar",
+  "tag": "section",
+  "class": "section-wrapper",
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título", "default": "También te puede gustar" },
+    { "type": "range", "id": "limit", "label": "Cantidad de productos", "min": 2, "max": 10, "step": 1, "default": 8 },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Proporción de la foto",
+      "options": [
+        { "value": "2 / 3", "label": "2:3" },
+        { "value": "3 / 4", "label": "3:4" },
+        { "value": "4 / 5", "label": "4:5" }
+      ],
+      "default": "2 / 3"
+    }
+  ],
+  "presets": [{ "name": "También te puede gustar" }]
+}
+{% endschema %}

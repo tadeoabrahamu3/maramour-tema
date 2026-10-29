@@ -1,0 +1,53 @@
+{%- doc -%}
+  MARAMOUR — Enlaces debajo de los talles:
+  «Tabla de talles» abre el apartado de talles del acordeón (mismo contenido, un solo lugar).
+  «¿Qué talle soy?» abre WhatsApp con un mensaje ya escrito con el nombre de la prenda.
+{%- enddoc -%}
+
+{%- liquid
+  assign bs = block.settings
+  assign product = closest.product
+  capture wa_text
+    echo 'Hola! Quiero saber qué talle me conviene en '
+    echo product.title
+  endcapture
+-%}
+
+<script src="{{ 'maramour-product.js' | asset_url }}" type="module"></script>
+
+<div class="mm-size-help" {{ block.shopify_attributes }}>
+  <a href="#mm-acc-talles" data-mm-open="mm-acc-talles">{{ bs.table_label | escape }}</a>
+  {%- if bs.whatsapp_url != blank -%}
+    <a href="{{ bs.whatsapp_url }}?text={{ wa_text | url_encode }}" target="_blank" rel="noopener">{{ bs.help_label | escape }}</a>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .mm-size-help {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: -4px;
+    font-size: 0.8125rem;
+  }
+
+  .mm-size-help a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgb(var(--color-foreground-rgb) / 0.35);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Ayuda con el talle",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "table_label", "label": "Texto «Tabla de talles»", "default": "Tabla de talles" },
+    { "type": "text", "id": "help_label", "label": "Texto de ayuda", "default": "¿Qué talle soy?" },
+    { "type": "text", "id": "whatsapp_url", "label": "Enlace de WhatsApp", "info": "Formato https://wa.me/549…", "default": "https://wa.me/5492236685697" }
+  ],
+  "presets": [{ "name": "Ayuda con el talle" }]
+}
+{% endschema %}

@@ -1,0 +1,77 @@
+{%- doc -%}
+  MARAMOUR — Debajo del precio: «3 cuotas sin interés de $X» y «$Y con transferencia».
+  Se calcula con el precio de la variante elegida (se actualiza al cambiar color o talle) y se
+  redondea a pesos enteros.
+{%- enddoc -%}
+
+{%- liquid
+  assign bs = block.settings
+  assign variant = closest.product.selected_or_first_available_variant
+  assign price = variant.price
+  assign n = bs.installments | default: 3
+  assign cuota = price | divided_by: n | divided_by: 100 | times: 100
+  assign pct = 100 | minus: bs.transfer_discount
+  assign transfer = price | times: pct | divided_by: 10000 | times: 100
+-%}
+
+<script src="{{ 'maramour-product.js' | asset_url }}" type="module"></script>
+
+<mm-variant-sync class="mm-price-extras" data-mm-sync="price-extras-{{ block.id }}" {{ block.shopify_attributes }}>
+  {%- if bs.show_installments and n > 1 -%}
+    <p class="mm-price-extras__line">
+      <strong>{{ n }} cuotas sin interés</strong> de {{ cuota | money_without_trailing_zeros }}
+    </p>
+  {%- endif -%}
+  {%- if bs.show_transfer and bs.transfer_discount > 0 -%}
+    <p class="mm-price-extras__line">
+      <strong>{{ transfer | money_without_trailing_zeros }}</strong> con transferencia
+      <span class="mm-price-extras__tag">{{ bs.transfer_discount }}% OFF</span>
+    </p>
+  {%- endif -%}
+</mm-variant-sync>
+
+{% stylesheet %}
+  .mm-price-extras {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+  }
+
+  .mm-price-extras__line {
+    margin: 0;
+  }
+
+  .mm-price-extras__line strong {
+    font-weight: 600;
+    color: var(--color-foreground);
+  }
+
+  .mm-price-extras__tag {
+    display: inline-block;
+    margin-inline-start: 6px;
+    padding: 2px 6px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #8f2f50;
+    background: #f9e3e8;
+    vertical-align: 1px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Cuotas y transferencia",
+  "tag": null,
+  "settings": [
+    { "type": "checkbox", "id": "show_installments", "label": "Mostrar cuotas sin interés", "default": true },
+    { "type": "range", "id": "installments", "label": "Cantidad de cuotas", "min": 2, "max": 12, "step": 1, "default": 3 },
+    { "type": "checkbox", "id": "show_transfer", "label": "Mostrar precio con transferencia", "default": true },
+    { "type": "range", "id": "transfer_discount", "label": "Descuento por transferencia", "min": 0, "max": 30, "step": 1, "unit": "%", "default": 10 }
+  ],
+  "presets": [{ "name": "Cuotas y transferencia" }]
+}
+{% endschema %}

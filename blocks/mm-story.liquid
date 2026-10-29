@@ -1,0 +1,349 @@
+{%- doc -%}
+  MARAMOUR — «Visto en Instagram»: video vertical del producto con formato de historia.
+  Video: metacampo del producto custom.video_historia (archivo de video). Si el producto no tiene,
+  se usa el video general del bloque; si tampoco hay, el bloque no se muestra.
+  Rendimiento: en la página solo se carga la miniatura. El video se inserta y descarga recién
+  cuando la clienta toca la burbuja.
+{%- enddoc -%}
+
+{%- liquid
+  assign bs = block.settings
+  assign product = closest.product
+  assign video = product.metafields.custom.video_historia.value | default: bs.fallback_video
+  assign poster = video.preview_image
+  assign uid = 'mm-story-' | append: block.id
+-%}
+
+{%- if video != blank -%}
+  <div class="mm-story" data-mm-story {{ block.shopify_attributes }}>
+    {%- if bs.heading != blank -%}
+      <p class="mm-story__heading">{{ bs.heading | escape }}</p>
+    {%- endif -%}
+
+    <button type="button" class="mm-story__bubble" data-mm-story-open aria-haspopup="dialog" aria-controls="{{ uid }}">
+      <span class="mm-story__ring">
+        {%- if poster -%}
+          {{ poster | image_url: width: 200, height: 200, crop: 'center' | image_tag: loading: 'lazy', alt: '', class: 'mm-story__thumb', width: 72, height: 72 }}
+        {%- endif -%}
+        <span class="mm-story__play" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M7 5.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L7.9 4.7a.6.6 0 0 0-.9.5Z"/></svg>
+        </span>
+      </span>
+      <span class="mm-story__label">
+        <strong>{{ bs.label | escape }}</strong>
+        {%- if bs.handle != blank -%}<span>{{ bs.handle | escape }}</span>{%- endif -%}
+      </span>
+    </button>
+
+    <dialog class="mm-story__dialog" id="{{ uid }}" aria-label="{{ bs.label | escape }}">
+      <div class="mm-story__frame">
+        <div class="mm-story__bar" aria-hidden="true"><span data-mm-story-progress></span></div>
+        <div class="mm-story__top">
+          <span class="mm-story__who">
+            {%- if poster -%}{{ poster | image_url: width: 64, height: 64, crop: 'center' | image_tag: loading: 'lazy', alt: '', width: 28, height: 28 }}{%- endif -%}
+            {{ bs.handle | default: shop.name | escape }}
+          </span>
+          <button type="button" class="mm-story__icon" data-mm-story-mute aria-label="Activar sonido" aria-pressed="false">
+            <svg class="mm-story__muted" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 7.5h3l4-3.5v12l-4-3.5h-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="m13.5 8 4 4m0-4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <svg class="mm-story__unmuted" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 7.5h3l4-3.5v12l-4-3.5h-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M13.5 7.2a4 4 0 0 1 0 5.6M15.6 5a7 7 0 0 1 0 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="mm-story__icon" data-mm-story-close aria-label="Cerrar">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 4l12 12M16 4 4 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+          </button>
+        </div>
+        <div class="mm-story__media" data-mm-story-media></div>
+        {%- if bs.instagram_url != blank -%}
+          <a class="mm-story__cta" href="{{ bs.instagram_url }}" target="_blank" rel="noopener">{{ bs.cta_label | escape }}</a>
+        {%- endif -%}
+      </div>
+    </dialog>
+
+    <template data-mm-story-template>
+      {{ video | video_tag: autoplay: false, loop: false, muted: true, controls: false, playsinline: true, preload: 'auto', class: 'mm-story__video' }}
+    </template>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.currentScript.previousElementSibling;
+      if (!root || !root.matches('[data-mm-story]') || root.dataset.ready) return;
+      root.dataset.ready = '1';
+      const dialog = root.querySelector('dialog');
+      const holder = root.querySelector('[data-mm-story-media]');
+      const tpl = root.querySelector('[data-mm-story-template]');
+      const bar = root.querySelector('[data-mm-story-progress]');
+      const muteBtn = root.querySelector('[data-mm-story-mute]');
+      let video = null;
+      let raf = 0;
+
+      const tick = () => {
+        if (video && video.duration) bar.style.transform = `scaleX(${video.currentTime / video.duration})`;
+        raf = requestAnimationFrame(tick);
+      };
+
+      const open = () => {
+        if (!video) {
+          holder.appendChild(tpl.content.cloneNode(true));
+          video = holder.querySelector('video');
+          video.addEventListener('ended', close);
+          video.addEventListener('click', () => (video.paused ? video.play() : video.pause()));
+        }
+        dialog.showModal();
+        document.documentElement.style.overflow = 'hidden';
+        video.currentTime = 0;
+        video.play().catch(() => {});
+        cancelAnimationFrame(raf);
+        tick();
+      };
+
+      const close = () => {
+        if (video) video.pause();
+        cancelAnimationFrame(raf);
+        if (dialog.open) dialog.close();
+      };
+
+      root.querySelector('[data-mm-story-open]').addEventListener('click', open);
+      root.querySelector('[data-mm-story-close]').addEventListener('click', close);
+      dialog.addEventListener('close', () => {
+        document.documentElement.style.overflow = '';
+        if (video) video.pause();
+        cancelAnimationFrame(raf);
+      });
+      dialog.addEventListener('click', (e) => { if (e.target === dialog) close(); });
+      muteBtn.addEventListener('click', () => {
+        if (!video) return;
+        video.muted = !video.muted;
+        muteBtn.setAttribute('aria-pressed', String(!video.muted));
+        muteBtn.setAttribute('aria-label', video.muted ? 'Activar sonido' : 'Silenciar');
+      });
+    })();
+  </script>
+{%- elsif request.design_mode -%}
+  <p class="mm-story__empty" {{ block.shopify_attributes }}>
+    Video historia: cargá un video en el metacampo «Video historia» del producto (o un video general en este bloque).
+  </p>
+{%- endif -%}
+
+{% stylesheet %}
+  .mm-story {
+    padding: 16px;
+    background: #f7f5f3;
+  }
+
+  .mm-story__heading {
+    margin: 0 0 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mm-story__bubble {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mm-story__ring {
+    position: relative;
+    flex-shrink: 0;
+    width: 78px;
+    height: 78px;
+    padding: 3px;
+    border-radius: 50%;
+    background: conic-gradient(from 200deg, #f9ce34, #ee2a7b, #6228d7, #f9ce34);
+  }
+
+  .mm-story__thumb {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 3px solid #f7f5f3;
+    border-radius: 50%;
+  }
+
+  .mm-story__play {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    color: #fff;
+    background: #111;
+    border: 2px solid #f7f5f3;
+    border-radius: 50%;
+  }
+
+  .mm-story__play svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .mm-story__label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.875rem;
+  }
+
+  .mm-story__label span {
+    font-size: 0.8125rem;
+    opacity: 0.65;
+  }
+
+  .mm-story__dialog {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    background: transparent;
+    border: 0;
+  }
+
+  .mm-story__dialog::backdrop {
+    background: rgb(0 0 0 / 0.92);
+  }
+
+  .mm-story__frame {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: min(100%, calc(100dvh * 9 / 16));
+    height: 100dvh;
+    margin-inline: auto;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .mm-story__media,
+  .mm-story__media video {
+    width: 100%;
+    height: 100%;
+  }
+
+  .mm-story__media video {
+    object-fit: cover;
+  }
+
+  .mm-story__bar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 2;
+    height: 2px;
+    overflow: hidden;
+    background: rgb(255 255 255 / 0.35);
+  }
+
+  .mm-story__bar span {
+    display: block;
+    height: 100%;
+    background: #fff;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .mm-story__top {
+    position: absolute;
+    top: 20px;
+    left: 10px;
+    right: 4px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  }
+
+  .mm-story__who {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .mm-story__who img {
+    border-radius: 50%;
+  }
+
+  .mm-story__icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: #fff;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mm-story__icon svg {
+    width: 22px;
+    height: 22px;
+    filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.4));
+  }
+
+  .mm-story__unmuted,
+  [aria-pressed='true'] .mm-story__muted {
+    display: none;
+  }
+
+  [aria-pressed='true'] .mm-story__unmuted {
+    display: block;
+  }
+
+  .mm-story__cta {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    z-index: 2;
+    padding: 10px 18px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #111;
+    text-decoration: none;
+    background: #fff;
+    border-radius: 999px;
+    transform: translateX(-50%);
+  }
+
+  .mm-story__empty {
+    padding: 12px;
+    font-size: 0.8125rem;
+    background: #f7f5f3;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Video historia",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título", "default": "Visto en Instagram" },
+    { "type": "text", "id": "label", "label": "Texto de la burbuja", "default": "Mirala puesta" },
+    { "type": "text", "id": "handle", "label": "Cuenta", "default": "@maramour.ar" },
+    { "type": "video", "id": "fallback_video", "label": "Video general (opcional)", "info": "Se usa en los productos que no tienen su propio video en el metacampo «Video historia»." },
+    { "type": "url", "id": "instagram_url", "label": "Enlace a Instagram (opcional)" },
+    { "type": "text", "id": "cta_label", "label": "Texto del enlace", "default": "Ver en Instagram" }
+  ],
+  "presets": [{ "name": "Video historia" }]
+}
+{% endschema %}

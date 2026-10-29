@@ -1,0 +1,213 @@
+{%- doc -%}
+  MARAMOUR — Debajo del botón de compra:
+  - Con stock: «En stock» o, si quedan pocas, «¡Últimas N unidades!» + envío gratis.
+  - Sin stock (talle/color agotado): formulario «Avisame cuando vuelva». Usa el formulario de
+    contacto nativo de Shopify: el pedido llega al mail de la tienda con el producto y la variante
+    (sin apps ni scripts externos).
+  Se actualiza al cambiar de variante (mm-variant-sync).
+{%- enddoc -%}
+
+{%- liquid
+  assign bs = block.settings
+  assign product = closest.product
+  assign variant = product.selected_or_first_available_variant
+  if request.page_type == 'product' and product.selected_variant
+    assign variant = product.selected_variant
+  endif
+  assign qty = variant.inventory_quantity
+  assign tracked = false
+  if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny'
+    assign tracked = true
+  endif
+  assign return_url = product.url | append: '?variant=' | append: variant.id | append: '#mm-stock-' | append: block.id
+-%}
+
+<script src="{{ 'maramour-product.js' | asset_url }}" type="module"></script>
+
+<mm-variant-sync class="mm-stock" id="mm-stock-{{ block.id }}" data-mm-sync="stock-{{ block.id }}" {{ block.shopify_attributes }}>
+  {%- if variant.available -%}
+    <div class="mm-stock__row">
+      {%- if tracked and qty > 0 and qty <= bs.low_stock_threshold -%}
+        <p class="mm-stock__status mm-stock__status--low">
+          <span class="mm-stock__dot" aria-hidden="true"></span>
+          {%- if qty == 1 -%}¡Última unidad!{%- else -%}¡Últimas {{ qty }} unidades!{%- endif -%}
+        </p>
+      {%- else -%}
+        <p class="mm-stock__status">
+          <span class="mm-stock__dot" aria-hidden="true"></span>
+          {{ bs.in_stock_text | escape }}
+        </p>
+      {%- endif -%}
+      {%- if bs.shipping_text != blank -%}
+        <p class="mm-stock__shipping">
+          <span class="mm-stock__flag" aria-hidden="true">🇦🇷</span>
+          <span class="mm-stock__sep" aria-hidden="true">|</span>
+          {{ bs.shipping_text | escape }}
+        </p>
+      {%- endif -%}
+    </div>
+  {%- else -%}
+    <div class="mm-stock__notify">
+      {%- form 'contact', return_to: return_url, class: 'mm-stock__form' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="mm-stock__done" role="status">
+            ¡Listo! Te vamos a escribir apenas vuelva a entrar en stock.
+          </p>
+        {%- else -%}
+          <p class="mm-stock__title">{{ bs.notify_title | escape }}</p>
+          <p class="mm-stock__hint">{{ bs.notify_text | escape }}</p>
+          <input type="hidden" name="contact[Motivo]" value="Aviso de stock">
+          <input type="hidden" name="contact[Producto]" value="{{ product.title | escape }}">
+          <input type="hidden" name="contact[Variante]" value="{{ variant.title | escape }}{% if variant.sku != blank %} (SKU {{ variant.sku | escape }}){% endif %}">
+          <input type="hidden" name="contact[body]" value="Avisar cuando vuelva a entrar en stock: {{ product.title | escape }} — {{ variant.title | escape }}">
+          <div class="mm-stock__field">
+            <label class="visually-hidden" for="mm-stock-email-{{ block.id }}">Tu email</label>
+            <input
+              id="mm-stock-email-{{ block.id }}"
+              type="email"
+              name="contact[email]"
+              placeholder="Tu email"
+              autocomplete="email"
+              required
+            >
+            <button type="submit">Avisame</button>
+          </div>
+          {%- if form.errors -%}
+            <p class="mm-stock__error" role="alert">Revisá el email e intentá de nuevo.</p>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  {%- endif -%}
+</mm-variant-sync>
+
+{% stylesheet %}
+  .mm-stock {
+    display: block;
+    font-size: 0.8125rem;
+  }
+
+  .mm-stock__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 16px;
+  }
+
+  .mm-stock__status,
+  .mm-stock__shipping {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+  }
+
+  .mm-stock__status {
+    color: #2e7d4f;
+  }
+
+  .mm-stock__status--low {
+    color: #b4531a;
+    font-weight: 600;
+  }
+
+  .mm-stock__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .mm-stock__status--low .mm-stock__dot {
+    animation: mm-stock-pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes mm-stock-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mm-stock__status--low .mm-stock__dot {
+      animation: none;
+    }
+  }
+
+  .mm-stock__sep {
+    opacity: 0.35;
+  }
+
+  .mm-stock__notify {
+    padding: 16px;
+    background: #f7f5f3;
+  }
+
+  .mm-stock__title {
+    margin: 0 0 2px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .mm-stock__hint {
+    margin: 0 0 12px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  .mm-stock__field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .mm-stock__field input {
+    min-width: 0;
+    height: 46px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 1rem;
+    color: inherit;
+    background: #fff;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.2);
+    border-radius: 6px;
+  }
+
+  .mm-stock__field button {
+    height: 46px;
+    padding: 0 18px;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    background: #111;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .mm-stock__done {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .mm-stock__error {
+    margin: 8px 0 0;
+    color: #b3261e;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Stock y envío",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "in_stock_text", "label": "Texto con stock", "default": "En stock" },
+    { "type": "range", "id": "low_stock_threshold", "label": "Mostrar «Últimas unidades» con", "min": 1, "max": 10, "step": 1, "unit": "u.", "default": 3, "info": "Se muestra cuando quedan esta cantidad o menos." },
+    { "type": "text", "id": "shipping_text", "label": "Texto de envío", "default": "Envío gratis desde $100.000" },
+    { "type": "header", "content": "Sin stock" },
+    { "type": "text", "id": "notify_title", "label": "Título", "default": "Este talle está agotado" },
+    { "type": "text", "id": "notify_text", "label": "Texto", "default": "Dejanos tu email y te avisamos cuando vuelva." }
+  ],
+  "presets": [{ "name": "Stock y envío" }]
+}
+{% endschema %}
