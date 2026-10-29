@@ -131,6 +131,34 @@
   else
     assign sorted_media = selected_product.media
   endif
+
+  # MARAMOUR — Varias fotos por color: una foto pertenece a un color si su texto alternativo
+  # EMPIEZA con el nombre del color (ej. «Gris taupe - Campera…, frente»). Con «ocultar medios de
+  # variantes no seleccionadas» activo, se muestran solo las fotos del color elegido + las fotos
+  # sin color en el texto alternativo (compartidas, ej. guía de talles).
+  assign mm_color_opt = selected_product.options_with_values | where: 'name', 'Color' | first
+  if block_settings.hide_variants and mm_color_opt
+    assign mm_selected = mm_color_opt.selected_value | downcase | strip
+    assign mm_filtered = '' | split: ','
+    for media in sorted_media
+      assign mm_alt = media.alt | downcase | strip
+      assign mm_owner = ''
+      for mm_value in mm_color_opt.values
+        assign mm_v = mm_value | downcase | strip
+        assign mm_prefix = mm_alt | slice: 0, mm_v.size
+        if mm_prefix == mm_v and mm_v.size > mm_owner.size
+          assign mm_owner = mm_v
+        endif
+      endfor
+      if mm_owner == '' or mm_owner == mm_selected
+        assign mm_one = selected_product.media | where: 'id', media.id
+        assign mm_filtered = mm_filtered | concat: mm_one
+      endif
+    endfor
+    if mm_filtered.size > 0
+      assign sorted_media = mm_filtered
+    endif
+  endif
   assign has_image_drop = sorted_media | has: 'media_type', 'image'
 
   # Determine if we're in single column mode (carousel or grid with one column)
