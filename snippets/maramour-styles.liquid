@@ -5,49 +5,5 @@
 {%- enddoc -%}
 
 {% stylesheet %}
-  /* ---------- Footer ---------- */
-
-  /* Redes alineadas a la izquierda, con área táctil de 44 px */
-  .footer-content .social-icons__wrapper {
-    justify-content: flex-start;
-    gap: var(--gap-xs);
-    margin-inline-start: -10px;
-  }
-
-  .footer-content .social-icons__icon-wrapper,
-  .footer-content .social-icons__icon-wrapper:has(.social-icons__icon path) {
-    width: 44px;
-    height: 44px;
-  }
-
-  .footer-content .social-icons__icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  /* Acordeones: título en mayúsculas con aire entre letras, enlaces más chicos */
-  .footer-content .menu__heading {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .footer-content .menu__item {
-    font-size: 0.875rem;
-  }
-
-  /* En escritorio, los tres menús quedan en columnas con separación */
-  @media screen and (min-width: 750px) {
-    .footer-content .layout-panel-flex--row:has(.menu--accordion) {
-      gap: 48px;
-    }
-  }
-
-  /* Botón de arrepentimiento: siempre visible (Res. SCI 424/2020) */
-  .footer-content a[href='/pages/boton-de-arrepentimiento'] {
-    font-size: 0.8125rem;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
+  /* (El footer tiene sus estilos en sections/maramour-footer.liquid) */
 {% endstylesheet %}

@@ -1,0 +1,34 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "maramour-contact",
+      "settings": {
+        "heading": "Botón de arrepentimiento",
+        "intro": "",
+        "show_page_content": true,
+        "form_type": "Arrepentimiento",
+        "show_reason": false,
+        "reasons": "",
+        "show_order": true,
+        "show_phone": false,
+        "message_label": "Comentario (opcional)",
+        "message_placeholder": "Si querés, contanos el motivo",
+        "message_required": false,
+        "button_label": "Enviar solicitud",
+        "success_message": "Recibimos tu solicitud. Dentro de las 24 horas te enviamos por mail el código de identificación."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

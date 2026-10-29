@@ -1,0 +1,500 @@
+{%- doc -%}
+  MARAMOUR — Footer.
+  Newsletter (formulario nativo de Shopify) → marca, descripción y redes → menús en
+  acordeón (en computadora quedan abiertos en columnas) → copyright.
+  Sin apps ni librerías: solo HTML, CSS y unas líneas de JS para abrir las columnas en pantallas grandes.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign menus = 'menu_1,menu_2,menu_3,menu_4' | split: ','
+-%}
+
+<footer class="mm-footer" style="--mm-news-bg: {{ s.newsletter_bg }}; --mm-news-fg: {{ s.newsletter_fg }};">
+  {%- comment -%} Newsletter {%- endcomment -%}
+  <div class="mm-footer__news">
+    <div class="mm-footer__wrap mm-footer__news-inner">
+      <div class="mm-footer__news-copy">
+        {%- if s.newsletter_heading != blank -%}
+          <h2 class="mm-footer__news-title">{{ s.newsletter_heading | escape }}</h2>
+        {%- endif -%}
+        {%- if s.newsletter_text != blank -%}
+          <p class="mm-footer__news-text">{{ s.newsletter_text | escape }}</p>
+        {%- endif -%}
+      </div>
+
+      {%- form 'customer', id: 'MaramourNewsletter', class: 'mm-footer__news-form' -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        {%- if form.posted_successfully? -%}
+          <p class="mm-footer__news-msg" role="status" tabindex="-1" autofocus>{{ s.newsletter_success | escape }}</p>
+        {%- else -%}
+          <div class="mm-footer__news-row">
+            <label class="visually-hidden" for="MaramourNewsletter-email">Tu email</label>
+            <input
+              id="MaramourNewsletter-email"
+              class="mm-footer__news-input"
+              type="email"
+              name="contact[email]"
+              autocomplete="email"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="Tu email"
+              required
+              {% if form.errors %}
+                aria-invalid="true" aria-describedby="MaramourNewsletter-error"
+              {% endif %}
+            >
+            <button class="mm-footer__news-button" type="submit">{{ s.newsletter_button | escape }}</button>
+          </div>
+          {%- if form.errors -%}
+            <p id="MaramourNewsletter-error" class="mm-footer__news-msg mm-footer__news-msg--error" role="alert">
+              Revisá tu email e intentá de nuevo.
+            </p>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  </div>
+
+  <div class="mm-footer__wrap mm-footer__main">
+    {%- comment -%} Marca {%- endcomment -%}
+    <div class="mm-footer__brand">
+      <a class="mm-footer__logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }} — inicio">
+        {%- if s.logo != blank -%}
+          {{ s.logo | image_url: width: 480 | image_tag: loading: 'lazy', widths: '160, 240, 320, 480', sizes: '160px', alt: shop.name, style: 'width: 160px; height: auto;' }}
+        {%- else -%}
+          <span class="mm-footer__wordmark">{{ shop.name | upcase }}</span>
+        {%- endif -%}
+      </a>
+
+      {%- if s.description != blank -%}
+        <div class="mm-footer__desc">{{ s.description }}</div>
+      {%- endif -%}
+
+      {%- if s.email != blank -%}
+        <a class="mm-footer__email" href="mailto:{{ s.email }}">{{ s.email }}</a>
+      {%- endif -%}
+
+      {%- if s.facebook_url != blank or s.instagram_url != blank or s.whatsapp_url != blank -%}
+        <ul class="mm-footer__social list-unstyled" role="list">
+          {%- if s.facebook_url != blank -%}
+            <li>
+              <a href="{{ s.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook de {{ shop.name | escape }}">
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" fill="currentColor">{%- render 'icon', icon: 'facebook' -%}</svg>
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if s.instagram_url != blank -%}
+            <li>
+              <a href="{{ s.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram de {{ shop.name | escape }}">
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" fill="currentColor">{%- render 'icon', icon: 'instagram' -%}</svg>
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if s.whatsapp_url != blank -%}
+            <li>
+              <a href="{{ s.whatsapp_url }}" target="_blank" rel="noopener" aria-label="WhatsApp de {{ shop.name | escape }}">
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" fill="currentColor">{%- render 'icon', icon: 'whatsapp' -%}</svg>
+              </a>
+            </li>
+          {%- endif -%}
+        </ul>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} Menús en acordeón {%- endcomment -%}
+    <div class="mm-footer__menus">
+      {%- for key in menus -%}
+        {%- liquid
+          assign menu = s[key]
+          assign heading_key = key | append: '_heading'
+          assign heading = s[heading_key] | default: menu.title
+        -%}
+        {%- if menu != blank and menu.links.size > 0 -%}
+          <details class="mm-footer__menu" data-mm-footer-menu>
+            <summary class="mm-footer__menu-title">
+              <span>{{ heading | escape }}</span>
+              <span class="mm-footer__plus" aria-hidden="true"></span>
+            </summary>
+            <ul class="mm-footer__links list-unstyled" role="list">
+              {%- for link in menu.links -%}
+                <li>
+                  <a
+                    href="{{ link.url }}"
+                    {% if link.url contains 'http' %}
+                      {% unless link.url contains shop.domain %}
+                        target="_blank" rel="noopener"
+                      {% endunless %}
+                    {% endif %}
+                    {% if link.current %}
+                      aria-current="page"
+                    {% endif %}
+                  >
+                    {{- link.title | escape -}}
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </details>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+
+  <div class="mm-footer__wrap mm-footer__bottom">
+    <p>© {{ 'now' | date: '%Y' }} {{ shop.name | escape }}</p>
+    {%- if s.bottom_menu != blank -%}
+      <ul class="mm-footer__legal list-unstyled" role="list">
+        {%- for link in s.bottom_menu.links -%}
+          <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</footer>
+
+<script>
+  /* En pantallas grandes los menús quedan abiertos como columnas; en el celular, cerrados en acordeón. */
+  (() => {
+    const mq = window.matchMedia('(min-width: 990px)');
+    const sync = () =>
+      document.querySelectorAll('[data-mm-footer-menu]').forEach((d) => {
+        d.open = mq.matches;
+      });
+    sync();
+    mq.addEventListener('change', sync);
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-footer {
+    --mm-footer-line: rgb(var(--color-foreground-rgb) / 0.14);
+
+    color: var(--color-foreground);
+    background: var(--color-background);
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+
+  .mm-footer__wrap {
+    width: 100%;
+    max-width: var(--page-width, 1400px);
+    margin-inline: auto;
+    padding-inline: var(--page-margin, 20px);
+  }
+
+  /* ---- Newsletter ---- */
+  .mm-footer__news {
+    color: var(--mm-news-fg);
+    background: var(--mm-news-bg);
+  }
+
+  .mm-footer__news-inner {
+    display: grid;
+    gap: 18px;
+    padding-block: 32px;
+  }
+
+  .mm-footer__news-title {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .mm-footer__news-text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .mm-footer__news-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .mm-footer__news-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 50px;
+    padding-inline: 16px;
+    font: inherit;
+    font-size: 1rem; /* 16 px: evita el zoom en iPhone */
+    color: #111;
+    background: #fff;
+    border: 1px solid rgb(0 0 0 / 0.18);
+    border-radius: 10px;
+  }
+
+  .mm-footer__news-input::placeholder {
+    color: rgb(0 0 0 / 0.5);
+  }
+
+  .mm-footer__news-button {
+    flex: 0 0 auto;
+    height: 50px;
+    padding-inline: 18px;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+    background: #111;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .mm-footer__news-input:focus-visible,
+  .mm-footer__news-button:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
+
+  .mm-footer__news-msg {
+    margin: 8px 0 0;
+    font-size: 0.875rem;
+  }
+
+  .mm-footer__news-msg--error {
+    color: #b42318;
+  }
+
+  /* ---- Marca ---- */
+  .mm-footer__main {
+    display: grid;
+    gap: 28px;
+    padding-block: 32px 8px;
+  }
+
+  .mm-footer__logo {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .mm-footer__wordmark {
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+  }
+
+  .mm-footer__desc {
+    margin-top: 12px;
+    max-width: 38ch;
+    font-size: 0.875rem;
+    font-style: italic;
+    line-height: 1.55;
+  }
+
+  .mm-footer__desc p {
+    margin: 0;
+  }
+
+  .mm-footer__email {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 0.875rem;
+    color: inherit;
+    text-underline-offset: 3px;
+  }
+
+  .mm-footer__social {
+    display: flex;
+    gap: 4px;
+    margin: 12px 0 0 -11px;
+  }
+
+  .mm-footer__social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    color: inherit;
+  }
+
+  .mm-footer__social svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* ---- Menús ---- */
+  .mm-footer__menu {
+    border-top: 1px solid var(--mm-footer-line);
+  }
+
+  .mm-footer__menu:last-child {
+    border-bottom: 1px solid var(--mm-footer-line);
+  }
+
+  .mm-footer__menu-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .mm-footer__menu-title::-webkit-details-marker {
+    display: none;
+  }
+
+  .mm-footer__plus {
+    position: relative;
+    width: 14px;
+    height: 14px;
+  }
+
+  .mm-footer__plus::before,
+  .mm-footer__plus::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 1.5px;
+    background: currentColor;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease;
+  }
+
+  .mm-footer__plus::after {
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  .mm-footer__menu[open] .mm-footer__plus::after {
+    transform: translateY(-50%) rotate(0deg);
+  }
+
+  .mm-footer__links {
+    display: grid;
+    gap: 2px;
+    padding-bottom: 14px;
+  }
+
+  .mm-footer__links a {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    font-size: 0.875rem;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.8;
+  }
+
+  .mm-footer__links a:hover,
+  .mm-footer__links a[aria-current='page'] {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ---- Inferior ---- */
+  .mm-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    align-items: center;
+    padding-block: 20px 28px;
+    font-size: 0.75rem;
+    opacity: 0.75;
+  }
+
+  .mm-footer__bottom p {
+    margin: 0;
+  }
+
+  .mm-footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+
+  .mm-footer__legal a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* ---- Computadora ---- */
+  @media screen and (min-width: 990px) {
+    .mm-footer__news-inner {
+      grid-template-columns: 1fr minmax(360px, 460px);
+      align-items: center;
+      gap: 48px;
+      padding-block: 44px;
+    }
+
+    .mm-footer__main {
+      grid-template-columns: minmax(240px, 1.2fr) 3fr;
+      gap: 64px;
+      padding-block: 56px 24px;
+    }
+
+    .mm-footer__menus {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      gap: 40px;
+    }
+
+    .mm-footer__menu,
+    .mm-footer__menu:last-child {
+      border: 0;
+    }
+
+    .mm-footer__menu-title {
+      min-height: 0;
+      margin-bottom: 12px;
+      pointer-events: none;
+    }
+
+    .mm-footer__plus {
+      display: none;
+    }
+
+    .mm-footer__bottom {
+      border-top: 1px solid var(--mm-footer-line);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Maramour · Footer",
+  "tag": "section",
+  "class": "section-wrapper",
+  "enabled_on": { "groups": ["footer"] },
+  "settings": [
+    { "type": "header", "content": "Newsletter" },
+    { "type": "text", "id": "newsletter_heading", "label": "Título", "default": "Sumate a Maramour" },
+    { "type": "text", "id": "newsletter_text", "label": "Texto", "default": "Enterate primero de lanzamientos, cápsulas y promociones." },
+    { "type": "text", "id": "newsletter_button", "label": "Botón", "default": "Suscribirme" },
+    { "type": "text", "id": "newsletter_success", "label": "Mensaje al suscribirse", "default": "¡Listo! Ya sos parte de Maramour." },
+    { "type": "color", "id": "newsletter_bg", "label": "Fondo", "default": "#F3ECE6" },
+    { "type": "color", "id": "newsletter_fg", "label": "Texto", "default": "#111111" },
+    { "type": "header", "content": "Marca" },
+    { "type": "image_picker", "id": "logo", "label": "Logo", "info": "Si está vacío, se muestra el nombre de la tienda." },
+    { "type": "richtext", "id": "description", "label": "Descripción" },
+    { "type": "text", "id": "email", "label": "Email visible" },
+    { "type": "url", "id": "facebook_url", "label": "Facebook" },
+    { "type": "url", "id": "instagram_url", "label": "Instagram" },
+    { "type": "url", "id": "whatsapp_url", "label": "WhatsApp" },
+    { "type": "header", "content": "Menús" },
+    { "type": "text", "id": "menu_1_heading", "label": "Título menú 1" },
+    { "type": "link_list", "id": "menu_1", "label": "Menú 1" },
+    { "type": "text", "id": "menu_2_heading", "label": "Título menú 2" },
+    { "type": "link_list", "id": "menu_2", "label": "Menú 2" },
+    { "type": "text", "id": "menu_3_heading", "label": "Título menú 3" },
+    { "type": "link_list", "id": "menu_3", "label": "Menú 3" },
+    { "type": "text", "id": "menu_4_heading", "label": "Título menú 4" },
+    { "type": "link_list", "id": "menu_4", "label": "Menú 4" },
+    { "type": "header", "content": "Inferior" },
+    { "type": "link_list", "id": "bottom_menu", "label": "Enlaces legales (opcional)" }
+  ],
+  "presets": [{ "name": "Maramour · Footer" }]
+}
+{% endschema %}
