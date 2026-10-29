@@ -1,0 +1,668 @@
+{%- doc -%}
+  MARAMOUR — Reseñas del producto con el diseño del boceto.
+  Datos: el HTML que Judge.me guarda en el producto (metacampo judgeme.widget), leído en el
+  servidor. Sin pedidos extra: promedio, barras de 5 a 1, tira de fotos/videos y tarjetas en
+  carrusel con «Leer más».
+  El widget de Judge.me sigue en la página (oculto) para el formulario «Escribir una reseña» y para
+  «Ver todas», cuando hay más reseñas de las que trae el metacampo.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign mf = product.metafields.judgeme.widget
+  assign raw = mf.value | default: mf | append: ''
+  assign total = product.metafields.reviews.rating_count.value | default: 0
+  assign avg = product.metafields.reviews.rating.value.rating | default: 0
+
+  if raw contains "data-number-of-reviews='"
+    assign n_str = raw | split: "data-number-of-reviews='" | last | split: "'" | first
+    assign total = n_str | plus: 0
+    assign a_str = raw | split: "data-average-rating='" | last | split: "'" | first
+    assign avg = a_str | plus: 0
+  endif
+
+  assign avg_pct = avg | times: 20.0
+  assign avg_text = avg | round: 1 | replace: '.', ','
+  if avg_text == '5'
+    assign avg_text = '5,0'
+  endif
+
+  assign revs = raw | split: "<div class='jdgm-rev "
+  assign shown = revs.size | minus: 1
+  assign uid = 'mm-rv-' | append: section.id
+-%}
+
+<div class="mm-rv" id="mm-reviews" data-mm-reviews>
+  <div class="mm-rv__head">
+    <h2 class="mm-rv__title">{{ s.heading | escape }}</h2>
+  </div>
+
+  {%- if total > 0 -%}
+    <div class="mm-rv__summary">
+      <div class="mm-rv__avg">
+        <span class="mm-rv__avg-num">{{ avg_text }}</span>
+        <span class="mm-rv__stars mm-rv__stars--lg" style="--mm-rv: {{ avg_pct }}%;" role="img" aria-label="{{ avg_text }} de 5 estrellas"></span>
+        <span class="mm-rv__count">{{ total }} {% if total == 1 %}opinión{% else %}opiniones{% endif %}</span>
+      </div>
+
+      <ul class="mm-rv__hist list-unstyled">
+        {%- for star in (1..5) reversed -%}
+          {%- liquid
+            assign key = "data-rating='" | append: star | append: "' data-frequency='"
+            assign freq = 0
+            if raw contains key
+              assign f_str = raw | split: key | last | split: "'" | first
+              assign freq = f_str | plus: 0
+            endif
+            assign pct = 0
+            if total > 0
+              assign pct = freq | times: 100.0 | divided_by: total
+            endif
+          -%}
+          <li class="mm-rv__hist-row">
+            <span class="mm-rv__hist-label">{{ star }} <span class="mm-rv__hist-star" aria-hidden="true"></span></span>
+            <span class="mm-rv__hist-bar"><span style="width: {{ pct }}%;"></span></span>
+            <span class="mm-rv__hist-num">{{ freq }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+
+    {%- comment -%} Fotos y videos de las reseñas {%- endcomment -%}
+    {%- capture media -%}
+      {%- for rev in revs offset: 1 -%}
+        {%- liquid
+          assign pics = rev | split: "jdgm-rev__pics'>" | last | split: "jdgm-rev__vids'>" | first
+          assign urls = pics | split: "data-mfp-src='"
+        -%}
+        {%- for u in urls offset: 1 -%}
+          {%- assign src = u | split: "'" | first -%}
+          <li><button type="button" class="mm-rv__thumb" data-mm-rv-photo="{{ src }}" aria-label="Ver foto de la reseña"><img src="{{ src }}" alt="" loading="lazy" width="96" height="128"></button></li>
+        {%- endfor -%}
+        {%- liquid
+          assign vids = rev | split: "jdgm-rev__vids'>" | last | split: "jdgm-rev__transparency" | first | split: "jdgm-rev__actions" | first
+          assign vurls = vids | split: "data-src='"
+          if vurls.size < 2
+            assign vurls = vids | split: "src='"
+          endif
+        -%}
+        {%- for u in vurls offset: 1 -%}
+          {%- assign src = u | split: "'" | first -%}
+          {%- if src contains '.mp4' or src contains '.mov' or src contains '.m3u8' or src contains 'video' -%}
+            <li><button type="button" class="mm-rv__thumb mm-rv__thumb--video" data-mm-rv-video="{{ src }}" aria-label="Ver video de la reseña"><video src="{{ src }}#t=0.1" muted playsinline preload="metadata"></video></button></li>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- if media contains '<li>' -%}
+      <ul class="mm-rv__media list-unstyled" role="list">{{ media }}</ul>
+    {%- endif -%}
+
+    <ul class="mm-rv__track list-unstyled" role="list" data-mm-rv-track>
+      {%- for rev in revs offset: 1 -%}
+        {%- liquid
+          assign score = rev | split: "data-score='" | last | split: "'" | first | plus: 0
+          assign author = rev | split: "jdgm-rev__author'>" | last | split: "</span>" | first | strip
+          assign when = rev | split: "datetime='" | last | split: "'" | first
+          assign title = rev | split: "jdgm-rev__title'>" | last | split: "</b>" | first | strip
+          assign body = rev | split: "jdgm-rev__body'>" | last | split: "</div> <div class='jdgm-rev__pics'" | first | strip
+          assign verified = false
+          if rev contains "data-verified-buyer='true'"
+            assign verified = true
+          endif
+        -%}
+        <li class="mm-rv__card">
+          <div class="mm-rv__card-top">
+            <p class="mm-rv__author">{{ author | default: 'Clienta' }}</p>
+            <span class="mm-rv__stars" style="--mm-rv: {{ score | times: 20 }}%;" role="img" aria-label="{{ score }} de 5 estrellas"></span>
+          </div>
+          {%- if verified -%}
+            <p class="mm-rv__badge"><span aria-hidden="true">✓</span> Compra verificada</p>
+          {%- elsif when != blank -%}
+            <p class="mm-rv__date">{{ when | date: '%d/%m/%Y' }}</p>
+          {%- endif -%}
+          <div class="mm-rv__text" data-mm-rv-text>
+            {%- if title != blank -%}<p class="mm-rv__card-title">{{ title }}</p>{%- endif -%}
+            {{ body }}
+          </div>
+          <button type="button" class="mm-rv__more" data-mm-rv-more hidden>Leer más</button>
+        </li>
+      {%- endfor -%}
+    </ul>
+    {%- if shown > 1 -%}
+      <div class="mm-rv__progress" aria-hidden="true"><span data-mm-rv-thumb></span></div>
+    {%- endif -%}
+  {%- else -%}
+    <p class="mm-rv__empty">{{ s.empty_text | escape }}</p>
+  {%- endif -%}
+
+  <div class="mm-rv__actions">
+    <button type="button" class="mm-rv__btn" data-mm-rv-write>{{ s.write_label | escape }}</button>
+    {%- if total > shown and shown > 0 -%}
+      <button type="button" class="mm-rv__btn mm-rv__btn--link" data-mm-rv-all>Ver todas las opiniones ({{ total }})</button>
+    {%- endif -%}
+  </div>
+
+  <dialog class="mm-rv__lightbox" id="{{ uid }}-box" aria-label="Foto de la reseña">
+    <button type="button" class="mm-rv__close" data-mm-rv-close aria-label="Cerrar">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 4l12 12M16 4 4 16" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+    <div class="mm-rv__lightbox-media" data-mm-rv-box></div>
+  </dialog>
+</div>
+
+<script>
+  (() => {
+    const root = document.currentScript.previousElementSibling;
+    if (!root || !root.matches('[data-mm-reviews]') || root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const judgeme = () => document.querySelector('.mm-jdgm-hidden, .shopify-section:has(#judgeme_product_reviews)');
+
+    /* «Leer más»: solo si el texto quedó cortado */
+    const checkMore = () =>
+      root.querySelectorAll('.mm-rv__card').forEach((card) => {
+        const text = card.querySelector('[data-mm-rv-text]');
+        const more = card.querySelector('[data-mm-rv-more]');
+        if (!text.classList.contains('is-open')) more.hidden = text.scrollHeight <= text.clientHeight + 2;
+      });
+    root.addEventListener('click', (e) => {
+      const more = e.target.closest('[data-mm-rv-more]');
+      if (!more) return;
+      const text = more.parentElement.querySelector('[data-mm-rv-text]');
+      const open = text.classList.toggle('is-open');
+      more.textContent = open ? 'Leer menos' : 'Leer más';
+    });
+    checkMore();
+    window.addEventListener('resize', checkMore, { passive: true });
+
+    /* Barra de progreso del carrusel */
+    const track = root.querySelector('[data-mm-rv-track]');
+    const thumb = root.querySelector('[data-mm-rv-thumb]');
+    if (track && thumb) {
+      const update = () => {
+        const { scrollLeft, scrollWidth, clientWidth } = track;
+        const visible = Math.min(1, clientWidth / scrollWidth);
+        const max = scrollWidth - clientWidth;
+        const progress = max > 0 ? scrollLeft / max : 0;
+        thumb.parentElement.hidden = visible >= 1;
+        thumb.style.width = `${visible * 100}%`;
+        thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
+      };
+      track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      update();
+    }
+
+    /* Fotos y videos en grande */
+    const box = root.querySelector('dialog');
+    const holder = root.querySelector('[data-mm-rv-box]');
+    root.addEventListener('click', (e) => {
+      const photo = e.target.closest('[data-mm-rv-photo]');
+      const video = e.target.closest('[data-mm-rv-video]');
+      if (!photo && !video) return;
+      holder.innerHTML = photo
+        ? `<img src="${photo.dataset.mmRvPhoto}" alt="">`
+        : `<video src="${video.dataset.mmRvVideo}" controls autoplay playsinline></video>`;
+      box.showModal();
+    });
+    const close = () => box.open && box.close();
+    root.querySelector('[data-mm-rv-close]').addEventListener('click', close);
+    box.addEventListener('click', (e) => { if (e.target === box) close(); });
+    box.addEventListener('close', () => (holder.innerHTML = ''));
+
+    /* Escribir una reseña / Ver todas: usan el widget de Judge.me (oculto) */
+    root.querySelector('[data-mm-rv-write]')?.addEventListener('click', () => {
+      const btn = document.querySelector('#judgeme_product_reviews [data-testid="write-review-button"], #judgeme_product_reviews .jdgm-write-rev-link');
+      if (btn) btn.click();
+    });
+    root.querySelector('[data-mm-rv-all]')?.addEventListener('click', (e) => {
+      const section = judgeme();
+      if (!section) return;
+      section.classList.add('is-visible');
+      e.currentTarget.remove();
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  /* El widget de Judge.me queda en la página solo para el formulario y «Ver todas» */
+  .shopify-section:has(#judgeme_product_reviews):not(.is-visible) {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .shopify-section:has(#judgeme_product_reviews).is-visible .jm-review-widget-minimal-header,
+  .shopify-section:has(#judgeme_product_reviews).is-visible .jm-review-widget__header {
+    display: none;
+  }
+
+  .mm-rv {
+    --mm-rv-pink: #c2416c;
+    --mm-rv-gap: 10px;
+
+    padding-block: 36px 28px;
+  }
+
+  .mm-rv__head,
+  .mm-rv__summary,
+  .mm-rv__actions,
+  .mm-rv__empty,
+  .mm-rv__progress {
+    padding-inline: var(--page-margin, 16px);
+  }
+
+  .mm-rv__title {
+    margin: 0 0 16px;
+    font-size: 1.3125rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  /* Estrellas (máscara; --mm-rv = porcentaje lleno) */
+  .mm-rv__stars,
+  .mm-rv__hist-star {
+    --mm-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1.5l2.6 5.5 6 .7-4.4 4.1 1.1 6L10 14.9 4.7 17.8l1.1-6L1.4 7.7l6-.7z'/%3E%3C/svg%3E");
+
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .mm-rv__stars {
+    width: 70px;
+    height: 13px;
+    background: linear-gradient(90deg, var(--mm-rv-pink) var(--mm-rv, 0%), rgb(var(--color-foreground-rgb) / 0.15) var(--mm-rv, 0%));
+    -webkit-mask: var(--mm-star) left center / 14px 13px repeat-x;
+    mask: var(--mm-star) left center / 14px 13px repeat-x;
+  }
+
+  .mm-rv__stars--lg {
+    width: 90px;
+    height: 17px;
+    -webkit-mask-size: 18px 17px;
+    mask-size: 18px 17px;
+  }
+
+  .mm-rv__hist-star {
+    width: 11px;
+    height: 11px;
+    background: var(--mm-rv-pink);
+    -webkit-mask: var(--mm-star) center / contain no-repeat;
+    mask: var(--mm-star) center / contain no-repeat;
+  }
+
+  /* Resumen */
+  .mm-rv__avg {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    margin-bottom: 14px;
+  }
+
+  .mm-rv__avg-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .mm-rv__count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mm-rv__hist {
+    display: grid;
+    gap: 7px;
+    max-width: 420px;
+    margin: 0 0 20px;
+  }
+
+  .mm-rv__hist-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 28px;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.75rem;
+  }
+
+  .mm-rv__hist-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+  }
+
+  .mm-rv__hist-bar {
+    height: 8px;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.08);
+    border-radius: 99px;
+  }
+
+  .mm-rv__hist-bar span {
+    display: block;
+    height: 100%;
+    background: var(--mm-rv-pink);
+    border-radius: inherit;
+  }
+
+  .mm-rv__hist-num {
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    text-align: end;
+  }
+
+  /* Tira de fotos y videos */
+  .mm-rv__media,
+  .mm-rv__track {
+    display: flex;
+    gap: var(--mm-rv-gap);
+    margin: 0;
+    padding: 0 var(--page-margin, 16px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--page-margin, 16px);
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .mm-rv__media::-webkit-scrollbar,
+  .mm-rv__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mm-rv__media {
+    margin-bottom: 20px;
+  }
+
+  .mm-rv__media li {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .mm-rv__thumb {
+    position: relative;
+    display: block;
+    width: 84px;
+    aspect-ratio: 3 / 4;
+    padding: 0;
+    overflow: hidden;
+    background: #eee;
+    border: 0;
+    border-radius: 6px;
+    cursor: zoom-in;
+  }
+
+  .mm-rv__thumb img,
+  .mm-rv__thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .mm-rv__thumb--video::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 24px;
+    height: 24px;
+    background: rgb(0 0 0 / 0.45) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3E%3Cpath d='M7 5.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L7.9 4.7a.6.6 0 0 0-.9.5Z'/%3E%3C/svg%3E") center / 14px no-repeat;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Tarjetas */
+  .mm-rv__card {
+    display: flex;
+    flex: 0 0 min(78%, 320px);
+    flex-direction: column;
+    padding: 16px;
+    background: #f7f5f3;
+    border-radius: 10px;
+    scroll-snap-align: start;
+  }
+
+  .mm-rv__card:only-child {
+    flex-basis: 100%;
+    max-width: 520px;
+  }
+
+  .mm-rv__card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .mm-rv__author {
+    margin: 0;
+    overflow: hidden;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mm-rv__badge,
+  .mm-rv__date {
+    margin: 6px 0 0;
+    font-size: 0.6875rem;
+  }
+
+  .mm-rv__badge {
+    font-weight: 700;
+    color: var(--mm-rv-pink);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .mm-rv__date {
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+  }
+
+  .mm-rv__text {
+    display: -webkit-box;
+    margin-top: 10px;
+    overflow: hidden;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
+
+  .mm-rv__text.is-open {
+    display: block;
+  }
+
+  .mm-rv__text p {
+    margin: 0;
+  }
+
+  .mm-rv__text > p:not(.mm-rv__card-title)::before {
+    content: '“';
+  }
+
+  .mm-rv__text > p:not(.mm-rv__card-title):last-child::after {
+    content: '”';
+  }
+
+  .mm-rv__card-title {
+    margin-bottom: 4px !important;
+    font-weight: 700;
+    color: var(--color-foreground);
+  }
+
+  .mm-rv__more {
+    align-self: center;
+    margin-top: auto;
+    padding: 12px 8px 0;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--mm-rv-pink);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mm-rv__more[hidden] {
+    display: none;
+  }
+
+  .mm-rv__progress {
+    margin-top: 16px;
+  }
+
+  .mm-rv__progress[hidden] {
+    display: none;
+  }
+
+  .mm-rv__progress::before {
+    content: '';
+    display: block;
+    height: 2px;
+    background: rgb(var(--color-foreground-rgb) / 0.12);
+  }
+
+  .mm-rv__progress span {
+    display: block;
+    height: 2px;
+    margin-top: -2px;
+    background: var(--color-foreground);
+    transition: transform 0.12s linear;
+  }
+
+  /* Botones */
+  .mm-rv__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .mm-rv__btn {
+    min-height: 48px;
+    width: 100%;
+    max-width: 360px;
+    padding: 0 24px;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    background: transparent;
+    border: 1px solid var(--color-foreground);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .mm-rv__btn--link {
+    min-height: 0;
+    padding: 4px;
+    letter-spacing: 0.04em;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    border: 0;
+  }
+
+  .mm-rv__empty {
+    margin: 0;
+    font-size: 0.875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  /* Foto / video en grande */
+  .mm-rv__lightbox {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+
+  .mm-rv__lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .mm-rv__lightbox::backdrop {
+    background: rgb(0 0 0 / 0.9);
+  }
+
+  .mm-rv__lightbox-media img,
+  .mm-rv__lightbox-media video {
+    display: block;
+    max-width: calc(100vw - 32px);
+    max-height: 86dvh;
+    border-radius: 8px;
+  }
+
+  .mm-rv__close {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    color: #fff;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mm-rv__close svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .mm-rv {
+      --mm-rv-gap: 16px;
+
+      padding-block: 56px 40px;
+    }
+
+    .mm-rv__title {
+      font-size: 1.75rem;
+    }
+
+    .mm-rv__card {
+      flex-basis: 340px;
+    }
+
+    .mm-rv__thumb {
+      width: 110px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reseñas Maramour",
+  "tag": "section",
+  "class": "section-wrapper",
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título", "default": "Opiniones de clientas" },
+    { "type": "text", "id": "write_label", "label": "Botón para opinar", "default": "Escribir una reseña" },
+    { "type": "text", "id": "empty_text", "label": "Texto sin reseñas", "default": "Todavía no hay opiniones de esta prenda. ¡Contanos qué te pareció!" }
+  ],
+  "presets": [{ "name": "Reseñas Maramour" }]
+}
+{% endschema %}

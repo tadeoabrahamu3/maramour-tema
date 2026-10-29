@@ -10,12 +10,12 @@
   assign rating = product.metafields.reviews.rating.value
   assign count = product.metafields.reviews.rating_count.value | default: 0
   assign value = rating.rating | default: 0
-  assign max = rating.scale_max | default: 5
+  assign max = rating.scale_max | default: 5 | round
   assign pct = value | times: 100.0 | divided_by: max
 -%}
 
 {%- if count > 0 -%}
-  <a class="mm-rating" href="#judgeme_product_reviews" data-mm-rating {{ block.shopify_attributes }} aria-label="{{ value | round: 1 | replace: '.', ',' }} de {{ max }} estrellas, {{ count }} reseñas">
+  <a class="mm-rating" href="#mm-reviews" data-mm-rating {{ block.shopify_attributes }} aria-label="{{ value | round: 1 | replace: '.', ',' }} de {{ max }} estrellas, {{ count }} reseñas">
     <span class="mm-rating__stars" style="--mm-rating: {{ pct }}%;" aria-hidden="true"></span>
     <span class="mm-rating__text">{{ value | round: 1 | replace: '.', ',' }}/{{ max }} ({{ count }} {% if count == 1 %}reseña{% else %}reseñas{% endif %})</span>
   </a>
@@ -23,7 +23,7 @@
     (() => {
       const link = document.currentScript.previousElementSibling;
       link?.addEventListener('click', (e) => {
-        const target = document.querySelector('#judgeme_product_reviews, .jdgm-widget.jdgm-review-widget, .jdgm-rev-widg');
+        const target = document.querySelector('#mm-reviews, #judgeme_product_reviews');
         if (!target) return;
         e.preventDefault();
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });

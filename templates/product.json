@@ -399,10 +399,19 @@
         "padding-block-start": 0,
         "padding-block-end": 0
       }
+    },
+    "maramour_reviews": {
+      "type": "maramour-reviews",
+      "settings": {
+        "heading": "Opiniones de clientas",
+        "write_label": "Escribir una reseña",
+        "empty_text": "Todavía no hay opiniones de esta prenda. ¡Contanos qué te pareció!"
+      }
     }
   },
   "order": [
     "main",
+    "maramour_reviews",
     "1793309209f61ea066",
     "maramour_recs"
   ]
