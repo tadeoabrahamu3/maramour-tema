@@ -6,7 +6,8 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */{
+ */
+{
   "sections": {
     "main": {
       "type": "product-information",
@@ -233,6 +234,7 @@
               "blocks": {
                 "quantity": {
                   "type": "quantity",
+                  "disabled": true,
                   "static": true,
                   "settings": {
                     "input_style": "default",
@@ -242,8 +244,7 @@
                     "border_width": 1,
                     "border_radius": 0
                   },
-                  "blocks": {},
-                  "disabled": true
+                  "blocks": {}
                 },
                 "add-to-cart": {
                   "type": "add-to-cart",
@@ -258,10 +259,10 @@
                 },
                 "accelerated-checkout": {
                   "type": "accelerated-checkout",
+                  "disabled": true,
                   "static": true,
                   "settings": {},
-                  "blocks": {},
-                  "disabled": true
+                  "blocks": {}
                 }
               },
               "block_order": []
@@ -289,10 +290,10 @@
               "settings": {
                 "heading": "Visto en Instagram",
                 "label": "Ver el video de la prenda puesta",
+                "background": "#F9E3E8",
                 "handle": "@maramour.ar",
                 "instagram_url": "https://www.instagram.com/maramour.ar/",
-                "cta_label": "Ver en Instagram",
-                "background": "#F9E3E8"
+                "cta_label": "Ver en Instagram"
               }
             },
             "mm_accordion": {
@@ -314,7 +315,6 @@
           ]
         }
       },
-      "block_order": [],
       "settings": {
         "content_width": "content-center-aligned",
         "desktop_media_position": "left",
