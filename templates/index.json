@@ -134,6 +134,7 @@
         "look_2": {
           "type": "look",
           "settings": {
+            "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
             "product": "",
             "label": ""
           }
@@ -141,6 +142,7 @@
         "look_3": {
           "type": "look",
           "settings": {
+            "image": "shopify://shop_images/Lookbook_flecos.jpg",
             "product": "",
             "label": ""
           }
@@ -148,6 +150,7 @@
         "look_4": {
           "type": "look",
           "settings": {
+            "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
             "product": "",
             "label": ""
           }
@@ -155,6 +158,7 @@
         "look_5": {
           "type": "look",
           "settings": {
+            "image": "shopify://shop_images/Lookbook_flecos.jpg",
             "product": "",
             "label": ""
           }
