@@ -72,7 +72,10 @@
             "drawer_accordion_expand_first": false,
             "drawer_dividers": false,
             "show_account_link": true,
-            "secondary_menu": "menu-secundario"
+            "secondary_menu": "menu-secundario",
+            "facebook_url": "https://www.facebook.com/people/Maramour/61566621703277/",
+            "instagram_url": "https://www.instagram.com/maramour.ar/",
+            "whatsapp_url": "https://wa.me/5492236685697"
           },
           "blocks": {}
         }
