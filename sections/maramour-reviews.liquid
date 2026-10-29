@@ -1,11 +1,10 @@
 {%- doc -%}
   MARAMOUR — Reseñas del producto con el diseño del boceto.
   Datos: el HTML que Judge.me guarda en el producto (metacampo judgeme.widget), leído en el
-  servidor. Sin pedidos extra: promedio, barras de 5 a 1, tira de fotos/videos y tarjetas en
-  carrusel con «Leer más».
-  Sin botón para opinar: las reseñas se piden por mail/WhatsApp después de la compra. El widget de
-  Judge.me sigue en la página (oculto) solo para «Ver todas», cuando hay más reseñas de las que
-  trae el metacampo.
+  servidor, sin el widget de Judge.me ni pedidos extra. El promedio, la cantidad y las barras de 5 a 1
+  cuentan todas las reseñas; las tarjetas muestran hasta 10 (las que trae el metacampo, según
+  «reseñas por página» en Judge.me) y la tira, sus fotos/videos.
+  Sin reseñas no se muestra nada. Sin botón para opinar: se piden por mail/WhatsApp tras la compra.
 {%- enddoc -%}
 
 {%- liquid
@@ -35,12 +34,12 @@
   assign uid = 'mm-rv-' | append: section.id
 -%}
 
+{%- if total > 0 -%}
 <div class="mm-rv" id="mm-reviews" data-mm-reviews>
   <div class="mm-rv__head">
     <h2 class="mm-rv__title">{{ s.heading | escape }}</h2>
   </div>
 
-  {%- if total > 0 -%}
     <div class="mm-rv__summary">
       <div class="mm-rv__avg">
         <span class="mm-rv__avg-num">{{ avg_text }}<small>/5</small></span>
@@ -102,7 +101,7 @@
     {%- endif -%}
 
     <ul class="mm-rv__track list-unstyled" role="list" data-mm-rv-track>
-      {%- for rev in revs offset: 1 -%}
+      {%- for rev in revs offset: 1 limit: 10 -%}
         {%- liquid
           assign score = rev | split: "data-score='" | last | split: "'" | first | plus: 0
           assign author = rev | split: "jdgm-rev__author'>" | last | split: "</span>" | first | strip
@@ -135,15 +134,6 @@
     {%- if shown > 1 -%}
       <div class="mm-rv__progress" aria-hidden="true"><span data-mm-rv-thumb></span></div>
     {%- endif -%}
-  {%- else -%}
-    <p class="mm-rv__empty">{{ s.empty_text | escape }}</p>
-  {%- endif -%}
-
-  {%- if total > shown and shown > 0 -%}
-    <div class="mm-rv__actions">
-      <button type="button" class="mm-rv__btn mm-rv__btn--link" data-mm-rv-all>Ver todas las opiniones ({{ total }})</button>
-    </div>
-  {%- endif -%}
 
   <dialog class="mm-rv__lightbox" id="{{ uid }}-box" aria-label="Foto de la reseña">
     <button type="button" class="mm-rv__close" data-mm-rv-close aria-label="Cerrar">
@@ -158,7 +148,6 @@
     const root = document.currentScript.previousElementSibling;
     if (!root || !root.matches('[data-mm-reviews]') || root.dataset.ready) return;
     root.dataset.ready = '1';
-    const judgeme = () => document.querySelector('.mm-jdgm-hidden, .shopify-section:has(#judgeme_product_reviews)');
 
     /* «Leer más»: solo si el texto quedó cortado */
     const checkMore = () =>
@@ -212,51 +201,11 @@
     box.addEventListener('click', (e) => { if (e.target === box) close(); });
     box.addEventListener('close', () => (holder.innerHTML = ''));
 
-    /* Ver todas: muestra el widget de Judge.me (oculto) con la lista completa */
-    root.querySelector('[data-mm-rv-all]')?.addEventListener('click', (e) => {
-      const section = judgeme();
-      if (!section) return;
-      section.classList.add('is-visible');
-      e.currentTarget.remove();
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
   })();
 </script>
+{%- endif -%}
 
 {% stylesheet %}
-  /* El widget de Judge.me queda en la página solo para el formulario y «Ver todas» */
-  .shopify-section:has(#judgeme_product_reviews):not(.is-visible) {
-    position: absolute !important;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .shopify-section:has(#judgeme_product_reviews).is-visible .jm-review-widget-minimal-header,
-  .shopify-section:has(#judgeme_product_reviews).is-visible .jm-review-widget__header {
-    display: none;
-  }
-
-  /* Formulario de Judge.me con los colores de la marca */
-  .jdgm-write-review-modal .jdgm-star {
-    color: #c2416c !important;
-    border-color: #c2416c !important;
-  }
-
-  .jdgm-write-review-modal__btn--repeat-write-another,
-  .jdgm-write-review-modal__nav-btn-next,
-  .jdgm-write-review-modal__nav-btn-close {
-    background-color: #111111 !important;
-  }
-
-  .jdgm-write-review-modal__btn--repeat-not-now {
-    color: #111111 !important;
-    border-color: #111111 !important;
-  }
-
   .mm-rv {
     --mm-rv-pink: #c2416c;
     --mm-rv-gap: 10px;
@@ -266,8 +215,6 @@
 
   .mm-rv__head,
   .mm-rv__summary,
-  .mm-rv__actions,
-  .mm-rv__empty,
   .mm-rv__progress {
     padding-inline: var(--page-margin, 16px);
   }
@@ -562,47 +509,6 @@
     transition: transform 0.12s linear;
   }
 
-  /* Botones */
-  .mm-rv__actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    margin-top: 24px;
-  }
-
-  .mm-rv__btn {
-    min-height: 48px;
-    width: 100%;
-    max-width: 360px;
-    padding: 0 24px;
-    font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--color-foreground);
-    background: transparent;
-    border: 1px solid var(--color-foreground);
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .mm-rv__btn--link {
-    min-height: 0;
-    padding: 4px;
-    letter-spacing: 0.04em;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    border: 0;
-  }
-
-  .mm-rv__empty {
-    margin: 0;
-    font-size: 0.875rem;
-    color: rgb(var(--color-foreground-rgb) / 0.7);
-  }
-
   /* Foto / video en grande */
   .mm-rv__lightbox {
     width: 100%;
@@ -680,8 +586,8 @@
   "class": "section-wrapper",
   "enabled_on": { "templates": ["product"] },
   "settings": [
-    { "type": "text", "id": "heading", "label": "Título", "default": "Opiniones de clientas" },
-    { "type": "text", "id": "empty_text", "label": "Texto sin reseñas", "default": "Todavía no hay opiniones de esta prenda." }
+    { "type": "text", "id": "heading", "label": "Título", "default": "Opiniones de clientas" }
+
   ],
   "presets": [{ "name": "Reseñas Maramour" }]
 }
