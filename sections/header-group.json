@@ -11,38 +11,6 @@
   "type": "header",
   "name": "t:names.header",
   "sections": {
-    "header_announcements_9jGBFp": {
-      "type": "header-announcements",
-      "blocks": {
-        "announcement_BxgCk9": {
-          "type": "_announcement",
-          "settings": {
-            "text": "Bienvenida a Maramour",
-            "link": "",
-            "font": "var(--font-body--family)",
-            "font_size": "0.75rem",
-            "weight": "",
-            "letter_spacing": "loose",
-            "case": "uppercase",
-            "text_color": "#ffffff"
-          },
-          "blocks": {}
-        }
-      },
-      "block_order": [
-        "announcement_BxgCk9"
-      ],
-      "name": "t:names.announcement_bar",
-      "settings": {
-        "speed": 5,
-        "section_width": "page-width",
-        "background_color": "#000000",
-        "divider_width": 0,
-        "divider_color": "{{ settings.color_palette.color2 }}",
-        "padding-block-start": 8,
-        "padding-block-end": 8
-      }
-    },
     "header_section": {
       "type": "header",
       "blocks": {
@@ -103,7 +71,7 @@
         "localization_row": "top",
         "section_width": "page-width",
         "section_height": "compact",
-        "enable_sticky_header": "scroll-up",
+        "enable_sticky_header": "always",
         "divider_width": 0,
         "divider_size": "page-width",
         "divider_color": "",
@@ -130,10 +98,44 @@
         "collection_inverse_logo": false,
         "text_color_transparent_collection": ""
       }
+    },
+    "maramour_announcement": {
+      "type": "maramour-announcement",
+      "settings": {
+        "background": "#F9E3E8",
+        "text_color": "#111111",
+        "duration": 28,
+        "separator": "-"
+      },
+      "blocks": {
+        "msg_transfer": {
+          "type": "message",
+          "settings": {
+            "text": "🔥 10% OFF por transferencia"
+          }
+        },
+        "msg_shipping": {
+          "type": "message",
+          "settings": {
+            "text": "📦 Envío gratis a partir de $100.000"
+          }
+        },
+        "msg_cuotas": {
+          "type": "message",
+          "settings": {
+            "text": "💳 3 cuotas sin interés"
+          }
+        }
+      },
+      "block_order": [
+        "msg_transfer",
+        "msg_shipping",
+        "msg_cuotas"
+      ]
     }
   },
   "order": [
-    "header_announcements_9jGBFp",
+    "maramour_announcement",
     "header_section"
   ]
 }
