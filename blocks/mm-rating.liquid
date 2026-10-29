@@ -1,0 +1,71 @@
+{%- doc -%}
+  MARAMOUR — Estrellas y cantidad de reseñas arriba del título (como en el boceto).
+  Lee los metacampos estándar de Shopify que completa Judge.me (reviews.rating y
+  reviews.rating_count): sin JavaScript ni pedidos extra. Si el producto todavía no tiene
+  reseñas, no se muestra (un «0 reseñas» resta en vez de sumar). Tocarlo baja a las reseñas.
+{%- enddoc -%}
+
+{%- liquid
+  assign product = closest.product
+  assign rating = product.metafields.reviews.rating.value
+  assign count = product.metafields.reviews.rating_count.value | default: 0
+  assign value = rating.rating | default: 0
+  assign max = rating.scale_max | default: 5
+  assign pct = value | times: 100.0 | divided_by: max
+-%}
+
+{%- if count > 0 -%}
+  <a class="mm-rating" href="#judgeme_product_reviews" data-mm-rating {{ block.shopify_attributes }} aria-label="{{ value | round: 1 | replace: '.', ',' }} de {{ max }} estrellas, {{ count }} reseñas">
+    <span class="mm-rating__stars" style="--mm-rating: {{ pct }}%;" aria-hidden="true"></span>
+    <span class="mm-rating__text">{{ value | round: 1 | replace: '.', ',' }}/{{ max }} ({{ count }} {% if count == 1 %}reseña{% else %}reseñas{% endif %})</span>
+  </a>
+  <script>
+    (() => {
+      const link = document.currentScript.previousElementSibling;
+      link?.addEventListener('click', (e) => {
+        const target = document.querySelector('#judgeme_product_reviews, .jdgm-widget.jdgm-review-widget, .jdgm-rev-widg');
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    })();
+  </script>
+{%- elsif request.design_mode -%}
+  <p class="mm-rating mm-rating--empty" {{ block.shopify_attributes }}>Estrellas: aparecen cuando el producto tenga reseñas.</p>
+{%- endif -%}
+
+{% stylesheet %}
+  .mm-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: -4px;
+    font-size: 0.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+    text-decoration: none;
+  }
+
+  .mm-rating__stars {
+    --mm-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1.5l2.6 5.5 6 .7-4.4 4.1 1.1 6L10 14.9 4.7 17.8l1.1-6L1.4 7.7l6-.7z'/%3E%3C/svg%3E");
+
+    width: 80px;
+    height: 15px;
+    background: linear-gradient(90deg, var(--mm-rating-color, #c2416c) var(--mm-rating, 0%), rgb(var(--color-foreground-rgb) / 0.18) var(--mm-rating, 0%));
+    -webkit-mask: var(--mm-star) left center / 16px 15px repeat-x;
+    mask: var(--mm-star) left center / 16px 15px repeat-x;
+  }
+
+  .mm-rating--empty {
+    font-size: 0.75rem;
+    opacity: 0.6;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Estrellas de reseñas",
+  "tag": null,
+  "settings": [],
+  "presets": [{ "name": "Estrellas de reseñas" }]
+}
+{% endschema %}

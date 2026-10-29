@@ -165,9 +165,14 @@
                     "transfer_discount": 10
                   },
                   "blocks": {}
+                },
+                "mm_rating": {
+                  "type": "mm-rating",
+                  "settings": {}
                 }
               },
               "block_order": [
+                "mm_rating",
                 "text_xrnftG",
                 "price_tVjtKg",
                 "mm_price_extras"
@@ -400,7 +405,7 @@
   },
   "order": [
     "main",
-    "maramour_recs",
-    "1793309209f61ea066"
+    "1793309209f61ea066",
+    "maramour_recs"
   ]
 }
