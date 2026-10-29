@@ -288,10 +288,11 @@
               "type": "mm-story",
               "settings": {
                 "heading": "Visto en Instagram",
-                "label": "Mirala puesta",
+                "label": "Ver el video de la prenda puesta",
                 "handle": "@maramour.ar",
                 "instagram_url": "https://www.instagram.com/maramour.ar/",
-                "cta_label": "Ver en Instagram"
+                "cta_label": "Ver en Instagram",
+                "background": "#F9E3E8"
               }
             },
             "mm_accordion": {
