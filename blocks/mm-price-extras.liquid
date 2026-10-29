@@ -19,7 +19,7 @@
 <mm-variant-sync class="mm-price-extras" data-mm-sync="price-extras-{{ block.id }}" {{ block.shopify_attributes }}>
   {%- if bs.show_installments and n > 1 -%}
     <p class="mm-price-extras__line">
-      <strong>{{ n }} cuotas sin interés</strong> de {{ cuota | money_without_trailing_zeros }}
+      {{ n }} cuotas sin interés de <strong>{{ cuota | money_without_trailing_zeros }}</strong>
     </p>
   {%- endif -%}
   {%- if bs.show_transfer and bs.transfer_discount > 0 -%}

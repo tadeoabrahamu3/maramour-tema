@@ -493,6 +493,11 @@
       controls: controls
     %}
 
+    {%- comment -%} MARAMOUR: barra de progreso de borde a borde debajo de la foto (celular) {%- endcomment -%}
+    {%- if sorted_media.size > 1 -%}
+      <div class="mm-gallery-bar" aria-hidden="true" style="--mm-n: {{ sorted_media.size }};"><span></span></div>
+    {%- endif -%}
+
     {% if media_presentation == 'grid' %}
       <ul
         class="media-gallery__grid list-unstyled"

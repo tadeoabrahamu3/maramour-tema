@@ -2,9 +2,8 @@
   MARAMOUR — Acordeón de dudas de la página de producto (uno abierto por vez).
   1. Descripción: la descripción del producto.
   2. Composición y cuidado: metacampo custom.composicion_y_cuidado (una línea por dato) + cuidados generales.
-  3. ¿Qué talle soy?: metacampo custom.modelo («La modelo mide…»), tabla de talles
-     (metacampo custom.tabla_de_talles o la tabla general del bloque) y cómo medirse.
-     Tabla: una fila por línea, columnas separadas con «|»; la primera línea son los títulos.
+  3. ¿Qué talle soy?: referencia de la modelo (metacampo custom.modelo), consejo y botones que
+     abren los popups «Calcular mi talle» y «Tabla de talles» (bloque «Ayuda con el talle»).
   4. Envío, devoluciones y cambios: texto general.
 {%- enddoc -%}
 
@@ -13,9 +12,7 @@
   assign product = closest.product
   assign mf = product.metafields.custom
   assign composition = mf.composicion_y_cuidado.value
-  assign model_info = mf.modelo.value
-  assign table_src = mf.tabla_de_talles.value | default: bs.size_table
-  assign table_rows = table_src | strip | newline_to_br | split: '<br />'
+  assign model_info = mf.modelo.value | default: bs.model_text
 -%}
 
 <div class="mm-acc" {{ block.shopify_attributes }}>
@@ -54,35 +51,11 @@
       {%- if model_info != blank -%}
         <p class="mm-acc__model">{{ model_info | escape }}</p>
       {%- endif -%}
-      {%- if table_rows.size > 1 -%}
-        <div class="mm-acc__table-wrap">
-          <table class="mm-acc__table">
-            {%- for row in table_rows -%}
-              {%- assign cells = row | strip | split: '|' -%}
-              {%- if cells.size > 0 -%}
-                {%- if forloop.first -%}<thead>{%- endif -%}
-                <tr>
-                  {%- for c in cells -%}
-                    {%- if forloop.parentloop.first -%}
-                      <th scope="col">{{ c | strip | escape }}</th>
-                    {%- elsif forloop.first -%}
-                      <th scope="row">{{ c | strip | escape }}</th>
-                    {%- else -%}
-                      <td>{{ c | strip | escape }}</td>
-                    {%- endif -%}
-                  {%- endfor -%}
-                </tr>
-                {%- if forloop.first -%}</thead><tbody>{%- endif -%}
-              {%- endif -%}
-              {%- if forloop.last -%}</tbody>{%- endif -%}
-            {%- endfor -%}
-          </table>
-        </div>
-        {%- if bs.table_note != blank -%}
-          <p class="mm-acc__note">{{ bs.table_note | escape }}</p>
-        {%- endif -%}
-      {%- endif -%}
       {{ bs.size_text }}
+      <p class="mm-acc__actions">
+        <button type="button" data-mm-dialog="mm-size-finder">Calcular mi talle</button>
+        <button type="button" data-mm-dialog="mm-size-table">Ver tabla de talles</button>
+      </p>
     </div>
   </details>
 
@@ -211,6 +184,29 @@
     color: var(--color-foreground);
   }
 
+  .mm-acc__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mm-acc__actions button {
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-foreground);
+    background: none;
+    border: 1px solid var(--color-foreground);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .mm-acc__actions button:first-child {
+    color: #fff;
+    background: #111;
+  }
+
   .mm-acc__note {
     font-size: 0.75rem;
     opacity: 0.8;
@@ -227,8 +223,7 @@
     { "type": "header", "content": "Composición y cuidado" },
     { "type": "richtext", "id": "care_text", "label": "Cuidados generales", "info": "Se muestra en todos los productos, debajo de la composición de cada prenda (metacampo «Composición y cuidado»).", "default": "<p>Lavar a mano con agua fría y jabón neutro. No retorcer ni centrifugar. Secar en plano, a la sombra. No usar secadora. Planchar con paño, si es necesario. Guardar doblada, no colgada.</p>" },
     { "type": "header", "content": "¿Qué talle soy?" },
-    { "type": "textarea", "id": "size_table", "label": "Tabla de talles general", "info": "Una fila por línea y columnas separadas con «|». La primera línea son los títulos. Cada producto puede tener la suya en el metacampo «Tabla de talles».", "default": "Talle | Busto (cm) | Largo (cm) | Manga (cm)\nXS | – | – | –\nS | – | – | –\nM | – | – | –\nL | – | – | –\nXL | – | – | –\nXXL | – | – | –" },
-    { "type": "text", "id": "table_note", "label": "Nota de la tabla", "default": "Medidas de la prenda en plano, aproximadas (±2 cm)." },
+    { "type": "text", "id": "model_text", "label": "Referencia de la modelo", "default": "La modelo mide 1,66 m y usa talle S." },
     { "type": "richtext", "id": "size_text", "label": "Cómo elegir el talle", "default": "<p>Nuestros talles son reales: elegí tu talle habitual. Si estás entre dos, te recomendamos el más grande. ¿Dudas? Escribinos por WhatsApp y te asesoramos.</p>" },
     { "type": "header", "content": "Envío, devoluciones y cambios" },
     { "type": "richtext", "id": "shipping_text", "label": "Texto", "default": "<p>Envíos a todo el país en 1 a 6 días hábiles. Envío gratis desde $100.000.</p><p>Tenés 10 días desde que recibís tu compra para cambiarla o devolverla, sin uso y con etiqueta. <a href=\"/pages/politica-de-cambios\">Ver política de cambios</a>.</p>" }

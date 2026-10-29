@@ -1,27 +1,34 @@
 {%- doc -%}
   MARAMOUR — Enlaces debajo de los talles:
-  «Tabla de talles» abre el apartado de talles del acordeón (mismo contenido, un solo lugar).
-  «¿Qué talle soy?» abre WhatsApp con un mensaje ya escrito con el nombre de la prenda.
+  «Tabla de talles» abre el popup con la tabla, la guía para medirse y la ayuda.
+  «¿Qué talle soy?» abre el recomendador de talle.
+  La tabla sale del metacampo del producto «Tabla de talles» o, si está vacío, de la tabla general
+  de este bloque. La referencia de la modelo, del metacampo «Modelo» o del texto general.
 {%- enddoc -%}
 
 {%- liquid
   assign bs = block.settings
   assign product = closest.product
-  capture wa_text
-    echo 'Hola! Quiero saber qué talle me conviene en '
-    echo product.title
-  endcapture
+  assign table_src = product.metafields.custom.tabla_de_talles.value | default: bs.size_table
+  assign model_text = product.metafields.custom.modelo.value | default: bs.model_text
 -%}
 
 <script src="{{ 'maramour-product.js' | asset_url }}" type="module"></script>
 {%- render 'maramour-product-styles' -%}
 
 <div class="mm-size-help" {{ block.shopify_attributes }}>
-  <a href="#mm-acc-talles" data-mm-open="mm-acc-talles">{{ bs.table_label | escape }}</a>
-  {%- if bs.whatsapp_url != blank -%}
-    <a href="{{ bs.whatsapp_url }}?text={{ wa_text | url_encode }}" target="_blank" rel="noopener">{{ bs.help_label | escape }}</a>
-  {%- endif -%}
+  <button type="button" data-mm-dialog="mm-size-table">{{ bs.table_label | escape }}</button>
+  <button type="button" data-mm-dialog="mm-size-finder">{{ bs.help_label | escape }}</button>
 </div>
+
+{%- render 'maramour-size-dialogs',
+  table_src: table_src,
+  model_text: model_text,
+  whatsapp_url: bs.whatsapp_url,
+  whatsapp_label: bs.whatsapp_label,
+  hours: bs.hours,
+  contact_url: bs.contact_url
+-%}
 
 {% stylesheet %}
   .mm-size-help {
@@ -29,14 +36,19 @@
     justify-content: space-between;
     gap: 16px;
     margin-top: -4px;
-    font-size: 0.8125rem;
   }
 
-  .mm-size-help a {
+  .mm-size-help button {
+    padding: 4px 0;
+    font: inherit;
+    font-size: 0.8125rem;
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-color: rgb(var(--color-foreground-rgb) / 0.35);
+    background: none;
+    border: 0;
+    cursor: pointer;
   }
 {% endstylesheet %}
 
@@ -46,8 +58,14 @@
   "tag": null,
   "settings": [
     { "type": "text", "id": "table_label", "label": "Texto «Tabla de talles»", "default": "Tabla de talles" },
-    { "type": "text", "id": "help_label", "label": "Texto de ayuda", "default": "¿Qué talle soy?" },
-    { "type": "text", "id": "whatsapp_url", "label": "Enlace de WhatsApp", "info": "Formato https://wa.me/549…", "default": "https://wa.me/5492236685697" }
+    { "type": "text", "id": "help_label", "label": "Texto del recomendador", "default": "¿Qué talle soy?" },
+    { "type": "textarea", "id": "size_table", "label": "Tabla de talles general", "info": "Medidas del cuerpo en cm. Una fila por línea, columnas con «|», la primera línea son los títulos. Cada producto puede tener la suya en el metacampo «Tabla de talles».", "default": "Talle | Contorno pecho | Contorno cintura | Contorno cadera\nXXS | 72 – 76 | 56 – 60 | 82 – 86\nXS | 77 – 81 | 61 – 65 | 87 – 91\nS | 82 – 86 | 66 – 70 | 92 – 96\nM | 87 – 91 | 71 – 75 | 97 – 101\nL | 92 – 96 | 76 – 80 | 102 – 106\nXL | 97 – 101 | 81 – 85 | 107 – 111\nXXL | 102 – 106 | 86 – 90 | 112 – 116" },
+    { "type": "text", "id": "model_text", "label": "Referencia de la modelo", "info": "Cada producto puede tener la suya en el metacampo «Modelo».", "default": "La modelo mide 1,66 m y usa talle S." },
+    { "type": "header", "content": "Ayuda" },
+    { "type": "text", "id": "whatsapp_url", "label": "Enlace de WhatsApp", "default": "https://wa.me/5492236685697" },
+    { "type": "text", "id": "whatsapp_label", "label": "Número visible", "default": "+54 9 223 668-5697" },
+    { "type": "text", "id": "hours", "label": "Horario", "default": "Lunes a sábado de 9 a 20 h · Domingos de 9 a 18 h" },
+    { "type": "text", "id": "contact_url", "label": "Página de contacto", "default": "/pages/contacto" }
   ],
   "presets": [{ "name": "Ayuda con el talle" }]
 }

@@ -7,48 +7,72 @@
   /* ---------- Título y precio ---------- */
   .product-details .mm-pdp-title,
   .product-details .text-block h1 {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.35;
     letter-spacing: 0;
   }
 
   .product-details product-price .price {
-    font-size: 1.0625rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
   }
 
-  /* ---------- Color: muestras cuadradas con el color real ---------- */
-  .mm-opt legend {
-    margin-bottom: 10px;
-    font-size: 0.8125rem;
+  /* ---------- Galería (celular): sin puntos, barra de progreso de borde a borde ---------- */
+  .mm-gallery-bar {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.12);
   }
 
-  .mm-opt__value {
-    margin-inline-start: 4px;
-    color: rgb(var(--color-foreground-rgb) / 0.65);
+  .mm-gallery-bar span {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: calc(100% / var(--mm-n, 1));
+    background: var(--color-foreground);
+    transition: transform 0.12s linear;
+    will-change: transform;
   }
 
-  .mm-opt__value::before {
-    content: '· ';
+  @media screen and (max-width: 749px) {
+    media-gallery .media-gallery__mobile-controls {
+      display: none !important;
+    }
   }
 
-  .variant-option.mm-opt {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  @media screen and (min-width: 750px) {
+    .mm-gallery-bar {
+      display: none;
+    }
+  }
+
+  /* ---------- Variantes (sin títulos «Color» / «Talle»: se sobreentienden) ---------- */
+  .mm-opt > legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .variant-option.mm-opt {
     --variant-min-width: 0px;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
   }
 
   .mm-opt .variant-option__button-label {
     flex: 0 0 auto;
     min-width: 0 !important;
+    padding: 0;
     border: 0;
-    border-radius: 0;
-    background: none;
+    background: transparent !important;
     overflow: visible;
   }
 
@@ -59,70 +83,71 @@
     display: none !important;
   }
 
+  /* Color: círculos con el color real; el elegido con un anillo separado */
   .mm-opt--color .variant-option__button-label {
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background: var(--mm-sw, #ddd);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+  }
+
+  .mm-opt--color .variant-option__button-label::marker {
+    content: none;
   }
 
   .mm-opt--color .variant-option__button-label__text {
     position: absolute;
-    width: 1px;
-    height: 1px;
+    inset: 3px;
     overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+    font-size: 0;
+    border-radius: 50%;
+    background: var(--mm-sw, #ddd);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+  }
+
+  .mm-opt--color .variant-option__button-label:not(:has(:checked)) {
+    box-shadow: none;
+  }
+
+  .mm-opt--color .variant-option__button-label:not(:has(:checked)) .variant-option__button-label__text {
+    inset: 2px;
   }
 
   .mm-opt--color .variant-option__button-label:has(:checked) {
-    outline: 1px solid var(--color-foreground);
-    outline-offset: 3px;
+    box-shadow: inset 0 0 0 1.5px var(--color-foreground);
   }
 
-  /* Color sin stock en ningún talle: diagonal */
-  .mm-opt--color .variant-option__button-label:has([data-option-available='false']) {
+  /* Color sin stock para el talle elegido: más claro con diagonal */
+  .mm-opt--color .variant-option__button-label:has([data-option-available='false']) .variant-option__button-label__text {
     background:
-      linear-gradient(to top right, transparent calc(50% - 0.75px), rgb(255 255 255 / 0.9) calc(50% - 0.75px), rgb(255 255 255 / 0.9) calc(50% + 0.75px), transparent calc(50% + 0.75px)),
+      linear-gradient(to top right, transparent calc(50% - 0.75px), rgb(255 255 255 / 0.95) calc(50% - 0.75px), rgb(255 255 255 / 0.95) calc(50% + 0.75px), transparent calc(50% + 0.75px)),
       var(--mm-sw, #ddd);
-    opacity: 0.55;
+    opacity: 0.5;
   }
 
-  /* ---------- Talle: texto, elegido subrayado, agotado tachado ---------- */
-  .variant-option.mm-opt--text {
-    gap: 4px 18px;
-  }
-
-  .mm-opt--text .variant-option__button-label,
-  .mm-opt--text .variant-option__button-label:has(:checked) {
-    background: transparent !important;
-  }
-
+  /* Talle: texto; el elegido dentro de un círculo; agotado gris y tachado */
   .mm-opt--text .variant-option__button-label {
-    padding: 6px 2px;
-    font-size: 0.875rem;
-    color: var(--color-foreground);
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-foreground) !important;
   }
 
   .mm-opt--text .variant-option__button-label__text {
-    position: relative;
+    color: inherit !important;
   }
 
-  .mm-opt--text .variant-option__button-label:has(:checked),
-  .mm-opt--text .variant-option__button-label:has(:checked) .variant-option__button-label__text {
-    color: var(--color-foreground);
-  }
-
-  .mm-opt--text .variant-option__button-label:has(:checked) .variant-option__button-label__text {
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 6px;
+  .mm-opt--text .variant-option__button-label:has(:checked) {
+    box-shadow: inset 0 0 0 1px var(--color-foreground);
   }
 
   .mm-opt--text .variant-option__button-label:has([data-option-available='false']) {
-    color: rgb(var(--color-foreground-rgb) / 0.35);
+    color: rgb(var(--color-foreground-rgb) / 0.38) !important;
+    font-weight: 400;
   }
 
   .mm-opt--text .variant-option__button-label:has([data-option-available='false']) .variant-option__button-label__text {
@@ -130,9 +155,9 @@
     text-decoration-thickness: 1px;
   }
 
-  .mm-opt--text .variant-option__button-label:has([data-option-available='false']:checked) .variant-option__button-label__text {
-    color: var(--color-foreground);
-    text-decoration: line-through underline;
+  .mm-opt--text .variant-option__button-label:has(:focus-visible) {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 2px;
   }
 
   /* ---------- Botón de compra (sin selector de cantidad: una prenda por vez) ---------- */

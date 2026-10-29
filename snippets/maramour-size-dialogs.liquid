@@ -1,0 +1,615 @@
+{%- doc -%}
+  MARAMOUR — Popups de talles de la página de producto.
+  1. #mm-size-table: tabla de talles (medidas del cuerpo) + guía para medirse + ayuda.
+  2. #mm-size-finder: «¿Qué talle soy?» — recomienda un talle con las medidas (según la tabla)
+     o con altura, peso y calce preferido. Botón para elegir el talle recomendado.
+  Tabla: metacampo del producto custom.tabla_de_talles o la tabla general (una fila por línea,
+  columnas con «|», 1.ª fila = títulos, rangos «82 – 86»).
+  Se abren con cualquier elemento [data-mm-dialog="id"].
+
+  @param {string} table_src - Texto de la tabla
+  @param {string} model_text - Referencia de la modelo
+  @param {string} whatsapp_url - Enlace de WhatsApp
+  @param {string} whatsapp_label - Número visible
+  @param {string} hours - Horario de atención
+  @param {string} contact_url - Página de contacto
+{%- enddoc -%}
+
+{%- liquid
+  assign rows = table_src | strip | newline_to_br | split: '<br />'
+-%}
+
+<dialog class="mm-sheet" id="mm-size-table" aria-labelledby="mm-size-table-title">
+  <div class="mm-sheet__panel">
+    <button type="button" class="mm-sheet__close" data-mm-close aria-label="Cerrar">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 4l12 12M16 4 4 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+    </button>
+
+    <h2 class="mm-sheet__title" id="mm-size-table-title">Tabla de talles</h2>
+    <p class="mm-sheet__sub">Medidas del cuerpo, en centímetros.</p>
+
+    <div class="mm-sizes__wrap">
+      <table class="mm-sizes">
+        {%- for row in rows -%}
+          {%- assign cells = row | strip | split: '|' -%}
+          {%- if cells.size > 0 -%}
+            {%- if forloop.first -%}<thead>{%- endif -%}
+            <tr>
+              {%- for c in cells -%}
+                {%- if forloop.parentloop.first -%}
+                  <th scope="col">{{ c | strip | escape }}</th>
+                {%- elsif forloop.first -%}
+                  <th scope="row">{{ c | strip | escape }}</th>
+                {%- else -%}
+                  <td>{{ c | strip | escape }}</td>
+                {%- endif -%}
+              {%- endfor -%}
+            </tr>
+            {%- if forloop.first -%}</thead><tbody>{%- endif -%}
+          {%- endif -%}
+          {%- if forloop.last -%}</tbody>{%- endif -%}
+        {%- endfor -%}
+      </table>
+    </div>
+
+    {%- if model_text != blank -%}
+      <p class="mm-sheet__model">{{ model_text | escape }}</p>
+    {%- endif -%}
+
+    <h3 class="mm-sheet__h">Guía de talles</h3>
+    <svg class="mm-guide__figure" viewBox="0 0 160 220" fill="none" aria-hidden="true">
+      <path d="M66 6h28v16H66z" stroke="currentColor" stroke-width="1.3"/>
+      <ellipse cx="80" cy="6" rx="14" ry="3" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M66 22c-2 8-12 12-24 15-12 4-17 14-15 32 2 20 9 31 15 41 4 8 2 16-3 30-6 20-8 40-4 70h90c4-30 2-50-4-70-5-14-7-22-3-30 6-10 13-21 15-41 2-18-3-28-15-32-12-3-22-7-24-15" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+      <ellipse cx="80" cy="70" rx="60" ry="7" stroke="currentColor" stroke-width="1.3"/>
+      <ellipse cx="80" cy="120" rx="46" ry="6" stroke="currentColor" stroke-width="1.3"/>
+      <ellipse cx="80" cy="166" rx="56" ry="7" stroke="currentColor" stroke-width="1.3"/>
+      <g fill="currentColor"><circle cx="80" cy="77" r="6"/><circle cx="80" cy="126" r="6"/><circle cx="80" cy="173" r="6"/></g>
+      <g fill="#fff" font-size="8" font-weight="700" text-anchor="middle" font-family="sans-serif"><text x="80" y="80">1</text><text x="80" y="129">2</text><text x="80" y="176">3</text></g>
+    </svg>
+
+    <ol class="mm-guide__steps">
+      <li><strong>Pecho</strong>Rodeá la espalda con el centímetro, pasándolo por debajo de los brazos y por la parte más ancha del pecho.</li>
+      <li><strong>Cintura</strong>Rodeá la cintura con el centímetro, justo por encima del hueso de la cadera.</li>
+      <li><strong>Cadera</strong>Con las piernas juntas, rodeá la cadera por la parte más ancha.</li>
+    </ol>
+
+    <button type="button" class="mm-sheet__btn" data-mm-dialog="mm-size-finder">Calcular mi talle</button>
+
+    <div class="mm-sheet__help">
+      <h3 class="mm-sheet__h">¿Te ayudamos?</h3>
+      {%- if whatsapp_url != blank -%}
+        <p><a href="{{ whatsapp_url }}" target="_blank" rel="noopener">Escribinos por WhatsApp{% if whatsapp_label != blank %} · {{ whatsapp_label | escape }}{% endif %}</a></p>
+      {%- endif -%}
+      {%- if hours != blank -%}<p class="mm-sheet__muted">{{ hours | escape }}</p>{%- endif -%}
+      {%- if contact_url != blank -%}<p><a href="{{ contact_url }}">Escribinos por mail</a></p>{%- endif -%}
+    </div>
+  </div>
+</dialog>
+
+<dialog class="mm-sheet" id="mm-size-finder" aria-labelledby="mm-size-finder-title">
+  <div class="mm-sheet__panel">
+    <button type="button" class="mm-sheet__close" data-mm-close aria-label="Cerrar">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 4l12 12M16 4 4 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+    </button>
+
+    <h2 class="mm-sheet__title" id="mm-size-finder-title">¿Qué talle soy?</h2>
+    <p class="mm-sheet__sub">Completá tus datos y te recomendamos un talle.</p>
+
+    <div class="mm-finder__tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-mm-mode="body">Con altura y peso</button>
+      <button type="button" role="tab" aria-selected="false" data-mm-mode="measures">Con mis medidas</button>
+    </div>
+
+    <form class="mm-finder" data-mm-finder novalidate>
+      <div class="mm-finder__group" data-mm-group="body">
+        <label class="mm-finder__field"><span>Altura</span><input type="number" inputmode="numeric" name="height" min="130" max="210" placeholder="166"><em>cm</em></label>
+        <label class="mm-finder__field"><span>Peso</span><input type="number" inputmode="numeric" name="weight" min="35" max="180" placeholder="55"><em>kg</em></label>
+        <fieldset class="mm-finder__fit">
+          <legend>¿Cómo te gusta que te quede?</legend>
+          <label><input type="radio" name="fit" value="-1"><span>Al cuerpo</span></label>
+          <label><input type="radio" name="fit" value="0" checked><span>Normal</span></label>
+          <label><input type="radio" name="fit" value="1"><span>Holgado</span></label>
+        </fieldset>
+      </div>
+
+      <div class="mm-finder__group" data-mm-group="measures" hidden>
+        <label class="mm-finder__field"><span>Pecho</span><input type="number" inputmode="decimal" name="m1" min="50" max="160" placeholder="84"><em>cm</em></label>
+        <label class="mm-finder__field"><span>Cintura</span><input type="number" inputmode="decimal" name="m2" min="40" max="150" placeholder="68"><em>cm</em></label>
+        <label class="mm-finder__field"><span>Cadera</span><input type="number" inputmode="decimal" name="m3" min="60" max="170" placeholder="94"><em>cm</em></label>
+        <button type="button" class="mm-finder__link" data-mm-dialog="mm-size-table">¿Cómo me mido?</button>
+      </div>
+
+      <button type="submit" class="mm-sheet__btn">Ver mi talle</button>
+      <p class="mm-finder__error" data-mm-error hidden></p>
+    </form>
+
+    <div class="mm-finder__result" data-mm-result hidden>
+      <p class="mm-finder__label">Tu talle recomendado</p>
+      <p class="mm-finder__size" data-mm-size></p>
+      <p class="mm-finder__note" data-mm-note></p>
+      <button type="button" class="mm-sheet__btn" data-mm-pick></button>
+      <button type="button" class="mm-finder__link" data-mm-again>Volver a calcular</button>
+    </div>
+
+    {%- if model_text != blank -%}
+      <p class="mm-sheet__model">{{ model_text | escape }}</p>
+    {%- endif -%}
+  </div>
+</dialog>
+
+<script>
+  (() => {
+    if (window.mmSizeDialogs) return;
+    window.mmSizeDialogs = true;
+
+    /* Abrir / cerrar popups */
+    document.addEventListener('click', (e) => {
+      const t = e.target instanceof Element ? e.target : null;
+      if (!t) return;
+      const opener = t.closest('[data-mm-dialog]');
+      if (opener) {
+        const d = document.getElementById(opener.dataset.mmDialog);
+        if (d instanceof HTMLDialogElement) {
+          e.preventDefault();
+          document.querySelectorAll('dialog.mm-sheet[open]').forEach((o) => o !== d && o.close());
+          if (!d.open) d.showModal();
+          document.documentElement.classList.add('mm-sheet-lock');
+        }
+        return;
+      }
+      if (t.closest('[data-mm-close]')) t.closest('dialog')?.close();
+      else if (t instanceof HTMLDialogElement && t.classList.contains('mm-sheet')) t.close();
+    });
+    document.querySelectorAll('dialog.mm-sheet').forEach((d) =>
+      d.addEventListener('close', () => {
+        if (!document.querySelector('dialog.mm-sheet[open]')) document.documentElement.classList.remove('mm-sheet-lock');
+      })
+    );
+
+    /* Datos de la tabla: talles y rangos por columna */
+    const table = document.querySelector('#mm-size-table .mm-sizes');
+    const sizes = [];
+    const ranges = [];
+    table?.querySelectorAll('tbody tr').forEach((tr) => {
+      const cells = [...tr.children];
+      sizes.push(cells[0].textContent.trim());
+      ranges.push(
+        cells.slice(1).map((c) => {
+          const n = (c.textContent.match(/\d+(?:[.,]\d+)?/g) || []).map((x) => parseFloat(x.replace(',', '.')));
+          return n.length ? [Math.min(...n), Math.max(...n)] : null;
+        })
+      );
+    });
+
+    const finder = document.getElementById('mm-size-finder');
+    if (!finder || !sizes.length) return;
+    const form = finder.querySelector('[data-mm-finder]');
+    const result = finder.querySelector('[data-mm-result]');
+    const errorEl = finder.querySelector('[data-mm-error]');
+    let mode = 'body';
+
+    finder.querySelectorAll('[data-mm-mode]').forEach((tab) =>
+      tab.addEventListener('click', () => {
+        mode = tab.dataset.mmMode;
+        finder.querySelectorAll('[data-mm-mode]').forEach((b) => b.setAttribute('aria-selected', String(b === tab)));
+        finder.querySelectorAll('[data-mm-group]').forEach((g) => (g.hidden = g.dataset.mmGroup !== mode));
+      })
+    );
+
+    const clamp = (i) => Math.max(0, Math.min(sizes.length - 1, i));
+
+    /* Con medidas: el talle cuyo rango incluye la medida; entre dos rangos, el más grande.
+       Con varias medidas, gana la que pide el talle más grande (más cómodo). */
+    const byMeasures = (values) => {
+      let best = -1;
+      let outOfRange = false;
+      values.forEach((v, col) => {
+        if (!v) return;
+        let idx = ranges.findIndex((r) => r[col] && v <= r[col][1]);
+        if (idx === -1) {
+          idx = sizes.length - 1;
+          outOfRange = true;
+        }
+        best = Math.max(best, idx);
+      });
+      return { idx: best, outOfRange };
+    };
+
+    /* Con altura y peso: aproximación por índice de masa corporal, ajustada por calce y altura.
+       Referencia: la modelo mide 1,66 m y usa S. */
+    const byBody = (h, w, fit) => {
+      const bmi = w / Math.pow(h / 100, 2);
+      const cuts = [17.5, 19, 21.5, 24, 27, 30];
+      let idx = cuts.findIndex((c) => bmi < c);
+      if (idx === -1) idx = cuts.length;
+      const sIndex = sizes.findIndex((s) => s.toUpperCase() === 'XXS') === 0 ? 0 : 1;
+      idx = idx - sIndex;
+      if (h >= 176 && idx < 3) idx += 1;
+      return clamp(idx + fit);
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      errorEl.hidden = true;
+      const fd = new FormData(form);
+      let idx = -1;
+      let note = '';
+      if (mode === 'body') {
+        const h = parseFloat(fd.get('height'));
+        const w = parseFloat(fd.get('weight'));
+        if (!(h >= 130 && h <= 210) || !(w >= 35 && w <= 180)) {
+          errorEl.textContent = 'Completá tu altura (en cm) y tu peso (en kg).';
+          errorEl.hidden = false;
+          return;
+        }
+        idx = byBody(h, w, parseInt(fd.get('fit') || '0', 10));
+        note = 'Recomendación aproximada. Para más precisión, calculalo con tus medidas.';
+      } else {
+        const vals = ['m1', 'm2', 'm3'].map((k) => parseFloat(String(fd.get(k) || '').replace(',', '.')) || 0);
+        if (!vals.some(Boolean)) {
+          errorEl.textContent = 'Completá al menos una medida.';
+          errorEl.hidden = false;
+          return;
+        }
+        const r = byMeasures(vals);
+        idx = r.idx;
+        note = r.outOfRange
+          ? 'Tus medidas superan nuestra tabla: escribinos y te asesoramos.'
+          : 'Según la tabla de talles. Si estás entre dos talles, elegí el más grande.';
+      }
+      const size = sizes[clamp(idx)];
+      finder.querySelector('[data-mm-size]').textContent = size;
+      finder.querySelector('[data-mm-note]').textContent = note;
+      const pick = finder.querySelector('[data-mm-pick]');
+      pick.textContent = `Elegir talle ${size}`;
+      pick.dataset.size = size;
+      form.hidden = true;
+      result.hidden = false;
+    });
+
+    finder.querySelector('[data-mm-again]').addEventListener('click', () => {
+      result.hidden = true;
+      form.hidden = false;
+    });
+
+    finder.querySelector('[data-mm-pick]').addEventListener('click', (e) => {
+      const size = e.currentTarget.dataset.size;
+      finder.close();
+      const input = [...document.querySelectorAll('.mm-opt--text input[type="radio"]')].find((i) => i.value === size);
+      if (!input) return;
+      input.closest('label')?.click();
+      input.closest('fieldset')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-sheet-lock {
+    overflow: hidden;
+  }
+
+  .mm-sheet {
+    width: 100%;
+    max-width: 560px;
+    height: 100%;
+    max-height: none;
+    margin: 0 0 0 auto;
+    padding: 0;
+    color: var(--color-foreground);
+    background: var(--color-background, #fff);
+    border: 0;
+  }
+
+  .mm-sheet::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+
+  .mm-sheet[open] {
+    animation: mm-sheet-in 0.28s ease;
+  }
+
+  @keyframes mm-sheet-in {
+    from {
+      transform: translateX(24px);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mm-sheet[open] {
+      animation: none;
+    }
+  }
+
+  .mm-sheet__panel {
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    padding: 56px var(--page-margin, 20px) 40px;
+    overscroll-behavior: contain;
+  }
+
+  .mm-sheet__close {
+    position: absolute;
+    top: 10px;
+    right: 8px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mm-sheet__close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mm-sheet__title {
+    margin: 0 0 4px;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .mm-sheet__sub,
+  .mm-sheet__muted {
+    margin: 0 0 18px;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .mm-sheet__h {
+    margin: 32px 0 14px;
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+
+  .mm-sizes__wrap {
+    overflow-x: auto;
+    margin-inline: calc(var(--page-margin, 20px) * -1);
+    padding-inline: var(--page-margin, 20px);
+  }
+
+  .mm-sizes {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+    text-align: center;
+  }
+
+  .mm-sizes th,
+  .mm-sizes td {
+    padding: 14px 8px;
+    white-space: nowrap;
+  }
+
+  .mm-sizes thead th {
+    font-weight: 500;
+    white-space: normal;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+  }
+
+  .mm-sizes tbody tr:nth-child(odd) {
+    background: #f3f3f3;
+  }
+
+  .mm-sizes tbody th {
+    font-weight: 600;
+  }
+
+  .mm-sheet__model {
+    margin: 18px 0 0;
+    padding: 12px 14px;
+    font-size: 0.8125rem;
+    background: #f9e3e8;
+    color: #6d2440;
+  }
+
+  .mm-guide__figure {
+    display: block;
+    width: 150px;
+    height: auto;
+    margin: 0 auto 8px;
+  }
+
+  .mm-guide__steps {
+    margin: 0;
+    padding-inline-start: 20px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .mm-guide__steps li + li {
+    margin-top: 12px;
+  }
+
+  .mm-guide__steps strong {
+    display: block;
+    font-weight: 600;
+  }
+
+  .mm-sheet__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 50px;
+    margin-top: 24px;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #111;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .mm-sheet__help {
+    margin-top: 8px;
+    font-size: 0.875rem;
+  }
+
+  .mm-sheet__help p {
+    margin: 0 0 8px;
+  }
+
+  .mm-sheet__help a {
+    color: inherit;
+    text-underline-offset: 3px;
+  }
+
+  /* Recomendador */
+  .mm-finder__tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / 0.12);
+  }
+
+  .mm-finder__tabs button {
+    padding: 12px 4px;
+    font: inherit;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+  }
+
+  .mm-finder__tabs [aria-selected='true'] {
+    font-weight: 600;
+    color: var(--color-foreground);
+    border-bottom-color: var(--color-foreground);
+  }
+
+  .mm-finder__group {
+    display: grid;
+    gap: 12px;
+  }
+
+  .mm-finder__field {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.875rem;
+  }
+
+  .mm-finder__field input {
+    min-width: 0;
+    height: 46px;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 1rem;
+    color: inherit;
+    background: #fff;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.2);
+    border-radius: 6px;
+  }
+
+  .mm-finder__field em {
+    font-style: normal;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .mm-finder__fit {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .mm-finder__fit legend {
+    width: 100%;
+    margin-bottom: 8px;
+    font-size: 0.875rem;
+  }
+
+  .mm-finder__fit label {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .mm-finder__fit input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .mm-finder__fit span {
+    display: inline-block;
+    padding: 9px 14px;
+    font-size: 0.8125rem;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.2);
+    border-radius: 999px;
+  }
+
+  .mm-finder__fit input:checked + span {
+    color: #fff;
+    background: #111;
+    border-color: #111;
+  }
+
+  .mm-finder__fit input:focus-visible + span {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .mm-finder__link {
+    justify-self: start;
+    margin-top: 12px;
+    padding: 4px 0;
+    font: inherit;
+    font-size: 0.8125rem;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mm-finder__error {
+    margin: 12px 0 0;
+    font-size: 0.8125rem;
+    color: #b3261e;
+  }
+
+  .mm-finder__result {
+    display: grid;
+    justify-items: center;
+    padding: 12px 0;
+    text-align: center;
+  }
+
+  .mm-finder__label {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .mm-finder__size {
+    margin: 6px 0;
+    font-size: 3rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .mm-finder__note {
+    max-width: 34ch;
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+{% endstylesheet %}
