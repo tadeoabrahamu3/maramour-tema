@@ -305,10 +305,7 @@
               "settings": {
                 "heading": "Visto en Instagram",
                 "label": "Ver el video de la prenda puesta",
-                "background": "#f9e3e8",
-                "handle": "@maramour.ar",
-                "instagram_url": "https://www.instagram.com/maramour.ar/",
-                "cta_label": "Ver en Instagram"
+                "background": "#f9e3e8"
               },
               "blocks": {}
             },

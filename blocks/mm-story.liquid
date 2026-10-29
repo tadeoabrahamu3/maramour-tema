@@ -35,21 +35,11 @@
       <div class="mm-story__frame">
         <div class="mm-story__bar" aria-hidden="true"><span data-mm-story-progress></span></div>
         <div class="mm-story__top">
-          <span class="mm-story__who">
-            {{ bs.handle | default: shop.name | escape }}
-          </span>
-          <button type="button" class="mm-story__icon" data-mm-story-mute aria-label="Activar sonido" aria-pressed="false">
-            <svg class="mm-story__muted" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 7.5h3l4-3.5v12l-4-3.5h-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="m13.5 8 4 4m0-4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            <svg class="mm-story__unmuted" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 7.5h3l4-3.5v12l-4-3.5h-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M13.5 7.2a4 4 0 0 1 0 5.6M15.6 5a7 7 0 0 1 0 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          </button>
           <button type="button" class="mm-story__icon" data-mm-story-close aria-label="Cerrar">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 4l12 12M16 4 4 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
           </button>
         </div>
         <div class="mm-story__media" data-mm-story-media></div>
-        {%- if bs.instagram_url != blank -%}
-          <a class="mm-story__cta" href="{{ bs.instagram_url }}" target="_blank" rel="noopener">{{ bs.cta_label | escape }}</a>
-        {%- endif -%}
       </div>
     </dialog>
 
@@ -67,7 +57,6 @@
       const holder = root.querySelector('[data-mm-story-media]');
       const tpl = root.querySelector('[data-mm-story-template]');
       const bar = root.querySelector('[data-mm-story-progress]');
-      const muteBtn = root.querySelector('[data-mm-story-mute]');
       let video = null;
       let raf = 0;
 
@@ -80,6 +69,7 @@
         if (!video) {
           holder.appendChild(tpl.content.cloneNode(true));
           video = holder.querySelector('video');
+          video.muted = true;
           video.addEventListener('ended', close);
           video.addEventListener('click', () => (video.paused ? video.play() : video.pause()));
         }
@@ -105,12 +95,6 @@
         cancelAnimationFrame(raf);
       });
       dialog.addEventListener('click', (e) => { if (e.target === dialog) close(); });
-      muteBtn.addEventListener('click', () => {
-        if (!video) return;
-        video.muted = !video.muted;
-        muteBtn.setAttribute('aria-pressed', String(!video.muted));
-        muteBtn.setAttribute('aria-label', video.muted ? 'Activar sonido' : 'Silenciar');
-      });
     })();
   </script>
 {%- elsif request.design_mode -%}
@@ -187,6 +171,11 @@
     backdrop-filter: blur(2px);
   }
 
+  .mm-story__dialog[open] {
+    display: grid;
+    place-items: center;
+  }
+
   .mm-story__dialog {
     width: 100%;
     max-width: none;
@@ -207,9 +196,11 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: min(calc(100% - 24px), calc((100dvh - 24px) * 9 / 16));
-    height: calc(100dvh - 24px);
-    margin: 12px auto;
+    width: min(calc(100% - 64px), calc(78dvh * 9 / 16));
+    height: auto;
+    aspect-ratio: 9 / 16;
+    max-height: 78dvh;
+    margin: auto;
     overflow: hidden;
     background: #000;
     border-radius: 14px;
@@ -246,9 +237,8 @@
 
   .mm-story__top {
     position: absolute;
-    top: 18px;
-    left: 14px;
-    right: 6px;
+    top: 16px;
+    right: 4px;
     z-index: 3;
     display: flex;
     align-items: center;
@@ -256,14 +246,8 @@
     text-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
   }
 
-  .mm-story__who {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  .mm-story__icon:focus:not(:focus-visible) {
+    outline: none;
   }
 
   .mm-story__icon {
@@ -288,30 +272,6 @@
     filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.45));
   }
 
-  .mm-story__icon .mm-story__unmuted,
-  .mm-story__icon[aria-pressed='true'] .mm-story__muted {
-    display: none;
-  }
-
-  .mm-story__icon[aria-pressed='true'] .mm-story__unmuted {
-    display: block;
-  }
-
-  .mm-story__cta {
-    position: absolute;
-    bottom: 24px;
-    left: 50%;
-    z-index: 2;
-    padding: 10px 18px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #111;
-    text-decoration: none;
-    background: #fff;
-    border-radius: 999px;
-    transform: translateX(-50%);
-  }
-
   .mm-story__empty {
     padding: 12px;
     font-size: 0.8125rem;
@@ -327,10 +287,7 @@
     { "type": "text", "id": "heading", "label": "Título", "default": "Visto en Instagram" },
     { "type": "text", "id": "label", "label": "Descripción del video (para lectores de pantalla)", "default": "Ver el video de la prenda puesta" },
     { "type": "color", "id": "background", "label": "Fondo", "default": "#F9E3E8" },
-    { "type": "text", "id": "handle", "label": "Cuenta", "default": "@maramour.ar" },
-    { "type": "video", "id": "fallback_video", "label": "Video general (opcional)", "info": "Se usa en los productos que no tienen su propio video en el metacampo «Video historia»." },
-    { "type": "url", "id": "instagram_url", "label": "Enlace a Instagram (opcional)" },
-    { "type": "text", "id": "cta_label", "label": "Texto del enlace", "default": "Ver en Instagram" }
+    { "type": "video", "id": "fallback_video", "label": "Video general (opcional)", "info": "Se usa en los productos que no tienen su propio video en el metacampo «Video historia»." }
   ],
   "presets": [{ "name": "Video historia" }]
 }
