@@ -1,43 +1,87 @@
 {%- doc -%}
-  MARAMOUR — Lookbook: carrusel de fotos de la prenda en uso.
-  Cada bloque = una foto + el producto al que lleva. El nombre y el precio se leen del producto
-  (se actualizan solos si cambia el precio o entra en Sale). Se pueden ocultar si el texto ya
-  viene escrito en la foto. Desplazamiento nativo, barra de progreso, imágenes en carga diferida.
+  MARAMOUR — Lookbook: fotos de la prenda en uso. Cada bloque = una foto + el producto al que lleva.
+  El nombre y el precio se leen del producto (se actualizan solos si cambia el precio o entra en Sale).
+  Dos diseños:
+  - Carrusel (Home): desplazamiento nativo + barra de progreso + enlace «Ver lookbook».
+  - Cuadrícula (página /pages/lookbook): 2 columnas en celular, 3 en computadora; las fotos
+    «destacadas» ocupan el doble (2×2). Título como h1.
+  Imágenes en carga diferida (en la cuadrícula, las 2 primeras cargan de inmediato).
 {%- enddoc -%}
 
 {%- liquid
   assign s = section.settings
+  assign is_grid = false
+  if s.layout == 'grid'
+    assign is_grid = true
+  endif
 -%}
 
-<div class="mm-look" data-mm-look style="--mm-look-ratio: {{ s.image_ratio }};">
-  {%- if s.heading != blank -%}
+<div
+  class="mm-look mm-look--{{ s.layout | default: 'carousel' }}"
+  {% unless is_grid %}data-mm-look{% endunless %}
+  style="--mm-look-ratio: {{ s.image_ratio }};"
+>
+  {%- if s.heading != blank or s.link_label != blank -%}
     <div class="mm-look__head">
-      <h2 class="mm-look__title">{{ s.heading | escape }}</h2>
+      {%- if s.heading != blank -%}
+        {%- if is_grid -%}
+          <h1 class="mm-look__title">{{ s.heading | escape }}</h1>
+        {%- else -%}
+          <h2 class="mm-look__title">{{ s.heading | escape }}</h2>
+        {%- endif -%}
+      {%- endif -%}
+      {%- if s.link_label != blank and is_grid == false -%}
+        <a class="mm-look__all" href="{{ s.link_url | default: '/pages/lookbook' }}">
+          {{- s.link_label | escape -}}
+          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="M7.5 4.5 13 10l-5.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      {%- endif -%}
     </div>
   {%- endif -%}
 
-  <ul class="mm-look__track list-unstyled" role="list" data-mm-look-track>
+  {%- if is_grid and s.intro != blank -%}
+    <div class="mm-look__intro">{{ s.intro }}</div>
+  {%- endif -%}
+
+  <ul class="mm-look__track list-unstyled" role="list" {% unless is_grid %}data-mm-look-track{% endunless %}>
     {%- for block in section.blocks -%}
       {%- liquid
         assign p = block.settings.product
         assign url = p.url | default: '#'
         assign label = block.settings.label | default: p.title
+        assign featured = false
+        if is_grid and block.settings.featured
+          assign featured = true
+        endif
+        assign loading = 'lazy'
+        if is_grid and forloop.index <= 2
+          assign loading = 'eager'
+        endif
+        if is_grid
+          if featured
+            assign sizes = '(min-width: 990px) 66vw, 100vw'
+          else
+            assign sizes = '(min-width: 990px) 33vw, 50vw'
+          endif
+        else
+          assign sizes = '(min-width: 990px) 32vw, 86vw'
+        endif
       -%}
-      <li class="mm-look__item" {{ block.shopify_attributes }}>
+      <li class="mm-look__item{% if featured %} mm-look__item--featured{% endif %}" {{ block.shopify_attributes }}>
         <a class="mm-look__link" href="{{ url }}">
           {%- if block.settings.image != blank -%}
             {{
               block.settings.image
-              | image_url: width: 1200
+              | image_url: width: 1600
               | image_tag:
-                loading: 'lazy',
-                widths: '360, 540, 720, 900, 1200',
-                sizes: '(min-width: 990px) 32vw, 86vw',
+                loading: loading,
+                widths: '300, 450, 600, 800, 1000, 1200, 1600',
+                sizes: sizes,
                 class: 'mm-look__img',
                 alt: label
             }}
           {%- else -%}
-            {%- capture ph -%}lifestyle-{% cycle '1', '2', '1', '2', '1' %}{%- endcapture -%}
+            {%- capture ph -%}lifestyle-{% cycle '1', '2' %}{%- endcapture -%}
             {{ ph | placeholder_svg_tag: 'mm-look__img mm-look__img--ph' }}
           {%- endif -%}
 
@@ -59,31 +103,35 @@
     {%- endfor -%}
   </ul>
 
-  <div class="mm-look__progress" aria-hidden="true">
-    <span class="mm-look__thumb" data-mm-look-thumb></span>
-  </div>
+  {%- unless is_grid -%}
+    <div class="mm-look__progress" aria-hidden="true">
+      <span class="mm-look__thumb" data-mm-look-thumb></span>
+    </div>
+  {%- endunless -%}
 </div>
 
-<script>
-  (() => {
-    const root = document.currentScript.previousElementSibling;
-    if (!root || !root.matches('[data-mm-look]')) return;
-    const track = root.querySelector('[data-mm-look-track]');
-    const thumb = root.querySelector('[data-mm-look-thumb]');
-    if (!track || !thumb) return;
-    const update = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = track;
-      const visible = Math.min(1, clientWidth / scrollWidth);
-      const max = scrollWidth - clientWidth;
-      const progress = max > 0 ? scrollLeft / max : 0;
-      thumb.style.width = `${visible * 100}%`;
-      thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
-    };
-    track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
-    window.addEventListener('resize', update, { passive: true });
-    update();
-  })();
-</script>
+{%- unless is_grid -%}
+  <script>
+    (() => {
+      const root = document.currentScript.previousElementSibling;
+      if (!root || !root.matches('[data-mm-look]')) return;
+      const track = root.querySelector('[data-mm-look-track]');
+      const thumb = root.querySelector('[data-mm-look-thumb]');
+      if (!track || !thumb) return;
+      const update = () => {
+        const { scrollLeft, scrollWidth, clientWidth } = track;
+        const visible = Math.min(1, clientWidth / scrollWidth);
+        const max = scrollWidth - clientWidth;
+        const progress = max > 0 ? scrollLeft / max : 0;
+        thumb.style.width = `${visible * 100}%`;
+        thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
+      };
+      track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      update();
+    })();
+  </script>
+{%- endunless -%}
 
 {% stylesheet %}
   .mm-look {
@@ -93,6 +141,10 @@
   }
 
   .mm-look__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     padding-inline: var(--page-margin, 16px);
     margin-bottom: 16px;
   }
@@ -101,6 +153,26 @@
     margin: 0;
     font-size: 1.3125rem;
     font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .mm-look__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .mm-look__all svg {
+    width: 18px;
+    height: 18px;
   }
 
   .mm-look__track {
@@ -187,6 +259,66 @@
     will-change: transform;
   }
 
+  /* ---------- Cuadrícula (página Lookbook) ---------- */
+  .mm-look--grid {
+    padding-block: 28px 48px;
+  }
+
+  .mm-look--grid .mm-look__head {
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .mm-look--grid .mm-look__title {
+    font-size: clamp(2rem, 9vw, 3rem);
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .mm-look__intro {
+    max-width: 46ch;
+    margin: 0 auto 24px;
+    padding-inline: var(--page-margin, 16px);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    text-align: center;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+  }
+
+  .mm-look__intro p {
+    margin: 0;
+  }
+
+  .mm-look--grid .mm-look__track {
+    grid-auto-flow: row dense;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-inline: 0;
+  }
+
+  .mm-look--grid .mm-look__caption {
+    padding: 32px 10px 10px;
+    font-size: 0.8125rem;
+  }
+
+  /* Destacada: ocupa 2 columnas × 2 filas; la altura la da la cuadrícula */
+  .mm-look__item--featured {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .mm-look__item--featured .mm-look__link {
+    height: 100%;
+  }
+
+  .mm-look__item--featured .mm-look__caption {
+    padding: 48px 16px 16px;
+    font-size: 0.9375rem;
+  }
+
   @media screen and (min-width: 990px) {
     .mm-look {
       --mm-look-gap: 16px;
@@ -201,6 +333,17 @@
     .mm-look__title {
       font-size: 1.75rem;
     }
+
+    .mm-look--grid .mm-look__track {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding-inline: var(--page-margin, 40px);
+    }
+
+    .mm-look--grid .mm-look__caption {
+      padding: 40px 16px 16px;
+      font-size: 0.875rem;
+    }
   }
 {% endstylesheet %}
 
@@ -209,9 +352,22 @@
   "name": "Lookbook",
   "tag": "section",
   "class": "section-wrapper",
-  "max_blocks": 10,
+  "max_blocks": 30,
   "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Diseño",
+      "options": [
+        { "value": "carousel", "label": "Carrusel (para la Home)" },
+        { "value": "grid", "label": "Cuadrícula (para la página Lookbook)" }
+      ],
+      "default": "carousel"
+    },
     { "type": "text", "id": "heading", "label": "Título (opcional)", "default": "Lookbook" },
+    { "type": "richtext", "id": "intro", "label": "Introducción (solo en cuadrícula)" },
+    { "type": "text", "id": "link_label", "label": "Texto del enlace (solo en carrusel)", "default": "Ver lookbook" },
+    { "type": "url", "id": "link_url", "label": "Enlace", "info": "Si queda vacío, lleva a la página Lookbook." },
     {
       "type": "select",
       "id": "image_ratio",
@@ -232,7 +388,8 @@
       "settings": [
         { "type": "image_picker", "id": "image", "label": "Foto" },
         { "type": "product", "id": "product", "label": "Producto al que lleva" },
-        { "type": "text", "id": "label", "label": "Nombre a mostrar (opcional)", "info": "Si queda vacío, se usa el nombre del producto." }
+        { "type": "text", "id": "label", "label": "Nombre a mostrar (opcional)", "info": "Si queda vacío, se usa el nombre del producto." },
+        { "type": "checkbox", "id": "featured", "label": "Foto destacada (más grande)", "info": "Solo en la cuadrícula: ocupa el doble de ancho y de alto.", "default": false }
       ]
     }
   ],

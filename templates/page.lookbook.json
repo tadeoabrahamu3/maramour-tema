@@ -1,0 +1,113 @@
+{
+  "sections": {
+    "main": {
+      "type": "maramour-lookbook",
+      "blocks": {
+        "look_1": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Lookbook_flecos.jpg",
+            "product": "",
+            "label": "",
+            "featured": true
+          }
+        },
+        "look_2": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
+            "product": "",
+            "label": "",
+            "featured": false
+          }
+        },
+        "look_3": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Lookbook_flecos.jpg",
+            "product": "",
+            "label": "",
+            "featured": false
+          }
+        },
+        "look_4": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
+            "product": "",
+            "label": "",
+            "featured": false
+          }
+        },
+        "look_5": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Lookbook_flecos.jpg",
+            "product": "",
+            "label": "",
+            "featured": false
+          }
+        },
+        "look_6": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
+            "product": "",
+            "label": "",
+            "featured": true
+          }
+        },
+        "look_7": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Lookbook_flecos.jpg",
+            "product": "",
+            "label": "",
+            "featured": false
+          }
+        },
+        "look_8": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
+            "product": "",
+            "label": "",
+            "featured": false
+          }
+        },
+        "look_9": {
+          "type": "look",
+          "settings": {
+            "image": "shopify://shop_images/Lookbook_flecos.jpg",
+            "product": "",
+            "label": "",
+            "featured": false
+          }
+        }
+      },
+      "block_order": [
+        "look_1",
+        "look_2",
+        "look_3",
+        "look_4",
+        "look_5",
+        "look_6",
+        "look_7",
+        "look_8",
+        "look_9"
+      ],
+      "settings": {
+        "layout": "grid",
+        "heading": "Lookbook",
+        "intro": "<p>Nuestras prendas, como nos gusta usarlas. Tocá cualquier look para ver la prenda.</p>",
+        "link_label": "",
+        "link_url": "",
+        "image_ratio": "3 / 4",
+        "show_text": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

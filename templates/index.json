@@ -174,7 +174,10 @@
       "settings": {
         "heading": "Lookbook",
         "image_ratio": "3 / 4",
-        "show_text": true
+        "show_text": true,
+        "layout": "carousel",
+        "link_label": "Ver lookbook",
+        "link_url": "/pages/lookbook"
       }
     },
     "custom_promo": {
