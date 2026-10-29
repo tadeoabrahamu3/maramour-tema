@@ -142,12 +142,27 @@
         "look_4",
         "look_5"
       ]
+    },
+    "custom_promo": {
+      "type": "maramour-custom-promo",
+      "settings": {
+        "image_ratio": "4 / 5",
+        "eyebrow": "Hecho para vos",
+        "heading": "Personalizados",
+        "text": "<p>Elegí tu modelo favorito en el color que más te guste. Lo tejemos especialmente para vos en nuestra fábrica.</p>",
+        "show_swatches": true,
+        "swatches": "#F2E6D8\n#C9A27E\n#6B4A3A\n#1F1F1F\n#7C8B6F\n#B5485D\n#9DB4C8",
+        "button_label": "Quiero el mío",
+        "button_link": "/pages/personalizados",
+        "background": "#FFFFFF"
+      }
     }
   },
   "order": [
     "hero_video",
     "featured",
     "categories",
-    "lookbook"
+    "lookbook",
+    "custom_promo"
   ]
 }

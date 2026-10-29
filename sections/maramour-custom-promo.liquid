@@ -1,0 +1,201 @@
+{%- doc -%}
+  MARAMOUR — Bloque de Personalizados para la Home.
+  Foto + texto breve + muestras de color + botón hacia la página de Personalizados.
+  Celular: foto arriba y texto abajo. Computadora: foto y texto lado a lado.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign swatches = s.swatches | newline_to_br | split: '<br />'
+-%}
+
+<div class="mm-custom" style="--mm-custom-bg: {{ s.background }}; --mm-custom-ratio: {{ s.image_ratio }};">
+  <a class="mm-custom__media" href="{{ s.button_link | default: '/pages/personalizados' }}" tabindex="-1" aria-hidden="true">
+    {%- if s.image != blank -%}
+      {{
+        s.image
+        | image_url: width: 1400
+        | image_tag:
+          loading: 'lazy',
+          widths: '375, 550, 750, 1000, 1400',
+          sizes: '(min-width: 990px) 50vw, 100vw',
+          class: 'mm-custom__img',
+          alt: ''
+      }}
+    {%- else -%}
+      {{ 'lifestyle-2' | placeholder_svg_tag: 'mm-custom__img mm-custom__img--ph' }}
+    {%- endif -%}
+  </a>
+
+  <div class="mm-custom__content">
+    {%- if s.eyebrow != blank -%}
+      <p class="mm-custom__eyebrow">{{ s.eyebrow | escape }}</p>
+    {%- endif -%}
+    {%- if s.heading != blank -%}
+      <h2 class="mm-custom__title">{{ s.heading | escape }}</h2>
+    {%- endif -%}
+    {%- if s.text != blank -%}
+      <div class="mm-custom__text">{{ s.text }}</div>
+    {%- endif -%}
+
+    {%- if s.show_swatches and swatches.size > 0 -%}
+      <ul class="mm-custom__swatches list-unstyled" role="list" aria-label="Algunos colores disponibles">
+        {%- for sw in swatches -%}
+          {%- assign c = sw | strip -%}
+          {%- if c != blank -%}
+            <li style="--sw: {{ c }};"></li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- if s.button_label != blank -%}
+      <a class="mm-custom__button" href="{{ s.button_link | default: '/pages/personalizados' }}">{{ s.button_label | escape }}</a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .mm-custom {
+    display: grid;
+    background: var(--mm-custom-bg, transparent);
+    margin-block: 8px 0;
+  }
+
+  .mm-custom__media {
+    position: relative;
+    display: block;
+    aspect-ratio: var(--mm-custom-ratio, 4 / 5);
+    overflow: hidden;
+    background: #ececec;
+  }
+
+  .mm-custom__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mm-custom__img--ph {
+    fill: rgb(0 0 0 / 0.2);
+  }
+
+  .mm-custom__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 36px var(--page-margin, 20px) 44px;
+    text-align: center;
+  }
+
+  .mm-custom__eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .mm-custom__title {
+    margin: 0;
+    font-size: 1.625rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  .mm-custom__text {
+    max-width: 34ch;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  .mm-custom__text p {
+    margin: 0;
+  }
+
+  .mm-custom__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 2px 0 4px;
+  }
+
+  .mm-custom__swatches li {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--sw);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+  }
+
+  .mm-custom__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding-inline: 32px;
+    margin-top: 4px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border: 1px solid var(--color-foreground);
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .mm-custom__button:hover {
+    color: var(--color-background);
+    background: var(--color-foreground);
+  }
+
+  @media screen and (min-width: 990px) {
+    .mm-custom {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+    }
+
+    .mm-custom__content {
+      padding: 56px;
+    }
+
+    .mm-custom__title {
+      font-size: 2.25rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Personalizados",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Foto" },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Proporción de la foto",
+      "options": [
+        { "value": "4 / 5", "label": "4:5" },
+        { "value": "1 / 1", "label": "1:1" },
+        { "value": "3 / 4", "label": "3:4" }
+      ],
+      "default": "4 / 5"
+    },
+    { "type": "text", "id": "eyebrow", "label": "Texto chico superior", "default": "Hecho para vos" },
+    { "type": "text", "id": "heading", "label": "Título", "default": "Personalizados" },
+    { "type": "richtext", "id": "text", "label": "Texto", "default": "<p>Elegí tu modelo favorito en el color que más te guste. Lo tejemos especialmente para vos en nuestra fábrica.</p>" },
+    { "type": "checkbox", "id": "show_swatches", "label": "Mostrar muestras de color", "default": true },
+    { "type": "textarea", "id": "swatches", "label": "Colores (uno por línea, en formato #RRGGBB)", "default": "#F2E6D8\n#C9A27E\n#6B4A3A\n#1F1F1F\n#7C8B6F\n#B5485D\n#9DB4C8" },
+    { "type": "text", "id": "button_label", "label": "Texto del botón", "default": "Quiero el mío" },
+    { "type": "url", "id": "button_link", "label": "Enlace del botón", "info": "Si queda vacío, lleva a la página Personalizados." },
+    { "type": "color", "id": "background", "label": "Fondo del texto", "default": "#FFFFFF" }
+  ],
+  "presets": [{ "name": "Personalizados" }]
+}
+{% endschema %}
