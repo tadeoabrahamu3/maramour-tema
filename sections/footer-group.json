@@ -31,9 +31,61 @@
         "menu_3": "footer-informacion",
         "show_brand": false
       }
+    },
+    "maramour_info": {
+      "type": "maramour-info-strip",
+      "blocks": {
+        "envios": {
+          "type": "item",
+          "settings": {
+            "icon": "truck",
+            "title": "Envíos a todo el país",
+            "text": "Gratis desde $100.000 · 1 a 6 días hábiles.",
+            "link": "/pages/preguntas-frecuentes"
+          }
+        },
+        "cuotas": {
+          "type": "item",
+          "settings": {
+            "icon": "card",
+            "title": "3 cuotas sin interés",
+            "text": "Con tarjeta de crédito.",
+            "link": "/pages/preguntas-frecuentes"
+          }
+        },
+        "transferencia": {
+          "type": "item",
+          "settings": {
+            "icon": "tag",
+            "title": "10% OFF por transferencia",
+            "text": "Abonando con transferencia bancaria.",
+            "link": "/pages/preguntas-frecuentes"
+          }
+        },
+        "cambios": {
+          "type": "item",
+          "settings": {
+            "icon": "exchange",
+            "title": "Cambios en 10 días",
+            "text": "Desde que lo recibís, sin uso y con etiqueta.",
+            "link": "/pages/politica-de-cambios"
+          }
+        }
+      },
+      "block_order": [
+        "envios",
+        "cuotas",
+        "transferencia",
+        "cambios"
+      ],
+      "settings": {
+        "background": "#FFFFFF",
+        "interval": 4
+      }
     }
   },
   "order": [
+    "maramour_info",
     "maramour_footer"
   ]
 }
