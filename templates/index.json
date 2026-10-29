@@ -174,7 +174,7 @@
           "settings": {
             "icon": "card",
             "title": "3 cuotas sin interés",
-            "text": "Con tarjeta de crédito. También débito y Mercado Pago.",
+            "text": "Con tarjeta de crédito.",
             "link": "/pages/preguntas-frecuentes"
           }
         },
