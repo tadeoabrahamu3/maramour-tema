@@ -14,7 +14,7 @@
         "ratio_mobile": "2 / 3",
         "ratio_desktop": "16 / 9",
         "button_label": "Ver colección",
-        "button_link": "shopify://collections/all",
+        "button_link": "/collections/all",
         "content_position": "center",
         "overlay_opacity": 25
       }
