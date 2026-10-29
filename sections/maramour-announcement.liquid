@@ -1,7 +1,9 @@
 {%- doc -%}
   MARAMOUR — Franja de anuncios con texto en movimiento continuo.
-  Cada bloque es un mensaje. Solo CSS (sin JavaScript): el contenido se duplica para que el
+  Cada bloque es un mensaje. El movimiento es solo CSS: el contenido se duplica para que el
   desplazamiento sea continuo. Si el dispositivo pide reducir movimiento, el texto queda quieto.
+  Opción «fija al hacer scroll»: la franja queda arriba y el encabezado se acomoda debajo
+  (un script mínimo mide su alto en --mm-announce-h).
 {%- enddoc -%}
 
 {%- liquid
@@ -11,7 +13,7 @@
 
 {%- if count > 0 -%}
   <div
-    class="mm-announce"
+    class="mm-announce{% if s.sticky %} mm-announce--sticky{% endif %}"
     role="region"
     aria-label="Anuncios"
     style="--mm-announce-bg: {{ s.background }}; --mm-announce-fg: {{ s.text_color }}; --mm-announce-duration: {{ s.duration }}s;"
@@ -36,9 +38,37 @@
       <div class="mm-announce__group" aria-hidden="true">{{ messages }}</div>
     </div>
   </div>
+
+  {%- if s.sticky -%}
+    <script>
+      (() => {
+        const bar = document.currentScript.previousElementSibling;
+        if (!bar) return;
+        const set = () => document.documentElement.style.setProperty('--mm-announce-h', `${bar.offsetHeight}px`);
+        set();
+        if ('ResizeObserver' in window) new ResizeObserver(set).observe(bar);
+      })();
+    </script>
+  {%- endif -%}
 {%- endif -%}
 
 {% stylesheet %}
+  /* Franja fija: queda arriba al hacer scroll y el encabezado fijo se ubica justo debajo */
+  .shopify-section:has(> .mm-announce--sticky) {
+    position: sticky;
+    top: 0;
+    z-index: var(--layer-menu-drawer);
+  }
+
+  #header-group:has(.mm-announce--sticky) .header-section:has(> #header-component[sticky='always']),
+  #header-group:has(.mm-announce--sticky) .header-section:has(> #header-component[sticky='scroll-up'][data-sticky-state='active']) {
+    top: calc(var(--mm-announce-h, 32px) - 1px);
+  }
+
+  #header-group:has(.mm-announce--sticky) ~ * .product-details.sticky-content--desktop {
+    --sticky-header-offset: calc(var(--header-height, 60px) + var(--mm-announce-h, 32px));
+  }
+
   .mm-announce {
     overflow: hidden;
     color: var(--mm-announce-fg);
@@ -117,7 +147,8 @@
     { "type": "color", "id": "background", "label": "Fondo", "default": "#F9E3E8" },
     { "type": "color", "id": "text_color", "label": "Texto", "default": "#111111" },
     { "type": "range", "id": "duration", "label": "Duración de una vuelta", "min": 10, "max": 60, "step": 2, "unit": "s", "default": 28 },
-    { "type": "text", "id": "separator", "label": "Separador entre mensajes", "default": "-" }
+    { "type": "text", "id": "separator", "label": "Separador entre mensajes", "default": "-" },
+    { "type": "checkbox", "id": "sticky", "label": "Fija arriba al hacer scroll", "info": "Funciona con el encabezado fijo.", "default": true }
   ],
   "blocks": [
     {
