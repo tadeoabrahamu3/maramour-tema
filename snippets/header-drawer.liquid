@@ -106,7 +106,11 @@
           {%- comment -%}
             Handle menus with fewer than 3 levels of links
           {%- endcomment -%}
-          {% if linklist.levels < 3 %}
+          {%- comment -%}
+            MARAMOUR: siempre usamos paneles deslizantes (rama de 3 niveles), así
+            «Colección» abre un segundo panel con tarjetas 2 × 2, volver y cerrar.
+          {%- endcomment -%}
+          {% if false and linklist.levels < 3 %}
             {% assign first_accordion_open = false %}
             {% assign animation_index = 0 %}
             {%- for link in linklist.links -%}
