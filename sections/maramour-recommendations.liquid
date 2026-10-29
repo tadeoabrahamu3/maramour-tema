@@ -1,28 +1,35 @@
 {%- doc -%}
   MARAMOUR — «También te puede gustar» en la página de producto.
-  Usa las recomendaciones de Shopify (productos relacionados) con la misma tarjeta y carrusel de
-  la Home. Rendimiento: se piden al servidor recién cuando la clienta se acerca a esta parte de la
-  página (no suma nada a la carga inicial).
+  Muestra los más vendidos de la tienda (o, si se elige, los relacionados de Shopify) con la misma
+  tarjeta y carrusel de la Home, sin pestañas ni «Ver todo». Saltea el producto que se está viendo.
+  Rendimiento: se piden al servidor recién cuando la clienta se acerca a esta parte de la página
+  (no suma nada a la carga inicial).
 {%- enddoc -%}
 
 {%- liquid
   assign s = section.settings
   assign product_id = product.id | default: closest.product.id
+  if s.source == 'related'
+    assign feed_url = routes.product_recommendations_url | append: '?product_id=' | append: product_id | append: '&limit=10&section_id=' | append: section.id | append: '&intent=related'
+  else
+    assign feed_url = routes.all_products_collection_url | append: '?sort_by=best-selling&section_id=maramour-best-sellers-feed'
+  endif
 -%}
 
 <div
   class="mm-feat mm-recs"
   data-mm-recs
-  data-url="{{ routes.product_recommendations_url }}?product_id={{ product_id }}&limit={{ s.limit }}&section_id={{ section.id }}&intent=related"
+  data-url="{{ feed_url }}"
+  data-product-id="{{ product_id }}"
+  data-limit="{{ s.limit }}"
   style="--mm-feat-ratio: {{ s.image_ratio }}; --mm-card-ratio: {{ s.image_ratio }};"
+  hidden
 >
-  {%- if recommendations.performed and recommendations.products_count > 0 -%}
-    <div class="mm-feat__head">
-      <h2 class="mm-feat__title">{{ s.heading | escape }}</h2>
-    </div>
-    <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track>
+  {%- if recommendations.performed -%}
+    {%- comment -%} Respuesta para el modo «relacionados»: la misma lista que devuelve la sección de más vendidos {%- endcomment -%}
+    <ul class="list-unstyled" data-mm-recs-feed>
       {%- for rec in recommendations.products -%}
-        <li class="mm-feat__item">
+        <li class="mm-feat__item" data-product-id="{{ rec.id }}">
           {%- render 'maramour-product-card',
             product: rec,
             show_second_image: true,
@@ -32,6 +39,11 @@
         </li>
       {%- endfor -%}
     </ul>
+  {%- else -%}
+    <div class="mm-feat__head">
+      <h2 class="mm-feat__title">{{ s.heading | escape }}</h2>
+    </div>
+    <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track></ul>
     <div class="mm-feat__progress" aria-hidden="true">
       <span class="mm-feat__progress-thumb" data-mm-feat-thumb></span>
     </div>
@@ -41,12 +53,12 @@
 <script>
   (() => {
     const root = document.currentScript.previousElementSibling;
-    if (!root || !root.matches('[data-mm-recs]')) return;
+    if (!root || !root.matches('[data-mm-recs]') || !root.querySelector('[data-mm-feat-track]')) return;
+    const track = root.querySelector('[data-mm-feat-track]');
+    const thumb = root.querySelector('[data-mm-feat-thumb]');
+    const limit = Number(root.dataset.limit) || 7;
 
-    const initBar = (el) => {
-      const track = el.querySelector('[data-mm-feat-track]');
-      const thumb = el.querySelector('[data-mm-feat-thumb]');
-      if (!track || !thumb) return;
+    const initBar = () => {
       const update = () => {
         const { scrollLeft, scrollWidth, clientWidth } = track;
         const visible = Math.min(1, clientWidth / scrollWidth);
@@ -60,19 +72,20 @@
       update();
     };
 
-    if (root.querySelector('[data-mm-feat-track]')) return initBar(root);
-
     const load = () =>
       fetch(root.dataset.url)
-        .then((r) => r.text())
+        .then((r) => (r.ok ? r.text() : Promise.reject()))
         .then((text) => {
           const html = new DOMParser().parseFromString(text, 'text/html');
-          const fresh = html.querySelector('[data-mm-recs]');
-          if (!fresh || !fresh.querySelector('[data-mm-feat-track]')) return root.remove();
-          root.innerHTML = fresh.innerHTML;
-          initBar(root);
+          const items = [...html.querySelectorAll('[data-mm-recs-feed] > li')]
+            .filter((li) => li.dataset.productId !== root.dataset.productId)
+            .slice(0, limit);
+          if (items.length < 2) return root.remove();
+          track.replaceChildren(...items.map((li) => document.importNode(li, true)));
+          root.hidden = false;
+          initBar();
         })
-        .catch(() => {});
+        .catch(() => root.remove());
 
     if (!('IntersectionObserver' in window)) return load();
     const io = new IntersectionObserver(
@@ -84,14 +97,13 @@
       },
       { rootMargin: '600px 0px' }
     );
-    io.observe(root);
+    io.observe(root.parentElement || root);
   })();
 </script>
 
 {% stylesheet %}
-  .mm-recs:empty {
-    min-height: 1px;
-    padding: 0;
+  .mm-recs[hidden] {
+    display: none;
   }
 {% endstylesheet %}
 
@@ -103,7 +115,18 @@
   "enabled_on": { "templates": ["product"] },
   "settings": [
     { "type": "text", "id": "heading", "label": "Título", "default": "También te puede gustar" },
-    { "type": "range", "id": "limit", "label": "Cantidad de productos", "min": 2, "max": 10, "step": 1, "default": 8 },
+    {
+      "type": "select",
+      "id": "source",
+      "label": "Productos a mostrar",
+      "options": [
+        { "value": "best_selling", "label": "Los más vendidos" },
+        { "value": "related", "label": "Relacionados (Shopify)" }
+      ],
+      "default": "best_selling",
+      "info": "Siempre se saltea el producto que se está viendo."
+    },
+    { "type": "range", "id": "limit", "label": "Cantidad de productos", "min": 2, "max": 10, "step": 1, "default": 7 },
     {
       "type": "select",
       "id": "image_ratio",

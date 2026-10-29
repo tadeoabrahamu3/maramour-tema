@@ -350,7 +350,8 @@
       "type": "maramour-recommendations",
       "settings": {
         "heading": "También te puede gustar",
-        "limit": 8,
+        "source": "best_selling",
+        "limit": 7,
         "image_ratio": "2 / 3"
       }
     },

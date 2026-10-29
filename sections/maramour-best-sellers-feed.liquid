@@ -1,0 +1,35 @@
+{%- doc -%}
+  MARAMOUR — Lista de «Más vendidos» para «También te puede gustar» (solo para pedir por JavaScript).
+  No se agrega a ninguna página: la sección de recomendaciones la pide así:
+  /collections/all?sort_by=best-selling&section_id=maramour-best-sellers-feed
+  Devuelve las tarjetas de los productos disponibles ordenados por ventas (sin tarjetas de regalo).
+{%- enddoc -%}
+
+{%- liquid
+  assign source = collection | default: collections.all
+  assign shown = 0
+-%}
+
+<ul class="list-unstyled" data-mm-recs-feed>
+  {%- for item in source.products -%}
+    {%- if item.gift_card? or item.available == false -%}{%- continue -%}{%- endif -%}
+    <li class="mm-feat__item" data-product-id="{{ item.id }}">
+      {%- render 'maramour-product-card',
+        product: item,
+        show_second_image: true,
+        show_sale_badge: true,
+        sizes: '(min-width: 990px) 22vw, 60vw'
+      -%}
+    </li>
+    {%- assign shown = shown | plus: 1 -%}
+    {%- if shown >= 11 -%}{%- break -%}{%- endif -%}
+  {%- endfor -%}
+</ul>
+
+{% schema %}
+{
+  "name": "Más vendidos (datos)",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}
