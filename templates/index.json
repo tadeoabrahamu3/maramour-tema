@@ -86,6 +86,7 @@
           "type": "category",
           "settings": {
             "collection": "tops",
+            "image": "shopify://shop_images/Categoria_Tops.jpg",
             "label": ""
           }
         },
