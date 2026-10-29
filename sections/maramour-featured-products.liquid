@@ -1,96 +1,225 @@
 {%- doc -%}
-  MARAMOUR — Productos destacados (carrusel horizontal que se desliza con el dedo).
-  Muestra los productos de una colección elegida a mano. Sin librerías: usa el desplazamiento
-  nativo del navegador con «scroll-snap». Las imágenes se cargan en diferido.
-  Si la colección está vacía, muestra tarjetas de ejemplo para ver el diseño.
+  MARAMOUR — Productos destacados.
+  Título + «Ver todo», pestañas (Destacados y categorías) y un carrusel que se desliza con el dedo,
+  con una barra de progreso debajo. Sin librerías: desplazamiento nativo con «scroll-snap» y unas
+  líneas de JS para pestañas y barra. Las imágenes de las pestañas ocultas no se descargan hasta
+  que se abren (carga diferida). Colecciones vacías → tarjetas de ejemplo.
 {%- enddoc -%}
 
 {%- liquid
   assign s = section.settings
-  assign collection = s.collection
   assign limit = s.limit
+  assign sid = section.id
 -%}
 
-<div class="mm-feat" style="--mm-feat-ratio: {{ s.image_ratio }};">
+{%- capture placeholder_cards -%}
+  {%- for i in (1..4) -%}
+    <li class="mm-feat__item">
+      <div class="mm-card">
+        <div class="mm-card__media">
+          {%- capture ph -%}product-apparel-{% cycle '1', '2', '3', '4' %}{%- endcapture -%}
+          {{ ph | placeholder_svg_tag: 'mm-card__img' }}
+        </div>
+        <p class="mm-card__name">Nombre del producto</p>
+        <p class="mm-card__price"><span>$ 00.000</span></p>
+      </div>
+    </li>
+  {%- endfor -%}
+{%- endcapture -%}
+
+<div class="mm-feat" data-mm-feat style="--mm-feat-ratio: {{ s.image_ratio }};">
   <div class="mm-feat__head">
     {%- if s.heading != blank -%}
       <h2 class="mm-feat__title">{{ s.heading | escape }}</h2>
     {%- endif -%}
-    {%- if s.link_label != blank and collection != blank -%}
-      <a class="mm-feat__all" href="{{ collection.url }}">{{ s.link_label | escape }}</a>
+    {%- if s.link_label != blank -%}
+      <a
+        class="mm-feat__all"
+        href="{{ s.link_url | default: routes.all_products_collection_url }}"
+        data-mm-feat-all
+      >
+        {{- s.link_label | escape -}}
+        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="M7.5 4.5 13 10l-5.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
     {%- endif -%}
   </div>
 
-  <ul class="mm-feat__track list-unstyled" role="list">
-    {%- if collection != blank and collection.products_count > 0 -%}
-      {%- for product in collection.products limit: limit -%}
-        {%- liquid
-          assign first = product.featured_media
-          assign second = product.media[1]
-          assign on_sale = false
-          if product.compare_at_price > product.price
-            assign on_sale = true
-          endif
-        -%}
-        <li class="mm-feat__item">
-          <a class="mm-card" href="{{ product.url }}">
-            <div class="mm-card__media{% if second and s.show_second_image %} mm-card__media--hover{% endif %}">
-              {%- if first -%}
-                {{
-                  first.preview_image
-                  | image_url: width: 900
-                  | image_tag:
-                    loading: 'lazy',
-                    widths: '240, 360, 480, 640, 900',
-                    sizes: '(min-width: 990px) 22vw, 46vw',
-                    class: 'mm-card__img',
-                    alt: product.title
-                }}
-                {%- if second and s.show_second_image -%}
-                  {{
-                    second.preview_image
-                    | image_url: width: 900
-                    | image_tag:
-                      loading: 'lazy',
-                      widths: '240, 360, 480, 640, 900',
-                      sizes: '(min-width: 990px) 22vw, 46vw',
-                      class: 'mm-card__img mm-card__img--second',
-                      alt: ''
-                  }}
-                {%- endif -%}
-              {%- else -%}
-                {{ 'product-apparel-1' | placeholder_svg_tag: 'mm-card__img' }}
-              {%- endif -%}
-              {%- if on_sale and s.show_sale_badge -%}
-                <span class="mm-card__badge">Sale</span>
-              {%- endif -%}
-            </div>
-            <p class="mm-card__name">{{ product.title | escape }}</p>
-            <p class="mm-card__price">
-              {%- if on_sale -%}
-                <s class="mm-card__compare">{{ product.compare_at_price | money }}</s>
-              {%- endif -%}
-              <span>{% if product.price_varies %}Desde {% endif %}{{ product.price | money }}</span>
-            </p>
-          </a>
-        </li>
+  {%- comment -%} Pestañas: la primera es la colección principal; después, una por bloque {%- endcomment -%}
+  {%- if section.blocks.size > 0 -%}
+    <div class="mm-feat__tabs" role="tablist" aria-label="{{ s.heading | escape }}">
+      <button
+        type="button"
+        role="tab"
+        class="mm-feat__tab"
+        id="{{ sid }}-tab-0"
+        aria-controls="{{ sid }}-panel-0"
+        aria-selected="true"
+        data-url="{{ s.link_url | default: routes.all_products_collection_url }}"
+      >
+        {{- s.main_tab_label | default: s.heading | escape -}}
+      </button>
+      {%- for block in section.blocks -%}
+        {%- assign c = block.settings.collection -%}
+        <button
+          type="button"
+          role="tab"
+          class="mm-feat__tab"
+          id="{{ sid }}-tab-{{ forloop.index }}"
+          aria-controls="{{ sid }}-panel-{{ forloop.index }}"
+          aria-selected="false"
+          tabindex="-1"
+          data-url="{{ c.url | default: routes.all_products_collection_url }}"
+          {{ block.shopify_attributes }}
+        >
+          {{- block.settings.label | default: c.title | default: 'Categoría' | escape -}}
+        </button>
       {%- endfor -%}
-    {%- else -%}
-      {%- for i in (1..4) -%}
-        <li class="mm-feat__item">
-          <div class="mm-card">
-            <div class="mm-card__media">
-              {%- capture ph -%}product-apparel-{% cycle '1', '2', '3', '4' %}{%- endcapture -%}
-              {{ ph | placeholder_svg_tag: 'mm-card__img' }}
-            </div>
-            <p class="mm-card__name">Nombre del producto</p>
-            <p class="mm-card__price"><span>$ 00.000</span></p>
-          </div>
-        </li>
-      {%- endfor -%}
-    {%- endif -%}
-  </ul>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Paneles {%- endcomment -%}
+  {%- liquid
+    assign panel_count = section.blocks.size | plus: 1
+  -%}
+  {%- for p in (1..panel_count) -%}
+    {%- liquid
+      assign index = forloop.index0
+      if index == 0
+        assign collection = s.collection
+      else
+        assign block_index = index | minus: 1
+        assign collection = section.blocks[block_index].settings.collection
+      endif
+    -%}
+    <div
+      class="mm-feat__panel"
+      id="{{ sid }}-panel-{{ index }}"
+      {% if section.blocks.size > 0 %}
+        role="tabpanel" aria-labelledby="{{ sid }}-tab-{{ index }}"
+      {% endif %}
+      {% if index > 0 %}
+        hidden
+      {% endif %}
+    >
+      <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track>
+        {%- if collection != blank and collection.products_count > 0 -%}
+          {%- for product in collection.products limit: limit -%}
+            {%- liquid
+              assign first = product.featured_media
+              assign second = product.media[1]
+              assign on_sale = false
+              if product.compare_at_price > product.price
+                assign on_sale = true
+              endif
+            -%}
+            <li class="mm-feat__item">
+              <a class="mm-card" href="{{ product.url }}">
+                <div class="mm-card__media">
+                  {%- if first -%}
+                    {{
+                      first.preview_image
+                      | image_url: width: 900
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '240, 360, 480, 640, 900',
+                        sizes: '(min-width: 990px) 22vw, 46vw',
+                        class: 'mm-card__img',
+                        alt: product.title
+                    }}
+                    {%- if second and s.show_second_image -%}
+                      {{
+                        second.preview_image
+                        | image_url: width: 900
+                        | image_tag:
+                          loading: 'lazy',
+                          widths: '240, 360, 480, 640, 900',
+                          sizes: '(min-width: 990px) 22vw, 46vw',
+                          class: 'mm-card__img mm-card__img--second',
+                          alt: ''
+                      }}
+                    {%- endif -%}
+                  {%- else -%}
+                    {{ 'product-apparel-1' | placeholder_svg_tag: 'mm-card__img' }}
+                  {%- endif -%}
+                  {%- if on_sale and s.show_sale_badge -%}
+                    <span class="mm-card__badge">Sale</span>
+                  {%- endif -%}
+                </div>
+                <p class="mm-card__name">{{ product.title | escape }}</p>
+                <p class="mm-card__price">
+                  {%- if on_sale -%}
+                    <s class="mm-card__compare">{{ product.compare_at_price | money }}</s>
+                  {%- endif -%}
+                  <span>{% if product.price_varies %}Desde {% endif %}{{ product.price | money }}</span>
+                </p>
+              </a>
+            </li>
+          {%- endfor -%}
+        {%- else -%}
+          {{ placeholder_cards }}
+        {%- endif -%}
+      </ul>
+    </div>
+  {%- endfor -%}
+
+  <div class="mm-feat__progress" aria-hidden="true">
+    <span class="mm-feat__progress-thumb" data-mm-feat-thumb></span>
+  </div>
 </div>
+
+<script>
+  (() => {
+    const root = document.currentScript.previousElementSibling;
+    if (!root || !root.matches('[data-mm-feat]')) return;
+
+    const tabs = [...root.querySelectorAll('[role="tab"]')];
+    const thumb = root.querySelector('[data-mm-feat-thumb]');
+    const all = root.querySelector('[data-mm-feat-all]');
+    let track = root.querySelector('.mm-feat__panel:not([hidden]) [data-mm-feat-track]');
+
+    /* Barra de progreso: el ancho muestra cuánto se ve; la posición, en qué parte del carrusel estás */
+    const update = () => {
+      if (!track || !thumb) return;
+      const { scrollLeft, scrollWidth, clientWidth } = track;
+      const visible = Math.min(1, clientWidth / scrollWidth);
+      const max = scrollWidth - clientWidth;
+      const progress = max > 0 ? scrollLeft / max : 0;
+      thumb.style.width = `${visible * 100}%`;
+      thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
+    };
+
+    root.querySelectorAll('[data-mm-feat-track]').forEach((t) =>
+      t.addEventListener('scroll', () => t === track && requestAnimationFrame(update), { passive: true })
+    );
+    window.addEventListener('resize', update, { passive: true });
+
+    const select = (tab) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', on);
+        t.tabIndex = on ? 0 : -1;
+        root.querySelector('#' + t.getAttribute('aria-controls')).hidden = !on;
+      });
+      track = root.querySelector('#' + tab.getAttribute('aria-controls') + ' [data-mm-feat-track]');
+      track.scrollLeft = 0;
+      if (all && tab.dataset.url) all.href = tab.dataset.url;
+      update();
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!dir) return;
+        const next = tabs[(i + dir + tabs.length) % tabs.length];
+        next.focus();
+        select(next);
+      });
+    });
+
+    update();
+  })();
+</script>
 
 {% stylesheet %}
   .mm-feat {
@@ -101,29 +230,73 @@
 
   .mm-feat__head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
     padding-inline: var(--page-margin, 16px);
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .mm-feat__title {
     margin: 0;
-    font-size: 1.375rem;
+    font-size: 1.5rem;
     font-weight: 600;
     line-height: 1.2;
   }
 
   .mm-feat__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
     flex-shrink: 0;
     font-size: 0.8125rem;
-    color: inherit;
-    text-decoration: none;
+    font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    color: inherit;
+    text-decoration: none;
   }
 
+  .mm-feat__all svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Pestañas */
+  .mm-feat__tabs {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding-inline: var(--page-margin, 16px);
+    margin-bottom: 18px;
+    scrollbar-width: none;
+  }
+
+  .mm-feat__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mm-feat__tab {
+    flex-shrink: 0;
+    padding: 6px 0;
+    font: inherit;
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-bottom: 1.5px solid transparent;
+    opacity: 0.6;
+    cursor: pointer;
+  }
+
+  .mm-feat__tab[aria-selected='true'] {
+    opacity: 1;
+    border-bottom-color: currentColor;
+  }
+
+  /* Carrusel */
   .mm-feat__track {
     display: grid;
     grid-auto-flow: column;
@@ -148,6 +321,28 @@
     min-width: 0;
   }
 
+  /* Barra de progreso */
+  .mm-feat__progress {
+    position: relative;
+    height: 3px;
+    margin: 22px var(--page-margin, 16px) 0;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.12);
+    border-radius: 3px;
+  }
+
+  .mm-feat__progress-thumb {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 40%;
+    background: var(--color-foreground);
+    border-radius: 3px;
+    transition: width 0.2s ease;
+    will-change: transform;
+  }
+
+  /* Tarjeta */
   .mm-card {
     display: block;
     color: inherit;
@@ -246,10 +441,14 @@
   "name": "Productos destacados",
   "tag": "section",
   "class": "section-wrapper",
+  "max_blocks": 8,
   "settings": [
     { "type": "text", "id": "heading", "label": "Título", "default": "Productos destacados" },
-    { "type": "collection", "id": "collection", "label": "Colección", "info": "Cargá en esta colección los productos que quieras destacar, en el orden en que deben aparecer." },
-    { "type": "range", "id": "limit", "label": "Cantidad máxima", "min": 2, "max": 12, "step": 1, "default": 8 },
+    { "type": "collection", "id": "collection", "label": "Colección principal", "info": "Primera pestaña. Cargá acá los productos a destacar, en el orden en que deben aparecer." },
+    { "type": "text", "id": "main_tab_label", "label": "Nombre de la primera pestaña", "default": "Destacados" },
+    { "type": "text", "id": "link_label", "label": "Texto del enlace", "default": "Ver todo" },
+    { "type": "url", "id": "link_url", "label": "Enlace de la primera pestaña", "info": "En las demás pestañas, «Ver todo» lleva a esa categoría." },
+    { "type": "range", "id": "limit", "label": "Productos por pestaña", "min": 2, "max": 12, "step": 1, "default": 8 },
     {
       "type": "select",
       "id": "image_ratio",
@@ -262,8 +461,17 @@
       "default": "3 / 4"
     },
     { "type": "checkbox", "id": "show_second_image", "label": "Mostrar segunda foto al pasar el mouse (computadora)", "default": true },
-    { "type": "checkbox", "id": "show_sale_badge", "label": "Etiqueta «Sale» en productos rebajados", "default": true },
-    { "type": "text", "id": "link_label", "label": "Texto del enlace «ver todos» (opcional)" }
+    { "type": "checkbox", "id": "show_sale_badge", "label": "Etiqueta «Sale» en productos rebajados", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "Pestaña",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Colección" },
+        { "type": "text", "id": "label", "label": "Nombre (opcional)", "info": "Si queda vacío, se usa el nombre de la colección." }
+      ]
+    }
   ],
   "presets": [{ "name": "Productos destacados" }]
 }

@@ -24,12 +24,46 @@
       "settings": {
         "heading": "Productos destacados",
         "collection": "destacados",
+        "main_tab_label": "Destacados",
+        "link_label": "Ver todo",
+        "link_url": "/collections/all",
         "limit": 8,
         "image_ratio": "3 / 4",
         "show_second_image": true,
-        "show_sale_badge": true,
-        "link_label": ""
-      }
+        "show_sale_badge": true
+      },
+      "blocks": {
+        "tab_sweaters": {
+          "type": "tab",
+          "settings": {
+            "collection": "sweaters"
+          }
+        },
+        "tab_tops": {
+          "type": "tab",
+          "settings": {
+            "collection": "tops"
+          }
+        },
+        "tab_cardigans": {
+          "type": "tab",
+          "settings": {
+            "collection": "cardigans"
+          }
+        },
+        "tab_camperas": {
+          "type": "tab",
+          "settings": {
+            "collection": "camperas"
+          }
+        }
+      },
+      "block_order": [
+        "tab_sweaters",
+        "tab_tops",
+        "tab_cardigans",
+        "tab_camperas"
+      ]
     },
     "categories": {
       "type": "maramour-category-grid",
