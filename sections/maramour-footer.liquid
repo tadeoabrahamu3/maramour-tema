@@ -156,13 +156,25 @@
 </footer>
 
 <script>
-  /* En pantallas grandes los menús quedan abiertos como columnas; en el celular, cerrados en acordeón. */
+  /* En computadora los menús quedan abiertos como columnas.
+     En el celular funcionan como acordeón: al abrir uno se cierran los demás. */
   (() => {
     const mq = window.matchMedia('(min-width: 990px)');
-    const sync = () =>
-      document.querySelectorAll('[data-mm-footer-menu]').forEach((d) => {
-        d.open = mq.matches;
-      });
+    const menus = () => document.querySelectorAll('[data-mm-footer-menu]');
+    const sync = () => menus().forEach((d) => (d.open = mq.matches));
+
+    document.addEventListener(
+      'toggle',
+      (event) => {
+        const opened = event.target;
+        if (mq.matches || !opened.matches?.('[data-mm-footer-menu]') || !opened.open) return;
+        menus().forEach((d) => {
+          if (d !== opened) d.open = false;
+        });
+      },
+      true
+    );
+
     sync();
     mq.addEventListener('change', sync);
   })();
@@ -355,6 +367,24 @@
 
   .mm-footer__menu-title::-webkit-details-marker {
     display: none;
+  }
+
+  /* Sin el resaltado azul al tocar o hacer clic; el contorno queda solo para quien navega con teclado */
+  .mm-footer__menu-title,
+  .mm-footer a,
+  .mm-footer button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mm-footer__menu-title:focus:not(:focus-visible),
+  .mm-footer a:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .mm-footer__menu-title:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
   }
 
   .mm-footer__plus {
