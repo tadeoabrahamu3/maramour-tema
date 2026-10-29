@@ -1,0 +1,265 @@
+{%- doc -%}
+  MARAMOUR — Video principal de la Home.
+  Celular: formato 2:3 (deja asomar la sección siguiente). Computadora: video horizontal opcional.
+  Reproducción automática, en bucle, sin sonido y sin controles. Si el dispositivo pide
+  reducir movimiento, se queda en la imagen de portada.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign video_mobile = s.video
+  assign video_desktop = s.video_desktop | default: s.video
+-%}
+
+<div
+  class="mm-hero"
+  style="--mm-hero-ratio-mobile: {{ s.ratio_mobile }}; --mm-hero-ratio-desktop: {{ s.ratio_desktop }}; --mm-hero-overlay: {{ s.overlay_opacity | divided_by: 100.0 }};"
+>
+  <div class="mm-hero__media">
+    {%- if video_mobile != blank -%}
+      <div class="mm-hero__video{% if s.video_desktop != blank %} mm-hero__video--mobile{% endif %}">
+        {{
+          video_mobile
+          | video_tag:
+            autoplay: true,
+            loop: true,
+            muted: true,
+            playsinline: true,
+            controls: false,
+            preload: 'auto',
+            image_size: '1080x',
+            class: 'mm-hero__el',
+            data-mm-hero-video: ''
+        }}
+      </div>
+      {%- if s.video_desktop != blank -%}
+        <div class="mm-hero__video mm-hero__video--desktop">
+          {{
+            video_desktop
+            | video_tag:
+              autoplay: true,
+              loop: true,
+              muted: true,
+              playsinline: true,
+              controls: false,
+              preload: 'none',
+              image_size: '1920x',
+              class: 'mm-hero__el',
+              data-mm-hero-video: ''
+          }}
+        </div>
+      {%- endif -%}
+    {%- elsif s.poster != blank -%}
+      {{
+        s.poster
+        | image_url: width: 1500
+        | image_tag:
+          class: 'mm-hero__el',
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '375, 550, 750, 1100, 1500',
+          sizes: '100vw'
+      }}
+    {%- else -%}
+      <div class="mm-hero__placeholder">
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'mm-hero__el' }}
+        {%- if request.design_mode -%}
+          <p class="mm-hero__hint">Subí el video en «Video (celular)»</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if s.heading != blank or s.button_label != blank -%}
+    <div class="mm-hero__content mm-hero__content--{{ s.content_position }}">
+      {%- if s.heading != blank -%}
+        <h2 class="mm-hero__heading">{{ s.heading | escape }}</h2>
+      {%- endif -%}
+      {%- if s.button_label != blank -%}
+        <a class="mm-hero__button" href="{{ s.button_link | default: routes.all_products_collection_url }}">
+          {{- s.button_label | escape -}}
+        </a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{%- if video_mobile != blank -%}
+  <script>
+    (() => {
+      /* Accesibilidad: si el sistema pide reducir movimiento, el video queda en la portada. */
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      document.querySelectorAll('[data-mm-hero-video]').forEach((v) => {
+        v.removeAttribute('autoplay');
+        v.pause();
+      });
+    })();
+  </script>
+{%- endif -%}
+
+{% stylesheet %}
+  .mm-hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--mm-hero-ratio-mobile, 2 / 3);
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.06);
+    color: #fff;
+  }
+
+  .mm-hero__media,
+  .mm-hero__video,
+  .mm-hero__placeholder {
+    position: absolute;
+    inset: 0;
+  }
+
+  .mm-hero__el,
+  .mm-hero__media video,
+  .mm-hero__media img,
+  .mm-hero__media svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mm-hero__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / var(--mm-hero-overlay)), transparent 55%);
+    pointer-events: none;
+  }
+
+  .mm-hero__video--desktop {
+    display: none;
+  }
+
+  .mm-hero__hint {
+    position: absolute;
+    inset: auto 0 50% 0;
+    margin: 0;
+    text-align: center;
+    font-size: 0.875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  .mm-hero__content {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 0 var(--page-margin, 20px) 28px;
+  }
+
+  .mm-hero__content--center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .mm-hero__content--left {
+    align-items: flex-start;
+  }
+
+  .mm-hero__heading {
+    margin: 0;
+    font-size: clamp(1.5rem, 6vw, 2.75rem);
+    font-weight: 500;
+    line-height: 1.1;
+    color: #fff;
+  }
+
+  .mm-hero__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding-inline: 28px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #111;
+    background: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .mm-hero__button:hover {
+    color: #fff;
+    background: #111;
+  }
+
+  @media screen and (min-width: 990px) {
+    .mm-hero {
+      aspect-ratio: var(--mm-hero-ratio-desktop, 16 / 9);
+      max-height: 85vh;
+    }
+
+    .mm-hero__video--mobile {
+      display: none;
+    }
+
+    .mm-hero__video--desktop {
+      display: block;
+    }
+
+    .mm-hero__content {
+      padding-bottom: 56px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Maramour · Video principal",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    { "type": "video", "id": "video", "label": "Video (celular)", "info": "Vertical. Ideal: 10–15 s, 1080 px de ancho, sin sonido." },
+    { "type": "video", "id": "video_desktop", "label": "Video (computadora, opcional)", "info": "Horizontal. Si queda vacío, se usa el del celular." },
+    { "type": "image_picker", "id": "poster", "label": "Imagen de respaldo", "info": "Se muestra si no hay video cargado." },
+    {
+      "type": "select",
+      "id": "ratio_mobile",
+      "label": "Proporción en celular",
+      "options": [
+        { "value": "2 / 3", "label": "2:3" },
+        { "value": "4 / 5", "label": "4:5" },
+        { "value": "9 / 16", "label": "9:16 (pantalla completa)" }
+      ],
+      "default": "2 / 3"
+    },
+    {
+      "type": "select",
+      "id": "ratio_desktop",
+      "label": "Proporción en computadora",
+      "options": [
+        { "value": "16 / 9", "label": "16:9" },
+        { "value": "21 / 9", "label": "21:9" },
+        { "value": "3 / 2", "label": "3:2" }
+      ],
+      "default": "16 / 9"
+    },
+    { "type": "text", "id": "heading", "label": "Frase (opcional)" },
+    { "type": "text", "id": "button_label", "label": "Texto del botón", "default": "Ver colección" },
+    { "type": "url", "id": "button_link", "label": "Enlace del botón", "info": "Si queda vacío, lleva a todos los productos." },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "Ubicación del texto",
+      "options": [
+        { "value": "center", "label": "Centrado" },
+        { "value": "left", "label": "Izquierda" }
+      ],
+      "default": "center"
+    },
+    { "type": "range", "id": "overlay_opacity", "label": "Oscurecido inferior", "min": 0, "max": 60, "step": 5, "unit": "%", "default": 25 }
+  ],
+  "presets": [{ "name": "Maramour · Video principal" }]
+}
+{% endschema %}
