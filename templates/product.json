@@ -20,6 +20,7 @@
             "media_columns": "two",
             "image_gap": 4,
             "large_first_image": false,
+            "icons_style": "arrow",
             "slideshow_controls_style": "counter",
             "slideshow_mobile_controls_style": "dots",
             "thumbnail_position": "right",
@@ -98,6 +99,7 @@
                 "border_opacity": 100,
                 "border_color": "",
                 "border_radius": 0,
+                "link": "",
                 "open_in_new_tab": false,
                 "placeholder": "",
                 "padding-block-start": 0,
@@ -161,7 +163,8 @@
                     "installments": 3,
                     "show_transfer": true,
                     "transfer_discount": 10
-                  }
+                  },
+                  "blocks": {}
                 }
               },
               "block_order": [
@@ -202,6 +205,20 @@
                 "padding-block-end": 0,
                 "padding-inline-start": 0,
                 "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "mm_size_help": {
+              "type": "mm-size-help",
+              "settings": {
+                "table_label": "Tabla de talles",
+                "help_label": "¿Qué talle soy?",
+                "size_table": "Talle | Contorno pecho | Contorno cintura | Contorno cadera\nXXS | 72 – 76 | 56 – 60 | 82 – 86\nXS | 77 – 81 | 61 – 65 | 87 – 91\nS | 82 – 86 | 66 – 70 | 92 – 96\nM | 87 – 91 | 71 – 75 | 97 – 101\nL | 92 – 96 | 76 – 80 | 102 – 106\nXL | 97 – 101 | 81 – 85 | 107 – 111\nXXL | 102 – 106 | 86 – 90 | 112 – 116",
+                "model_text": "La modelo mide 1,66 m y usa talle S.",
+                "whatsapp_url": "https://wa.me/5492236685697",
+                "whatsapp_label": "+54 9 223 668-5697",
+                "hours": "Lunes a sábado de 9 a 20 h · Domingos de 9 a 18 h",
+                "contact_url": "/pages/contacto"
               },
               "blocks": {}
             },
@@ -267,14 +284,6 @@
               },
               "block_order": []
             },
-            "mm_size_help": {
-              "type": "mm-size-help",
-              "settings": {
-                "table_label": "Tabla de talles",
-                "help_label": "¿Qué talle soy?",
-                "whatsapp_url": "https://wa.me/5492236685697"
-              }
-            },
             "mm_stock": {
               "type": "mm-stock-info",
               "settings": {
@@ -283,24 +292,32 @@
                 "shipping_text": "Envío gratis desde $100.000",
                 "notify_title": "Este talle está agotado",
                 "notify_text": "Dejanos tu email y te avisamos cuando vuelva."
-              }
+              },
+              "blocks": {}
             },
             "mm_story": {
               "type": "mm-story",
               "settings": {
                 "heading": "Visto en Instagram",
                 "label": "Ver el video de la prenda puesta",
-                "background": "#F9E3E8",
+                "background": "#f9e3e8",
                 "handle": "@maramour.ar",
                 "instagram_url": "https://www.instagram.com/maramour.ar/",
                 "cta_label": "Ver en Instagram"
-              }
+              },
+              "blocks": {}
             },
             "mm_accordion": {
               "type": "mm-product-accordion",
               "settings": {
-                "open_first": false
-              }
+                "heading": "",
+                "open_first": false,
+                "care_text": "<p>Lavar a mano con agua fría y jabón neutro. No retorcer ni centrifugar. Secar en plano, a la sombra. No usar secadora. Planchar con paño, si es necesario. Guardar doblada, no colgada.</p>",
+                "model_text": "La modelo mide 1,66 m y usa talle S.",
+                "size_text": "<p>Nuestros talles son reales: elegí tu talle habitual. Si estás entre dos, te recomendamos el más grande. ¿Dudas? Escribinos por WhatsApp y te asesoramos.</p>",
+                "shipping_text": "<p>Envíos a todo el país en 1 a 6 días hábiles. Envío gratis desde $100.000.</p><p>Tenés 10 días desde que recibís tu compra para cambiarla o devolverla, sin uso y con etiqueta. <a href=\"/pages/politica-de-cambios\">Ver política de cambios</a>.</p>"
+              },
+              "blocks": {}
             }
           },
           "block_order": [
@@ -334,10 +351,56 @@
         "limit": 8,
         "image_ratio": "2 / 3"
       }
+    },
+    "1793309209f61ea066": {
+      "type": "_blocks",
+      "blocks": {
+        "judge_me_reviews_review_widget_NxfDUM": {
+          "type": "shopify://apps/judge-me-reviews/blocks/review_widget/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
+          "settings": {
+            "review_data": "sample_data",
+            "max_width": 1200,
+            "show_shop_reviews": false,
+            "empty_state": "empty_widget"
+          }
+        }
+      },
+      "block_order": [
+        "judge_me_reviews_review_widget_NxfDUM"
+      ],
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "flex-start",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 12,
+        "section_width": "page-width",
+        "section_height": "",
+        "section_height_custom": 50,
+        "background_media": "none",
+        "background_color": "",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_color": "",
+        "border_radius": 0,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
     }
   },
   "order": [
     "main",
-    "maramour_recs"
+    "maramour_recs",
+    "1793309209f61ea066"
   ]
 }
