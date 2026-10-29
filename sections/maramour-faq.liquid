@@ -1,0 +1,212 @@
+{%- doc -%}
+  MARAMOUR — Preguntas frecuentes.
+  Bloques en orden: «Tema» abre un grupo (título de color con línea debajo) y cada «Pregunta»
+  se agrega al último tema. Acordeones nativos (<details>): sin librerías.
+  Incluye datos estructurados FAQPage para que Google pueda mostrar las preguntas.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign first_question_done = false
+-%}
+
+<div class="mm-faq" style="--mm-faq-accent: {{ s.accent_color }};">
+  <h1 class="mm-faq__title">{{ s.heading | default: page.title | escape }}</h1>
+
+  {%- if s.intro != blank -%}
+    <div class="mm-faq__intro">{{ s.intro }}</div>
+  {%- endif -%}
+
+  {%- assign group_open = false -%}
+  {%- for block in section.blocks -%}
+    {%- case block.type -%}
+      {%- when 'topic' -%}
+        {%- if group_open -%}</div>{%- endif -%}
+        <div class="mm-faq__group" {{ block.shopify_attributes }}>
+          <h2 class="mm-faq__topic">{{ block.settings.title | escape }}</h2>
+        {%- assign group_open = true -%}
+      {%- when 'question' -%}
+        {%- unless group_open -%}
+          <div class="mm-faq__group">
+          {%- assign group_open = true -%}
+        {%- endunless -%}
+        <details
+          class="mm-faq__item"
+          name="mm-faq"
+          {% if s.open_first and first_question_done == false %}
+            open
+          {% endif %}
+          {{ block.shopify_attributes }}
+        >
+          <summary class="mm-faq__question">
+            <span>{{ block.settings.question | escape }}</span>
+            <svg class="mm-faq__chevron" aria-hidden="true" viewBox="0 0 20 20" fill="none">
+              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </summary>
+          <div class="mm-faq__answer rte">{{ block.settings.answer }}</div>
+        </details>
+        {%- assign first_question_done = true -%}
+    {%- endcase -%}
+  {%- endfor -%}
+  {%- if group_open -%}</div>{%- endif -%}
+</div>
+
+{%- comment -%} Datos estructurados para Google {%- endcomment -%}
+{%- capture faq_items -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'question' and block.settings.question != blank and block.settings.answer != blank -%}
+      {
+        "@type": "Question",
+        "name": {{ block.settings.question | json }},
+        "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | json }} }
+      },
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- assign faq_items = faq_items | strip | remove_last: ',' -%}
+{%- if faq_items != blank -%}
+  <script type="application/ld+json">
+    { "@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{{ faq_items }}] }
+  </script>
+{%- endif -%}
+
+{% stylesheet %}
+  .mm-faq {
+    --mm-faq-line: rgb(var(--color-foreground-rgb) / 0.12);
+
+    max-width: 760px;
+    margin-inline: auto;
+    padding: 40px var(--page-margin, 20px) 64px;
+  }
+
+  .mm-faq__title {
+    margin: 0 0 40px;
+    font-size: clamp(2rem, 9vw, 3rem);
+    font-weight: 600;
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .mm-faq__intro {
+    margin: -20px 0 36px;
+    text-align: center;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  .mm-faq__group + .mm-faq__group {
+    margin-top: 44px;
+  }
+
+  .mm-faq__topic {
+    margin: 0;
+    padding-bottom: 12px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mm-faq-accent);
+    border-bottom: 1.5px solid var(--mm-faq-accent);
+  }
+
+  .mm-faq__item {
+    border-bottom: 1px solid var(--mm-faq-line);
+  }
+
+  .mm-faq__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 58px;
+    padding-block: 16px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+    list-style: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mm-faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .mm-faq__question:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  .mm-faq__chevron {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--mm-faq-accent);
+    transition: transform 0.2s ease;
+  }
+
+  .mm-faq__item[open] .mm-faq__chevron {
+    transform: rotate(180deg);
+  }
+
+  .mm-faq__answer {
+    padding: 4px 0 22px;
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+  }
+
+  .mm-faq__answer > :first-child {
+    margin-top: 0;
+  }
+
+  .mm-faq__answer > :last-child {
+    margin-bottom: 0;
+  }
+
+  .mm-faq__answer ul,
+  .mm-faq__answer ol {
+    margin: 8px 0;
+    padding-inline-start: 20px;
+  }
+
+  .mm-faq__answer li + li {
+    margin-top: 4px;
+  }
+
+  .mm-faq__answer a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Preguntas frecuentes",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título", "info": "Si queda vacío, se usa el título de la página." },
+    { "type": "richtext", "id": "intro", "label": "Introducción (opcional)" },
+    { "type": "color", "id": "accent_color", "label": "Color de los temas y flechas", "default": "#C2416C" },
+    { "type": "checkbox", "id": "open_first", "label": "Primera pregunta abierta", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "topic",
+      "name": "Tema",
+      "settings": [{ "type": "text", "id": "title", "label": "Título del tema", "default": "Tema" }]
+    },
+    {
+      "type": "question",
+      "name": "Pregunta",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Pregunta", "default": "¿Pregunta?" },
+        { "type": "richtext", "id": "answer", "label": "Respuesta", "default": "<p>Respuesta.</p>" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Preguntas frecuentes" }]
+}
+{% endschema %}

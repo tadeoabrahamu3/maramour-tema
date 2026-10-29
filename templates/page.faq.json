@@ -1,0 +1,292 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "maramour-faq",
+      "settings": {
+        "heading": "",
+        "accent_color": "#C2416C",
+        "open_first": true
+      },
+      "blocks": {
+        "topic_1": {
+          "type": "topic",
+          "settings": {
+            "title": "Compras"
+          }
+        },
+        "q_2": {
+          "type": "question",
+          "settings": {
+            "question": "Pasos para comprar",
+            "answer": "<p>Comprar en Maramour es simple y seguro. Te dejamos una guía:</p><ol><li>Seleccioná los productos que desees, eligiendo también el color y talle.</li><li>Agregalo al Carrito de Compras haciendo click en AÑADIR AL CARRITO.</li><li>Seleccioná FINALIZAR COMPRA.</li><li>Procedé a realizar el checkout para procesar tu orden.</li><li>Seleccioná el método de pago.</li><li>Confirmá tu orden.</li><li>Confirmá tu orden.</li><li>Recibirás un mail con la confirmación de la compra (en caso de no verlo, por favor revisá tu bandeja de spam o de correo no deseado)</li></ol>"
+          }
+        },
+        "q_3": {
+          "type": "question",
+          "settings": {
+            "question": "Tengo problemas con el pago",
+            "answer": "<p>Podés elegir un nuevo método de pago, o verificar que los datos hayan sido introducidos correctamente. Si continúas teniendo dificultades, contactanos a través de nuestro formulario de contacto, indicando en «Motivo» – «Dificultades con el pago» o escribinos a nuestro WhatsApp y te ayudamos a resolverlo.</p>"
+          }
+        },
+        "q_4": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo sé si mi pedido fue confirmado?",
+            "answer": "<p>Una vez realizada la compra, recibirás un mail con la confirmación de tu pedido. Si no lo encontrás, te sugerimos revisar tu bandeja de spam.</p>"
+          }
+        },
+        "q_5": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo cancelo o modifico mi pedido?",
+            "answer": "<p>Si aún no fue despachado, podés escribirnos lo antes posible para modificarlo o cancelar tu pedido.</p>"
+          }
+        },
+        "q_6": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo se utiliza una Gift Card?",
+            "answer": "<p>En el momento del pago, ingresá el código de tu tarjeta de regalo en el campo «Cupón de descuento». El saldo se aplicará automáticamente a tu compra.</p>"
+          }
+        },
+        "topic_7": {
+          "type": "topic",
+          "settings": {
+            "title": "Métodos de pago"
+          }
+        },
+        "q_8": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cuáles son los métodos de pago?",
+            "answer": "<p>Podés abonar mediante transferencia bancaria, tarjetas de crédito o débito, Pago Fácil, Rapipago o Mercado Pago.</p>"
+          }
+        },
+        "q_9": {
+          "type": "question",
+          "settings": {
+            "question": "¿Puedo pagar en cuotas?",
+            "answer": "<p>Sí, podés pagar hasta en 3 cuotas sin interés. </p>"
+          }
+        },
+        "topic_10": {
+          "type": "topic",
+          "settings": {
+            "title": "Envíos"
+          }
+        },
+        "q_11": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo sé si mi producto fue despachado?",
+            "answer": "<p>Luego de recibir la confirmación de compra y una vez que el pedido se encuentre despachado, recibirás un mail con el número de seguimiento de tu pedido. Recordá revisar tu bandeja de spam o correo no deseado. En caso de tener alguna duda sobre el seguimiento de tu pedido, podés contactarte con nosotros a través del formulario de contacto, indicando en «Motivo» – «Envío» o mediante WhatsApp.</p>"
+          }
+        },
+        "q_12": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cuánto tardará en llegar mi producto?",
+            "answer": "<p>El tiempo de envío varía dependiendo del destino de entre 1 a 6 días hábiles.</p>"
+          }
+        },
+        "q_13": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo seguir mi envío?",
+            "answer": "<p>Podés seguir tu envío mediante el número de seguimiento que recibirás a tu e-mail una vez que el pedido se despache de nuestro depósito. Recibirás dos correos electrónicos:</p><ul><li>Uno de confirmación de compra y pago, que incluirá el número de pedido.</li><li>Otro con la confirmación de envío, el número de seguimiento y un enlace al servicio logístico.</li></ul><p>También podrás rastrar tu pedido desde tu cuenta.</p>"
+          }
+        },
+        "topic_14": {
+          "type": "topic",
+          "settings": {
+            "title": "Cambios"
+          }
+        },
+        "q_15": {
+          "type": "question",
+          "settings": {
+            "question": "Condiciones para realizar un cambio",
+            "answer": "<p>Todos los productos comprados en la tienda pueden ser cambiados dentro de 10 días a partir de la fecha de entrega.<br><br>El producto debe estar en su estado original, sin uso y con todas las etiquetas originales.</p>"
+          }
+        },
+        "q_16": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo realizar un cambio?",
+            "answer": "<p>Contactanos a través de nuestro formulario de contacto, seleccionando en «Motivo» – «Cambios y devoluciones» indicando tu número de pedido y el motivo del cambio. O escribinos a nuestro WhatsApp y te guiaremos paso a paso para coordinarlo.</p>"
+          }
+        },
+        "q_17": {
+          "type": "question",
+          "settings": {
+            "question": "Tiempo de procesamiento",
+            "answer": "<p>Una vez recibido el paquete, el nuevo producto elegido será despachado dentro de los 3 días hábiles.</p>"
+          }
+        },
+        "q_18": {
+          "type": "question",
+          "settings": {
+            "question": "¿Los cambios tienen costo?",
+            "answer": "<p>Los costos de envío para devolver el artículo original corren por cuenta del cliente, a menos que el artículo esté defectuoso o dañado. <br><br>Los costos de envío para el nuevo artículo elegido también son responsabilidad del cliente, a menos que el cambio sea debido a un error de nuestra parte.</p>"
+          }
+        },
+        "topic_19": {
+          "type": "topic",
+          "settings": {
+            "title": "Devoluciones"
+          }
+        },
+        "q_20": {
+          "type": "question",
+          "settings": {
+            "question": "Condiciones para realizar una devolución",
+            "answer": "<p>Todos los productos comprados en la tienda pueden ser devueltos dentro de 10 días a partir de la fecha de entrega.<br><br>El producto debe estar en su estado original, sin uso y con todas las etiquetas originales.</p>"
+          }
+        },
+        "q_21": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo realizar una devolución?",
+            "answer": "<p>Contactanos a través de nuestro formulario de contacto, seleccionando en «Motivo» – «Cambios y devoluciones» indicando tu número de pedido y el motivo de la devolución. O escribinos a nuestro WhatsApp y te guiaremos paso a paso para coordinarlo.</p>"
+          }
+        },
+        "q_22": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cuándo recibiré mi reembolso?",
+            "answer": "<p>Una vez recibido el paquete, el reembolso se tramitará en un plazo máximo de 5 días hábiles.</p>"
+          }
+        },
+        "q_23": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo se realiza el reintegro del dinero?",
+            "answer": "<p>Una vez recibido y verificado el artículo, realizaremos el reembolso por el mismo medio de pago utilizado en la compra original.</p>"
+          }
+        },
+        "q_24": {
+          "type": "question",
+          "settings": {
+            "question": "¿Las devoluciones tienen costo?",
+            "answer": "<p>Los costos de envío para devolver el artículo original corren por cuenta del cliente, a menos que el artículo esté defectuoso o dañado.</p>"
+          }
+        },
+        "topic_25": {
+          "type": "topic",
+          "settings": {
+            "title": "Personalizados"
+          }
+        },
+        "q_26": {
+          "type": "question",
+          "settings": {
+            "question": "¿Puedo pedir una prenda en otro color?",
+            "answer": "<p>¡Sí! Podés consultarnos para realizar uno de nuestros modelos en un color personalizado. Podés realizar el pedido desde la sección de \"Personalizados\" o escribinos por WhatsApp y contanos qué color te gustaría.</p><p></p>"
+          }
+        },
+        "q_27": {
+          "type": "question",
+          "settings": {
+            "question": "¿Puedo elegir cualquier color?",
+            "answer": "<p>Las opciones dependen de la disponibilidad de colores que tenemos en el momento del pedido. Si tenés un color en mente, podés enviarnos una imagen como referencia y te contamos qué opciones tenemos para ofrecerte.</p>"
+          }
+        },
+        "q_28": {
+          "type": "question",
+          "settings": {
+            "question": "¿Puedo personalizar también el modelo o las medidas?",
+            "answer": "<p>La personalización se ofrece únicamente en el color. Los diseños, las medidas y los talles se mantienen según nuestros modelos y nuestra tabla de talles.</p>"
+          }
+        },
+        "q_29": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cuánto demora un pedido de color personalizado?",
+            "answer": "<p>Entre 10 a 20 días hábiles desde la realización del pedido.</p>"
+          }
+        },
+        "topic_30": {
+          "type": "topic",
+          "settings": {
+            "title": "Talles"
+          }
+        },
+        "q_31": {
+          "type": "question",
+          "settings": {
+            "question": "¿Qué hago si estoy entre dos talles?",
+            "answer": "<p>Los talles en Maramour son reales, por lo que te recomendamos elegir tu talle habitual. <br><br>Si aún estás entre dos talles, elegí el más grande para mayor comodidad. También podés escribirnos y te asesoramos según el artículo. </p>"
+          }
+        },
+        "q_32": {
+          "type": "question",
+          "settings": {
+            "question": "Guía de talles",
+            "answer": "<p>Guía de talles</p>"
+          }
+        },
+        "topic_33": {
+          "type": "topic",
+          "settings": {
+            "title": "Cuidados"
+          }
+        },
+        "q_34": {
+          "type": "question",
+          "settings": {
+            "question": "¿Cómo cuido mis prendas?",
+            "answer": "<p>Cada prenda Maramour está hecha con dedicación y tejidos nobles. Para que te acompañe por mucho tiempo, te recomendamos:</p><ul><li>Lavar a mano con agua fría</li><li>Usar jabón neutro</li><li>No retorcer ni centrifugar</li><li>Secar en plano, a la sombra</li><li>No usar secadora</li><li>Planchar con paño, si es necesario</li><li>Guardar doblada, no colgada</li></ul>"
+          }
+        }
+      },
+      "block_order": [
+        "topic_1",
+        "q_2",
+        "q_3",
+        "q_4",
+        "q_5",
+        "q_6",
+        "topic_7",
+        "q_8",
+        "q_9",
+        "topic_10",
+        "q_11",
+        "q_12",
+        "q_13",
+        "topic_14",
+        "q_15",
+        "q_16",
+        "q_17",
+        "q_18",
+        "topic_19",
+        "q_20",
+        "q_21",
+        "q_22",
+        "q_23",
+        "q_24",
+        "topic_25",
+        "q_26",
+        "q_27",
+        "q_28",
+        "q_29",
+        "topic_30",
+        "q_31",
+        "q_32",
+        "topic_33",
+        "q_34"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
