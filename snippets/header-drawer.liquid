@@ -593,6 +593,10 @@
         class="menu-drawer__utility-links menu-drawer__animated-element"
         style="--menu-drawer-animation-index: {{ linklist.links.size }};"
       >
+        {%- comment -%} MARAMOUR: enlaces secundarios (Mi cuenta, FAQ, Contacto) + redes {%- endcomment -%}
+        {%- if data_header_drawer_type == 'mobile-drawer' -%}
+          {%- render 'maramour-drawer-secondary', block_settings: block_settings -%}
+        {%- endif -%}
         {% liquid
           assign show_language = section.settings.show_language
           if localization.available_languages.size <= 1

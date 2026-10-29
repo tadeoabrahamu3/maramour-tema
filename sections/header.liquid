@@ -1242,6 +1242,31 @@
     font-family: var(--menu-localization-font);
     font-size: var(--menu-localization-font-size);
   }
+
+  /* ------------------------------------------------------------
+     MARAMOUR — Encabezado móvil
+     [menú] [ ] [ LOGO centrado ] [buscar] [carrito]
+     La cuenta se muestra dentro del menú, no en la barra.
+     ------------------------------------------------------------ */
+  @media screen and (max-width: 749px) {
+    .header__columns .search-action.search-action {
+      grid-area: rightA;
+      justify-content: flex-end;
+    }
+
+    .header__columns header-actions .account-button {
+      display: none;
+    }
+  }
+
+  #header-component[data-menu-style='drawer'] .header__columns .search-action.search-action {
+    grid-area: rightA;
+    justify-content: flex-end;
+  }
+
+  #header-component[data-menu-style='drawer'] .header__columns header-actions .account-button {
+    display: none;
+  }
 {% endstylesheet %}
 
 {% unless request.design_mode %}
