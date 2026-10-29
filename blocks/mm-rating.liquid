@@ -12,12 +12,18 @@
   assign value = rating.rating | default: 0
   assign max = rating.scale_max | default: 5 | round
   assign pct = value | times: 100.0 | divided_by: max
+  assign r1 = value | round: 1
+  assign r0 = value | round
+  assign value_text = r1
+  if r1 == r0
+    assign value_text = r0
+  endif
 -%}
 
 {%- if count > 0 -%}
-  <a class="mm-rating" href="#mm-reviews" data-mm-rating {{ block.shopify_attributes }} aria-label="{{ value | round: 1 | replace: '.', ',' }} de {{ max }} estrellas, {{ count }} reseñas">
+  <a class="mm-rating" href="#mm-reviews" data-mm-rating {{ block.shopify_attributes }} aria-label="{{ value_text }} de {{ max }} estrellas, {{ count }} reseñas">
     <span class="mm-rating__stars" style="--mm-rating: {{ pct }}%;" aria-hidden="true"></span>
-    <span class="mm-rating__text">{{ value | round: 1 | replace: '.', ',' }}/{{ max }} ({{ count }} {% if count == 1 %}reseña{% else %}reseñas{% endif %})</span>
+    <span class="mm-rating__text">{{ value_text }}/{{ max }} ({{ count }} {% if count == 1 %}reseña{% else %}reseñas{% endif %})</span>
   </a>
   <script>
     (() => {
@@ -39,7 +45,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: -4px;
+    margin-block: -10px -8px;
     font-size: 0.75rem;
     color: rgb(var(--color-foreground-rgb) / 0.65);
     text-decoration: none;

@@ -3,8 +3,9 @@
   Datos: el HTML que Judge.me guarda en el producto (metacampo judgeme.widget), leído en el
   servidor. Sin pedidos extra: promedio, barras de 5 a 1, tira de fotos/videos y tarjetas en
   carrusel con «Leer más».
-  El widget de Judge.me sigue en la página (oculto) para el formulario «Escribir una reseña» y para
-  «Ver todas», cuando hay más reseñas de las que trae el metacampo.
+  Sin botón para opinar: las reseñas se piden por mail/WhatsApp después de la compra. El widget de
+  Judge.me sigue en la página (oculto) solo para «Ver todas», cuando hay más reseñas de las que
+  trae el metacampo.
 {%- enddoc -%}
 
 {%- liquid
@@ -22,9 +23,11 @@
   endif
 
   assign avg_pct = avg | times: 20.0
-  assign avg_text = avg | round: 1 | replace: '.', ','
-  if avg_text == '5'
-    assign avg_text = '5,0'
+  assign r1 = avg | round: 1
+  assign r0 = avg | round
+  assign avg_text = r1
+  if r1 == r0
+    assign avg_text = r0
   endif
 
   assign revs = raw | split: "<div class='jdgm-rev "
@@ -40,7 +43,7 @@
   {%- if total > 0 -%}
     <div class="mm-rv__summary">
       <div class="mm-rv__avg">
-        <span class="mm-rv__avg-num">{{ avg_text }}</span>
+        <span class="mm-rv__avg-num">{{ avg_text }}<small>/5</small></span>
         <span class="mm-rv__stars mm-rv__stars--lg" style="--mm-rv: {{ avg_pct }}%;" role="img" aria-label="{{ avg_text }} de 5 estrellas"></span>
         <span class="mm-rv__count">{{ total }} {% if total == 1 %}opinión{% else %}opiniones{% endif %}</span>
       </div>
@@ -136,12 +139,11 @@
     <p class="mm-rv__empty">{{ s.empty_text | escape }}</p>
   {%- endif -%}
 
-  <div class="mm-rv__actions">
-    <button type="button" class="mm-rv__btn" data-mm-rv-write>{{ s.write_label | escape }}</button>
-    {%- if total > shown and shown > 0 -%}
+  {%- if total > shown and shown > 0 -%}
+    <div class="mm-rv__actions">
       <button type="button" class="mm-rv__btn mm-rv__btn--link" data-mm-rv-all>Ver todas las opiniones ({{ total }})</button>
-    {%- endif -%}
-  </div>
+    </div>
+  {%- endif -%}
 
   <dialog class="mm-rv__lightbox" id="{{ uid }}-box" aria-label="Foto de la reseña">
     <button type="button" class="mm-rv__close" data-mm-rv-close aria-label="Cerrar">
@@ -210,11 +212,7 @@
     box.addEventListener('click', (e) => { if (e.target === box) close(); });
     box.addEventListener('close', () => (holder.innerHTML = ''));
 
-    /* Escribir una reseña / Ver todas: usan el widget de Judge.me (oculto) */
-    root.querySelector('[data-mm-rv-write]')?.addEventListener('click', () => {
-      const btn = document.querySelector('#judgeme_product_reviews [data-testid="write-review-button"], #judgeme_product_reviews .jdgm-write-rev-link');
-      if (btn) btn.click();
-    });
+    /* Ver todas: muestra el widget de Judge.me (oculto) con la lista completa */
     root.querySelector('[data-mm-rv-all]')?.addEventListener('click', (e) => {
       const section = judgeme();
       if (!section) return;
@@ -326,6 +324,12 @@
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1;
+  }
+
+  .mm-rv__avg-num small {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
   }
 
   .mm-rv__count {
@@ -677,8 +681,7 @@
   "enabled_on": { "templates": ["product"] },
   "settings": [
     { "type": "text", "id": "heading", "label": "Título", "default": "Opiniones de clientas" },
-    { "type": "text", "id": "write_label", "label": "Botón para opinar", "default": "Escribir una reseña" },
-    { "type": "text", "id": "empty_text", "label": "Texto sin reseñas", "default": "Todavía no hay opiniones de esta prenda. ¡Contanos qué te pareció!" }
+    { "type": "text", "id": "empty_text", "label": "Texto sin reseñas", "default": "Todavía no hay opiniones de esta prenda." }
   ],
   "presets": [{ "name": "Reseñas Maramour" }]
 }
