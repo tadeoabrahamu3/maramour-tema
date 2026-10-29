@@ -191,6 +191,7 @@
 
   .mm-footer__news-inner {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     padding-block: 32px;
   }
@@ -207,6 +208,10 @@
     margin: 0;
     font-size: 0.875rem;
     line-height: 1.5;
+  }
+
+  .mm-footer__news-form {
+    min-width: 0;
   }
 
   .mm-footer__news-row {
@@ -264,6 +269,7 @@
   /* ---- Marca ---- */
   .mm-footer__main {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 28px;
     padding-block: 32px 8px;
   }
