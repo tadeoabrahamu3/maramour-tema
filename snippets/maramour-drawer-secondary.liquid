@@ -91,6 +91,21 @@
     height: 20px;
   }
 
+  /* Flecha «volver» de los submenús: mismo tamaño y trazo que la X (20 px) */
+  .header-drawer .menu-drawer__back-button > .mm-back-icon,
+  .header-drawer .menu-drawer__back-button > .mm-back-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-drawer .menu-drawer__back-button > .mm-back-icon {
+    margin-inline-end: 0;
+  }
+
+  [dir='rtl'] .header-drawer .mm-back-icon svg {
+    transform: scaleX(-1);
+  }
+
   /* Enlaces secundarios justo debajo del menú principal (no al fondo del panel) */
   .header-drawer .menu-drawer__navigation-container {
     grid-template-rows: auto auto;
