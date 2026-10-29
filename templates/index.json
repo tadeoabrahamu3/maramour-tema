@@ -105,11 +105,49 @@
         "cat_cardigans",
         "cat_camperas"
       ]
+    },
+    "lookbook": {
+      "type": "maramour-lookbook",
+      "settings": {
+        "heading": "Lookbook",
+        "image_ratio": "3 / 4",
+        "show_text": true
+      },
+      "blocks": {
+        "look_1": {
+          "type": "look",
+          "settings": {}
+        },
+        "look_2": {
+          "type": "look",
+          "settings": {}
+        },
+        "look_3": {
+          "type": "look",
+          "settings": {}
+        },
+        "look_4": {
+          "type": "look",
+          "settings": {}
+        },
+        "look_5": {
+          "type": "look",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "look_1",
+        "look_2",
+        "look_3",
+        "look_4",
+        "look_5"
+      ]
     }
   },
   "order": [
     "hero_video",
     "featured",
-    "categories"
+    "categories",
+    "lookbook"
   ]
 }
