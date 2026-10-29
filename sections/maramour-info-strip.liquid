@@ -1,0 +1,211 @@
+{%- doc -%}
+  MARAMOUR — Franja de información de compra (envíos, cuotas, transferencia, cambios).
+  Cada bloque = ícono + título + texto corto + enlace opcional. 2×2 en celular, 4 columnas en computadora.
+  Íconos SVG en línea (sin imágenes ni librerías), mismo trazo que los íconos del encabezado.
+  Debajo, línea opcional de ayuda por WhatsApp.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+-%}
+
+<div class="mm-info" style="--mm-info-bg: {{ s.background }};">
+  {%- if s.heading != blank -%}
+    <h2 class="mm-info__title">{{ s.heading | escape }}</h2>
+  {%- endif -%}
+
+  <ul class="mm-info__grid list-unstyled" role="list">
+    {%- for block in section.blocks -%}
+      {%- assign b = block.settings -%}
+      <li class="mm-info__item" {{ block.shopify_attributes }}>
+        {%- if b.link != blank -%}<a class="mm-info__link" href="{{ b.link }}">{%- else -%}<div class="mm-info__link">{%- endif -%}
+          <svg class="mm-info__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            {%- case b.icon -%}
+              {%- when 'truck' -%}
+                <path d="M2.5 5.5h11v10h-11z"/><path d="M13.5 9h4l3.5 3.8v2.7h-7.5"/><circle cx="6.5" cy="17.5" r="1.8" fill="var(--mm-info-bg, #fff)"/><circle cx="17" cy="17.5" r="1.8" fill="var(--mm-info-bg, #fff)"/>
+              {%- when 'card' -%}
+                <rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 9.5h19M6 15h4"/>
+              {%- when 'tag' -%}
+                <path d="M3 12.2V4a1 1 0 0 1 1-1h8.2a1 1 0 0 1 .7.3l8 8a1 1 0 0 1 0 1.4l-8.2 8.2a1 1 0 0 1-1.4 0l-8-8a1 1 0 0 1-.3-.7z"/><circle cx="7.5" cy="7.5" r="1.3"/>
+              {%- when 'exchange' -%}
+                <path d="M4 8.5h14.5L15 5M20 15.5H5.5L9 19"/>
+              {%- when 'box' -%}
+                <path d="M12 3 20.5 7v10L12 21l-8.5-4V7z"/><path d="M3.5 7 12 11l8.5-4M12 11v10"/>
+              {%- when 'yarn' -%}
+                <circle cx="12" cy="12" r="8.5"/><path d="M5 7.5c4 1 9.5 5.5 11 12M9 3.8c3.5 2.2 8 7.5 9.5 12.5M3.8 12c3 .5 7 3 8.7 8.4"/>
+              {%- when 'chat' -%}
+                <path d="M20.5 12a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.1-4.2A8.5 8.5 0 1 1 20.5 12z"/>
+            {%- endcase -%}
+          </svg>
+          <span class="mm-info__name">{{ b.title | escape }}</span>
+          {%- if b.text != blank -%}
+            <span class="mm-info__text">{{ b.text | escape }}</span>
+          {%- endif -%}
+        {%- if b.link != blank -%}</a>{%- else -%}</div>{%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+
+  {%- if s.help_text != blank and s.help_link != blank -%}
+    <p class="mm-info__help">
+      <a href="{{ s.help_link }}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">{% render 'icon', icon: 'whatsapp' %}</svg>
+        {{ s.help_text | escape }}
+      </a>
+    </p>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .mm-info {
+    padding: 36px var(--page-margin, 16px) 40px;
+    background: var(--mm-info-bg, transparent);
+    border-top: 1px solid rgb(var(--color-foreground-rgb) / 0.08);
+  }
+
+  .mm-info__title {
+    margin: 0 0 24px;
+    font-size: 1.3125rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .mm-info__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 12px;
+    margin: 0;
+  }
+
+  .mm-info__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    color: inherit;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .mm-info__icon {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 4px;
+  }
+
+  .mm-info__name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .mm-info__text {
+    max-width: 22ch;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .mm-info__help {
+    margin: 32px 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+
+  .mm-info__help a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: rgb(var(--color-foreground-rgb) / 0.3);
+  }
+
+  .mm-info__help svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  @media (hover: hover) {
+    a.mm-info__link:hover .mm-info__name {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .mm-info {
+      padding-block: 56px;
+    }
+
+    .mm-info__grid {
+      grid-template-columns: repeat(var(--mm-info-cols, 4), minmax(0, 1fr));
+      max-width: 1100px;
+      margin-inline: auto;
+      gap: 24px;
+    }
+
+    .mm-info__icon {
+      width: 32px;
+      height: 32px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Información de compra",
+  "tag": "section",
+  "class": "section-wrapper",
+  "max_blocks": 4,
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título (opcional)" },
+    { "type": "color", "id": "background", "label": "Fondo", "default": "#FFFFFF" },
+    { "type": "text", "id": "help_text", "label": "Línea de ayuda", "default": "¿Tenés dudas? Escribinos por WhatsApp" },
+    { "type": "url", "id": "help_link", "label": "Enlace de la línea de ayuda", "default": "https://wa.me/5492236685697" }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Beneficio",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Ícono",
+          "options": [
+            { "value": "truck", "label": "Camión (envíos)" },
+            { "value": "card", "label": "Tarjeta (cuotas)" },
+            { "value": "tag", "label": "Etiqueta (descuento)" },
+            { "value": "exchange", "label": "Flechas (cambios)" },
+            { "value": "box", "label": "Caja" },
+            { "value": "yarn", "label": "Ovillo" },
+            { "value": "chat", "label": "Mensaje" }
+          ],
+          "default": "truck"
+        },
+        { "type": "text", "id": "title", "label": "Título", "default": "Beneficio" },
+        { "type": "text", "id": "text", "label": "Texto corto" },
+        { "type": "url", "id": "link", "label": "Enlace (opcional)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Información de compra",
+      "blocks": [
+        { "type": "item", "settings": { "icon": "truck", "title": "Envíos a todo el país" } },
+        { "type": "item", "settings": { "icon": "card", "title": "3 cuotas sin interés" } },
+        { "type": "item", "settings": { "icon": "tag", "title": "10% OFF por transferencia" } },
+        { "type": "item", "settings": { "icon": "exchange", "title": "Cambios en 10 días" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
