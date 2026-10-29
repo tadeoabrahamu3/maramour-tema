@@ -186,3 +186,37 @@
     display: none;
   }
 {% endstylesheet %}
+
+{% stylesheet %}
+  /* ---------- Reseñas (Judge.me): colores y tipografía de la marca ---------- */
+  .jm-review-widget {
+    --jm-review-widget-button-color: #111111 !important;
+    --jm-review-widget-button-text-color: #ffffff !important;
+    --jm-review-widget-form-button-color: #111111 !important;
+    --jm-review-widget-form-button-text-color: #ffffff !important;
+    --jm-review-widget-star-and-histogram-color: #c2416c !important;
+    --jm-review-widget-text-color: var(--color-foreground) !important;
+    --jm-review-widget-lighter-text-color: rgb(var(--color-foreground-rgb) / 0.6) !important;
+
+    font-family: inherit;
+  }
+
+  .jm-review-widget .jm-review-widget-minimal-header__title {
+    font-size: 1.3125rem;
+    font-weight: 600;
+  }
+
+  .jm-review-widget .jm-button {
+    min-height: 48px;
+    padding-inline: 24px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 4px;
+  }
+
+  .jdgm-horizon-widget {
+    padding-block: 8px 24px;
+  }
+{% endstylesheet %}
