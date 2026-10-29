@@ -1,9 +1,9 @@
 {%- doc -%}
   MARAMOUR — Acordeón de dudas de la página de producto (uno abierto por vez).
   1. Descripción: la descripción del producto.
-  2. Composición y cuidado: metacampo custom.composicion_cuidado (una línea por dato) + cuidados generales.
+  2. Composición y cuidado: metacampo custom.composicion_y_cuidado (una línea por dato) + cuidados generales.
   3. ¿Qué talle soy?: metacampo custom.modelo («La modelo mide…»), tabla de talles
-     (metacampo custom.tabla_talles o la tabla general del bloque) y cómo medirse.
+     (metacampo custom.tabla_de_talles o la tabla general del bloque) y cómo medirse.
      Tabla: una fila por línea, columnas separadas con «|»; la primera línea son los títulos.
   4. Envío, devoluciones y cambios: texto general.
 {%- enddoc -%}
@@ -12,9 +12,9 @@
   assign bs = block.settings
   assign product = closest.product
   assign mf = product.metafields.custom
-  assign composition = mf.composicion_cuidado.value
+  assign composition = mf.composicion_y_cuidado.value
   assign model_info = mf.modelo.value
-  assign table_src = mf.tabla_talles.value | default: bs.size_table
+  assign table_src = mf.tabla_de_talles.value | default: bs.size_table
   assign table_rows = table_src | strip | newline_to_br | split: '<br />'
 -%}
 
