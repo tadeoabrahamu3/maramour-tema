@@ -53,6 +53,9 @@
             case platform
               when 'x'
                 assign platform = 'twitter'
+              when 'wa', 'api', 'whatsapp'
+                # MARAMOUR: soporte para WhatsApp (wa.me / api.whatsapp.com)
+                assign platform = 'whatsapp'
               else
                 assign render_icon = false
             endcase
@@ -86,7 +89,7 @@
             href="{{ link_url }}"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="{{ platform | capitalize }}"
+            aria-label="{% if platform == 'whatsapp' %}WhatsApp{% else %}{{ platform | capitalize }}{% endif %}"
             {% unless has_profile %}
               {% if request.design_mode %}
                 onclick="return false;"
@@ -94,7 +97,7 @@
               {% endif %}
             {% endunless %}
           >
-            <span class="social-icons__icon-label">{{ platform | capitalize }}</span>
+            <span class="social-icons__icon-label">{% if platform == 'whatsapp' %}WhatsApp{% else %}{{ platform | capitalize }}{% endif %}</span>
             {% if render_icon %}
               <svg
                 class="social-icons__icon icon-default"
