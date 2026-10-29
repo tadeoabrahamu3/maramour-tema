@@ -428,11 +428,13 @@
     opacity: 0.8;
   }
 
+  /* Al pasar, tocar o estar en esa página: texto negro pleno, sin subrayado */
   .mm-footer__links a:hover,
+  .mm-footer__links a:active,
+  .mm-footer__links a:focus,
   .mm-footer__links a[aria-current='page'] {
     opacity: 1;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
   }
 
   /* ---- Inferior ---- */
@@ -456,7 +458,8 @@
     gap: 6px 16px;
   }
 
-  .mm-footer__legal a {
+  .mm-footer__legal a,
+  .mm-footer__legal a:hover {
     color: inherit;
     text-decoration: none;
   }

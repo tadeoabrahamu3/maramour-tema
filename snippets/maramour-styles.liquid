@@ -6,4 +6,15 @@
 
 {% stylesheet %}
   /* (El footer tiene sus estilos en sections/maramour-footer.liquid) */
+
+  /* Sin el resaltado azul al tocar en el celular, en toda la web */
+  html,
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Sin contorno al hacer clic o tocar; se mantiene solo al navegar con teclado (accesibilidad) */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 {% endstylesheet %}
