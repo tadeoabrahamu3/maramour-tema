@@ -18,9 +18,64 @@
         "content_position": "center",
         "overlay_opacity": 25
       }
+    },
+    "featured": {
+      "type": "maramour-featured-products",
+      "settings": {
+        "heading": "Productos destacados",
+        "collection": "destacados",
+        "limit": 8,
+        "image_ratio": "3 / 4",
+        "show_second_image": true,
+        "show_sale_badge": true,
+        "link_label": ""
+      }
+    },
+    "categories": {
+      "type": "maramour-category-grid",
+      "settings": {
+        "heading": "",
+        "image_ratio": "2 / 3",
+        "gap": 4,
+        "overlay_opacity": 15
+      },
+      "blocks": {
+        "cat_sweaters": {
+          "type": "category",
+          "settings": {
+            "collection": "sweaters"
+          }
+        },
+        "cat_tops": {
+          "type": "category",
+          "settings": {
+            "collection": "tops"
+          }
+        },
+        "cat_cardigans": {
+          "type": "category",
+          "settings": {
+            "collection": "cardigans"
+          }
+        },
+        "cat_camperas": {
+          "type": "category",
+          "settings": {
+            "collection": "camperas"
+          }
+        }
+      },
+      "block_order": [
+        "cat_sweaters",
+        "cat_tops",
+        "cat_cardigans",
+        "cat_camperas"
+      ]
     }
   },
   "order": [
-    "hero_video"
+    "hero_video",
+    "featured",
+    "categories"
   ]
 }
