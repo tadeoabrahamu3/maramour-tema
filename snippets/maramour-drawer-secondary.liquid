@@ -79,6 +79,26 @@
     row-gap: var(--padding-lg);
   }
 
+  /* Mientras una categoría no tenga foto, se reserva el mismo espacio 4:5
+     (evita saltos de diseño y muestra la grilla real) */
+  .header-drawer .menu-drawer__menu--grid .menu-drawer__menu-item:not(:has(> .menu-drawer__link-image)) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    row-gap: var(--padding-3xs);
+    padding: 0;
+  }
+
+  .header-drawer .menu-drawer__menu--grid .menu-drawer__menu-item:not(:has(> .menu-drawer__link-image))::before {
+    content: '';
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background-color: rgb(var(--color-foreground-rgb) / 0.06);
+    border-radius: var(--menu-image-border-radius);
+  }
+
   /* Accesos principales: más contenidos que el 1.75rem de Horizon, con aire entre letras */
   .header-drawer .menu-drawer__menu-item--mainlist {
     font-size: 1.125rem;
