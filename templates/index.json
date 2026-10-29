@@ -154,7 +154,11 @@
         "swatches": "#F2E6D8\n#C9A27E\n#6B4A3A\n#1F1F1F\n#7C8B6F\n#B5485D\n#9DB4C8",
         "button_label": "Quiero el mío",
         "button_link": "/pages/personalizados",
-        "background": "#FFFFFF"
+        "image_ratio_desktop": "16 / 9",
+        "grayscale": false,
+        "overlay_opacity": 30,
+        "text_color": "light",
+        "position": "center"
       }
     }
   },

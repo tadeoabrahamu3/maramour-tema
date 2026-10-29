@@ -1,31 +1,39 @@
 {%- doc -%}
   MARAMOUR — Bloque de Personalizados para la Home.
-  Foto + texto breve + muestras de color + botón hacia la página de Personalizados.
-  Celular: foto arriba y texto abajo. Computadora: foto y texto lado a lado.
+  Foto de fondo (pensada en blanco y negro) con el texto, las muestras de color y el botón encima.
+  Toda la foto es tocable (lleva a la página de Personalizados). Foto opcional distinta para computadora.
+  Oscurecido regulable y color de texto claro/oscuro según la foto.
 {%- enddoc -%}
 
 {%- liquid
   assign s = section.settings
   assign swatches = s.swatches | newline_to_br | split: '<br />'
+  assign link = s.button_link | default: '/pages/personalizados'
+  assign desktop_image = s.image_desktop | default: s.image
 -%}
 
-<div class="mm-custom" style="--mm-custom-bg: {{ s.background }}; --mm-custom-ratio: {{ s.image_ratio }};">
-  <a class="mm-custom__media" href="{{ s.button_link | default: '/pages/personalizados' }}" tabindex="-1" aria-hidden="true">
+<div
+  class="mm-custom mm-custom--{{ s.text_color }} mm-custom--{{ s.position }}{% if s.grayscale %} mm-custom--bw{% endif %}"
+  style="--mm-custom-ratio: {{ s.image_ratio }}; --mm-custom-ratio-desktop: {{ s.image_ratio_desktop }}; --mm-custom-overlay: {{ s.overlay_opacity | divided_by: 100.0 }};"
+>
+  <div class="mm-custom__media" aria-hidden="true">
     {%- if s.image != blank -%}
-      {{
-        s.image
-        | image_url: width: 1400
-        | image_tag:
-          loading: 'lazy',
-          widths: '375, 550, 750, 1000, 1400',
-          sizes: '(min-width: 990px) 50vw, 100vw',
-          class: 'mm-custom__img',
-          alt: ''
-      }}
+      {%- if s.image_desktop != blank -%}
+        <picture>
+          <source
+            media="(min-width: 990px)"
+            srcset="{{ desktop_image | image_url: width: 1600 }} 1600w, {{ desktop_image | image_url: width: 2200 }} 2200w"
+            sizes="100vw"
+          >
+          {{ s.image | image_url: width: 1100 | image_tag: loading: 'lazy', widths: '375, 550, 750, 1100', sizes: '100vw', class: 'mm-custom__img', alt: '' }}
+        </picture>
+      {%- else -%}
+        {{ s.image | image_url: width: 2200 | image_tag: loading: 'lazy', widths: '375, 550, 750, 1100, 1600, 2200', sizes: '100vw', class: 'mm-custom__img', alt: '' }}
+      {%- endif -%}
     {%- else -%}
       {{ 'lifestyle-2' | placeholder_svg_tag: 'mm-custom__img mm-custom__img--ph' }}
     {%- endif -%}
-  </a>
+  </div>
 
   <div class="mm-custom__content">
     {%- if s.eyebrow != blank -%}
@@ -49,65 +57,98 @@
       </ul>
     {%- endif -%}
 
-    {%- if s.button_label != blank -%}
-      <a class="mm-custom__button" href="{{ s.button_link | default: '/pages/personalizados' }}">{{ s.button_label | escape }}</a>
-    {%- endif -%}
+    <a class="mm-custom__button" href="{{ link }}">{{ s.button_label | default: 'Ver más' | escape }}</a>
   </div>
 </div>
 
 {% stylesheet %}
   .mm-custom {
+    position: relative;
     display: grid;
-    background: var(--mm-custom-bg, transparent);
-    margin-block: 8px 0;
+    aspect-ratio: var(--mm-custom-ratio, 4 / 5);
+    overflow: hidden;
+    color: #fff;
+    background: #2b2b2b;
+    isolation: isolate;
+  }
+
+  .mm-custom--dark {
+    color: #111;
+    background: #e9e9e9;
   }
 
   .mm-custom__media {
-    position: relative;
-    display: block;
-    aspect-ratio: var(--mm-custom-ratio, 4 / 5);
-    overflow: hidden;
-    background: #ececec;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
   }
 
   .mm-custom__img {
-    position: absolute;
-    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
+  .mm-custom--bw .mm-custom__img {
+    filter: grayscale(1);
+  }
+
   .mm-custom__img--ph {
-    fill: rgb(0 0 0 / 0.2);
+    fill: rgb(255 255 255 / 0.12);
+  }
+
+  .mm-custom--dark .mm-custom__img--ph {
+    fill: rgb(0 0 0 / 0.15);
+  }
+
+  /* Oscurecido (o aclarado, con texto oscuro) para que el texto se lea sobre cualquier foto */
+  .mm-custom__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / var(--mm-custom-overlay, 0.3));
+  }
+
+  .mm-custom--dark .mm-custom__media::after {
+    background: rgb(255 255 255 / var(--mm-custom-overlay, 0.3));
   }
 
   .mm-custom__content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
-    padding: 36px var(--page-margin, 20px) 44px;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px var(--page-margin, 20px);
     text-align: center;
+  }
+
+  .mm-custom--bottom .mm-custom__content {
+    justify-content: flex-end;
+    padding-bottom: 48px;
+  }
+
+  .mm-custom--light .mm-custom__content {
+    text-shadow: 0 1px 12px rgb(0 0 0 / 0.25);
   }
 
   .mm-custom__eyebrow {
     margin: 0;
     font-size: 0.75rem;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    opacity: 0.7;
   }
 
   .mm-custom__title {
     margin: 0;
-    font-size: 1.625rem;
+    font-size: 2rem;
     font-weight: 600;
-    line-height: 1.15;
+    line-height: 1.1;
+    color: inherit;
   }
 
   .mm-custom__text {
-    max-width: 34ch;
+    max-width: 32ch;
     font-size: 0.9375rem;
     line-height: 1.6;
   }
@@ -121,15 +162,19 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
-    margin: 2px 0 4px;
+    margin: 4px 0;
   }
 
   .mm-custom__swatches li {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--sw);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+    box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.85);
+  }
+
+  .mm-custom--dark .mm-custom__swatches li {
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.2);
   }
 
   .mm-custom__button {
@@ -137,34 +182,57 @@
     align-items: center;
     justify-content: center;
     min-height: 48px;
-    padding-inline: 32px;
-    margin-top: 4px;
+    padding-inline: 36px;
+    margin-top: 6px;
     font-size: 0.9375rem;
     font-weight: 500;
-    color: var(--color-foreground);
+    color: #111;
     text-decoration: none;
-    border: 1px solid var(--color-foreground);
+    text-shadow: none;
+    background: #fff;
     border-radius: 6px;
-    transition: background-color 0.2s, color 0.2s;
+    transition: opacity 0.2s;
   }
 
-  .mm-custom__button:hover {
-    color: var(--color-background);
-    background: var(--color-foreground);
+  .mm-custom--dark .mm-custom__button {
+    color: #fff;
+    background: #111;
+  }
+
+  /* Toda la foto lleva al enlace del botón */
+  .mm-custom__button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  @media (hover: hover) {
+    .mm-custom__button:hover {
+      opacity: 0.88;
+    }
   }
 
   @media screen and (min-width: 990px) {
     .mm-custom {
-      grid-template-columns: 1fr 1fr;
-      align-items: center;
+      aspect-ratio: var(--mm-custom-ratio-desktop, 16 / 9);
+      max-height: 85vh;
     }
 
     .mm-custom__content {
-      padding: 56px;
+      gap: 14px;
+      padding: 64px;
+    }
+
+    .mm-custom--bottom .mm-custom__content {
+      padding-bottom: 72px;
     }
 
     .mm-custom__title {
-      font-size: 2.25rem;
+      font-size: 3rem;
+    }
+
+    .mm-custom__text {
+      font-size: 1rem;
     }
   }
 {% endstylesheet %}
@@ -175,26 +243,62 @@
   "tag": "section",
   "class": "section-wrapper",
   "settings": [
+    { "type": "header", "content": "Foto de fondo" },
     { "type": "image_picker", "id": "image", "label": "Foto" },
     {
       "type": "select",
       "id": "image_ratio",
-      "label": "Proporción de la foto",
+      "label": "Proporción en celular",
       "options": [
         { "value": "4 / 5", "label": "4:5" },
-        { "value": "1 / 1", "label": "1:1" },
-        { "value": "3 / 4", "label": "3:4" }
+        { "value": "3 / 4", "label": "3:4" },
+        { "value": "2 / 3", "label": "2:3" },
+        { "value": "1 / 1", "label": "1:1" }
       ],
       "default": "4 / 5"
     },
+    { "type": "image_picker", "id": "image_desktop", "label": "Foto para computadora (opcional)", "info": "Horizontal. Si queda vacía, se usa la misma foto recortada." },
+    {
+      "type": "select",
+      "id": "image_ratio_desktop",
+      "label": "Proporción en computadora",
+      "options": [
+        { "value": "16 / 9", "label": "16:9" },
+        { "value": "21 / 9", "label": "21:9 (más bajo)" },
+        { "value": "3 / 2", "label": "3:2 (más alto)" }
+      ],
+      "default": "16 / 9"
+    },
+    { "type": "checkbox", "id": "grayscale", "label": "Mostrar la foto en blanco y negro", "info": "Útil si la foto es a color.", "default": false },
+    { "type": "range", "id": "overlay_opacity", "label": "Oscurecido de la foto", "min": 0, "max": 70, "step": 5, "unit": "%", "default": 30 },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "Color del texto",
+      "options": [
+        { "value": "light", "label": "Blanco (para fotos oscuras)" },
+        { "value": "dark", "label": "Negro (para fotos claras)" }
+      ],
+      "default": "light"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Ubicación del texto",
+      "options": [
+        { "value": "center", "label": "Centro" },
+        { "value": "bottom", "label": "Abajo" }
+      ],
+      "default": "center"
+    },
+    { "type": "header", "content": "Texto" },
     { "type": "text", "id": "eyebrow", "label": "Texto chico superior", "default": "Hecho para vos" },
     { "type": "text", "id": "heading", "label": "Título", "default": "Personalizados" },
     { "type": "richtext", "id": "text", "label": "Texto", "default": "<p>Elegí tu modelo favorito en el color que más te guste. Lo tejemos especialmente para vos en nuestra fábrica.</p>" },
     { "type": "checkbox", "id": "show_swatches", "label": "Mostrar muestras de color", "default": true },
     { "type": "textarea", "id": "swatches", "label": "Colores (uno por línea, en formato #RRGGBB)", "default": "#F2E6D8\n#C9A27E\n#6B4A3A\n#1F1F1F\n#7C8B6F\n#B5485D\n#9DB4C8" },
     { "type": "text", "id": "button_label", "label": "Texto del botón", "default": "Quiero el mío" },
-    { "type": "url", "id": "button_link", "label": "Enlace del botón", "info": "Si queda vacío, lleva a la página Personalizados." },
-    { "type": "color", "id": "background", "label": "Fondo del texto", "default": "#FFFFFF" }
+    { "type": "url", "id": "button_link", "label": "Enlace del botón", "info": "Si queda vacío, lleva a la página Personalizados." }
   ],
   "presets": [{ "name": "Personalizados" }]
 }
