@@ -37,25 +37,17 @@
             "padding-inline-end": 0
           },
           "blocks": {}
-        },
-        "page-content": {
-          "type": "page-content",
-          "settings": {
-            "text_color": ""
-          },
-          "blocks": {}
         }
       },
       "block_order": [
-        "heading",
-        "page-content"
+        "heading"
       ],
       "settings": {
         "content_direction": "column",
         "gap": 32,
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 40,
-        "padding-block-end": 80
+        "padding-block-end": 43
       }
     },
     "section_UgNi6p": {
