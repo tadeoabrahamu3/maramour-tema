@@ -6,13 +6,15 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */{
+ */
+{
   "sections": {
     "hero_video": {
       "type": "maramour-hero-video",
       "settings": {
         "ratio_mobile": "2 / 3",
         "ratio_desktop": "16 / 9",
+        "heading": "",
         "button_label": "Ver colección",
         "button_link": "/collections/all",
         "content_position": "center",
@@ -21,6 +23,42 @@
     },
     "featured": {
       "type": "maramour-featured-products",
+      "blocks": {
+        "tab_sweaters": {
+          "type": "tab",
+          "settings": {
+            "collection": "sweaters",
+            "label": ""
+          }
+        },
+        "tab_tops": {
+          "type": "tab",
+          "settings": {
+            "collection": "tops",
+            "label": ""
+          }
+        },
+        "tab_cardigans": {
+          "type": "tab",
+          "settings": {
+            "collection": "cardigans",
+            "label": ""
+          }
+        },
+        "tab_camperas": {
+          "type": "tab",
+          "settings": {
+            "collection": "camperas",
+            "label": ""
+          }
+        }
+      },
+      "block_order": [
+        "tab_sweaters",
+        "tab_tops",
+        "tab_cardigans",
+        "tab_camperas"
+      ],
       "settings": {
         "heading": "Productos destacados",
         "collection": "destacados",
@@ -31,71 +69,38 @@
         "image_ratio": "3 / 4",
         "show_second_image": true,
         "show_sale_badge": true
-      },
-      "blocks": {
-        "tab_sweaters": {
-          "type": "tab",
-          "settings": {
-            "collection": "sweaters"
-          }
-        },
-        "tab_tops": {
-          "type": "tab",
-          "settings": {
-            "collection": "tops"
-          }
-        },
-        "tab_cardigans": {
-          "type": "tab",
-          "settings": {
-            "collection": "cardigans"
-          }
-        },
-        "tab_camperas": {
-          "type": "tab",
-          "settings": {
-            "collection": "camperas"
-          }
-        }
-      },
-      "block_order": [
-        "tab_sweaters",
-        "tab_tops",
-        "tab_cardigans",
-        "tab_camperas"
-      ]
+      }
     },
     "categories": {
       "type": "maramour-category-grid",
-      "settings": {
-        "heading": "",
-        "image_ratio": "2 / 3",
-        "gap": 4,
-        "overlay_opacity": 15
-      },
       "blocks": {
         "cat_sweaters": {
           "type": "category",
           "settings": {
-            "collection": "sweaters"
+            "collection": "sweaters",
+            "image": "shopify://shop_images/Categoria_Sweater.jpg",
+            "label": ""
           }
         },
         "cat_tops": {
           "type": "category",
           "settings": {
-            "collection": "tops"
+            "collection": "tops",
+            "label": ""
           }
         },
         "cat_cardigans": {
           "type": "category",
           "settings": {
-            "collection": "cardigans"
+            "collection": "cardigans",
+            "label": ""
           }
         },
         "cat_camperas": {
           "type": "category",
           "settings": {
-            "collection": "camperas"
+            "collection": "camperas",
+            "label": ""
           }
         }
       },
@@ -104,35 +109,51 @@
         "cat_tops",
         "cat_cardigans",
         "cat_camperas"
-      ]
+      ],
+      "settings": {
+        "heading": "",
+        "image_ratio": "2 / 3",
+        "gap": 4,
+        "overlay_opacity": 15
+      }
     },
     "lookbook": {
       "type": "maramour-lookbook",
-      "settings": {
-        "heading": "Lookbook",
-        "image_ratio": "3 / 4",
-        "show_text": true
-      },
       "blocks": {
         "look_1": {
           "type": "look",
-          "settings": {}
+          "settings": {
+            "product": "",
+            "label": ""
+          }
         },
         "look_2": {
           "type": "look",
-          "settings": {}
+          "settings": {
+            "product": "",
+            "label": ""
+          }
         },
         "look_3": {
           "type": "look",
-          "settings": {}
+          "settings": {
+            "product": "",
+            "label": ""
+          }
         },
         "look_4": {
           "type": "look",
-          "settings": {}
+          "settings": {
+            "product": "",
+            "label": ""
+          }
         },
         "look_5": {
           "type": "look",
-          "settings": {}
+          "settings": {
+            "product": "",
+            "label": ""
+          }
         }
       },
       "block_order": [
@@ -141,24 +162,29 @@
         "look_3",
         "look_4",
         "look_5"
-      ]
+      ],
+      "settings": {
+        "heading": "Lookbook",
+        "image_ratio": "3 / 4",
+        "show_text": true
+      }
     },
     "custom_promo": {
       "type": "maramour-custom-promo",
       "settings": {
         "image_ratio": "4 / 5",
+        "image_ratio_desktop": "16 / 9",
+        "grayscale": false,
+        "overlay_opacity": 30,
+        "text_color": "light",
+        "position": "center",
         "eyebrow": "Hecho para vos",
         "heading": "Personalizados",
         "text": "<p>Elegí tu modelo favorito en el color que más te guste. Lo tejemos especialmente para vos en nuestra fábrica.</p>",
         "show_swatches": true,
         "swatches": "#F2E6D8\n#C9A27E\n#6B4A3A\n#1F1F1F\n#7C8B6F\n#B5485D\n#9DB4C8",
         "button_label": "Quiero el mío",
-        "button_link": "/pages/personalizados",
-        "image_ratio_desktop": "16 / 9",
-        "grayscale": false,
-        "overlay_opacity": 30,
-        "text_color": "light",
-        "position": "center"
+        "button_link": "/pages/personalizados"
       }
     }
   },
