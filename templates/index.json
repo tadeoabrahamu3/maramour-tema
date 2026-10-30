@@ -12,6 +12,7 @@
     "hero_video": {
       "type": "maramour-hero-video",
       "settings": {
+        "video": "shopify://files/videos/Prueba de home.mp4",
         "ratio_mobile": "2 / 3",
         "ratio_desktop": "16 / 9",
         "heading": "",
@@ -128,7 +129,8 @@
           "settings": {
             "image": "shopify://shop_images/Lookbook_flecos.jpg",
             "product": "",
-            "label": ""
+            "label": "",
+            "featured": false
           }
         },
         "look_2": {
@@ -136,7 +138,8 @@
           "settings": {
             "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
             "product": "",
-            "label": ""
+            "label": "",
+            "featured": false
           }
         },
         "look_3": {
@@ -144,7 +147,8 @@
           "settings": {
             "image": "shopify://shop_images/Lookbook_flecos.jpg",
             "product": "",
-            "label": ""
+            "label": "",
+            "featured": false
           }
         },
         "look_4": {
@@ -152,7 +156,8 @@
           "settings": {
             "image": "shopify://shop_images/Categoria_Tops_105f982b-c439-48fc-ae70-e51c92305aee.jpg",
             "product": "",
-            "label": ""
+            "label": "",
+            "featured": false
           }
         },
         "look_5": {
@@ -160,7 +165,8 @@
           "settings": {
             "image": "shopify://shop_images/Lookbook_flecos.jpg",
             "product": "",
-            "label": ""
+            "label": "",
+            "featured": false
           }
         }
       },
@@ -172,12 +178,13 @@
         "look_5"
       ],
       "settings": {
-        "heading": "Lookbook",
-        "image_ratio": "3 / 4",
-        "show_text": true,
         "layout": "carousel",
+        "heading": "Lookbook",
+        "intro": "",
         "link_label": "Ver lookbook",
-        "link_url": "/pages/lookbook"
+        "link_url": "/pages/lookbook",
+        "image_ratio": "3 / 4",
+        "show_text": true
       }
     },
     "custom_promo": {
