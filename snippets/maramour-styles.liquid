@@ -17,4 +17,35 @@
   :focus:not(:focus-visible) {
     outline: none;
   }
+
+  /* Bolsa del header: la cantidad va adentro de la bolsa, en rosa (sin círculo arriba) */
+  .header-actions__cart-icon .cart-bubble {
+    top: 50%;
+    left: 50%;
+    inset-inline-end: auto;
+    width: auto;
+    min-width: 12px;
+    padding: 0;
+    margin-top: 2.5px;
+    aspect-ratio: auto;
+    color: #c2416c;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .header-actions__cart-icon .cart-bubble__background {
+    display: none;
+  }
+
+  .header-actions__cart-icon .cart-bubble__text {
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    color: #c2416c;
+  }
+
+  .header-actions__cart-icon.header-actions__cart-icon--has-cart svg,
+  [dir='rtl'] .header-actions__cart-icon.header-actions__cart-icon--has-cart svg {
+    mask: none;
+  }
 {% endstylesheet %}
