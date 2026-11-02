@@ -18,35 +18,15 @@
     outline: none;
   }
 
-  /* Bolsa del header (estilo Smooche): sin número; con productos, un punto rosa adentro */
-  .header-actions__cart-icon svg {
-    width: 24px;
-    height: 24px;
+  /* Bolsa del header: cantidad en rosa, sin globo negro de fondo */
+  .header-actions__cart-icon .cart-bubble__background {
+    display: none;
   }
 
-  .header-actions__cart-icon .cart-bubble {
-    top: 50%;
-    left: 50%;
-    inset-inline-end: auto;
-    width: 5px;
-    height: 5px;
-    min-width: 0;
-    padding: 0;
-    margin-top: 3.5px;
-    aspect-ratio: 1;
-    background: #e0457b;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-
-  .header-actions__cart-icon .cart-bubble__background,
   .header-actions__cart-icon .cart-bubble__text {
-    display: none;
-  }
-
-  .header-actions__cart-icon .cart-bubble.visually-hidden {
-    display: none;
+    font-size: 11px;
+    font-weight: 700;
+    color: #c2416c;
   }
 
   .header-actions__cart-icon.header-actions__cart-icon--has-cart svg,
