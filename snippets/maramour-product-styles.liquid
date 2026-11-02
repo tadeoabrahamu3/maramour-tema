@@ -90,15 +90,16 @@
 
   /* Color: cuadraditos con puntas redondeadas; el elegido con aro negro separado por blanco */
   .variant-option.mm-opt--color {
-    gap: 6px;
+    gap: 12px;
   }
 
   /* Mismo ancho y alto que las cajitas de talle (6 por fila) para que quede simétrico */
   .mm-opt--color .variant-option__button-label {
     box-sizing: border-box;
     flex: 0 0 auto;
-    width: min(60px, calc((100% - 30px) / 6));
-    height: 38px;
+    width: min(44px, calc((100% - 60px) / 6));
+    aspect-ratio: 1;
+    height: auto;
     min-height: 0;
     border-radius: 4px !important;
     box-shadow: none !important;
@@ -129,7 +130,7 @@
   /* Talle: cajitas finas del mismo ancho, puntas levemente redondeadas; elegida con borde negro; agotada con diagonal */
   .variant-option.mm-opt--text {
     flex-wrap: nowrap;
-    gap: 6px;
+    gap: 12px;
     margin-top: 20px !important;
   }
 
@@ -138,8 +139,9 @@
     place-items: center;
     box-sizing: border-box;
     flex: 0 0 auto;
-    width: min(60px, calc((100% - 30px) / 6));
-    height: 38px;
+    width: min(44px, calc((100% - 60px) / 6));
+    aspect-ratio: 1;
+    height: auto;
     min-height: 0;
     font-size: 0.75rem;
     font-weight: 500;
