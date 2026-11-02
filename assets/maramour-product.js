@@ -95,101 +95,21 @@ document.addEventListener(
 );
 
 /*
- * Envío del aviso sin recargar la página.
- * Shopify protege el formulario de contacto con hCaptcha: su script frena el envío, consigue el
- * token y después llama a form.submit(). Reemplazamos ese submit() del formulario por un envío con
- * fetch (con el token incluido), así la página no se recarga y mostramos la confirmación en rosa.
- * Si Shopify pide una verificación visible o algo falla, se envía de la forma normal (con recarga),
- * y al volver se muestra la misma confirmación.
+ * Envío del aviso: se hace con el envío normal del formulario (así funciona la verificación
+ * anti-spam de Shopify). Al volver a la página (?mm_notify=ok) se muestra la confirmación.
  */
-const nativeSubmit = HTMLFormElement.prototype.submit;
-
-const notifySuccess = (form) => {
-  const dialog = form.closest('#mm-notify');
-  if (dialog) {
-    dialog.querySelector('[data-mm-notify-body]').hidden = true;
-    dialog.querySelector('[data-mm-notify-done]').hidden = false;
+document.addEventListener('submit', (event) => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || form.id !== 'mm-notify-form') return;
+  if (!form.checkValidity()) {
+    event.preventDefault();
+    form.reportValidity();
     return;
   }
-  const done = document.createElement('p');
-  done.className = 'mm-stock__done';
-  done.setAttribute('role', 'status');
-  done.textContent = '¡Listo! Te avisamos por mail apenas vuelva a entrar en stock.';
-  form.replaceChildren(done);
-};
-
-const fullSubmit = (form) => {
   try {
     sessionStorage.setItem('mm-notify', '1');
   } catch {}
-  nativeSubmit.call(form);
-};
-
-const sendNotify = async (form) => {
-  if (form.dataset.mmSending) return;
-  form.dataset.mmSending = '1';
-  const button = form.querySelector('button[type="submit"]');
-  button?.setAttribute('disabled', '');
-  form.querySelector('[data-mm-notify-error], .mm-stock__error')?.setAttribute('hidden', '');
-
-  const data = new FormData(form);
-  data.set('return_to', '/cart.js?mm_notify=ok');
-
-  try {
-    const response = await fetch(form.action, { method: 'POST', body: data, credentials: 'same-origin' });
-    const url = response.url || '';
-    if (response.ok && (url.includes('/cart.js') || url.includes('contact_posted=true'))) {
-      notifySuccess(form);
-      return;
-    }
-    if (url.includes('challenge') || response.status === 400 || response.status === 403 || response.status === 429) {
-      fullSubmit(form);
-      return;
-    }
-    // Shopify devolvió el formulario con errores (por ejemplo, email inválido)
-    const error = form.querySelector('[data-mm-notify-error], .mm-stock__error');
-    if (error) error.hidden = false;
-  } catch {
-    fullSubmit(form);
-  } finally {
-    delete form.dataset.mmSending;
-    button?.removeAttribute('disabled');
-  }
-};
-
-const bindNotify = (form) => {
-  if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]') || form.mmBound) return;
-  form.mmBound = true;
-  form.submit = () => sendNotify(form);
-};
-
-for (const type of ['focusin', 'pointerdown']) {
-  document.addEventListener(type, (event) => bindNotify(event.target instanceof Element ? event.target.closest('form') : null), true);
-}
-
-window.addEventListener(
-  'submit',
-  (event) => {
-    const form = event.target;
-    if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]')) return;
-    if (!form.checkValidity()) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      form.reportValidity();
-      return;
-    }
-    bindNotify(form);
-  },
-  true
-);
-
-window.addEventListener('submit', (event) => {
-  const form = event.target;
-  if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]')) return;
-  // Si el script de Shopify ya frenó el envío (está consiguiendo el token), él llamará a form.submit()
-  if (event.defaultPrevented) return;
-  event.preventDefault();
-  sendNotify(form);
+  form.querySelector('button[type="submit"]')?.setAttribute('disabled', '');
 });
 
 const showNotifyDone = () => {
