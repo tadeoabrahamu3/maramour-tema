@@ -308,9 +308,28 @@
   }
 
   /* Productos del carrito: foto 2:3 con X para quitar, nombre 12 px, color/talle/precio 11 px */
+  .cart-drawer__items .cart-items__table-row--full-width-variants {
+    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-areas:
+      'media details'
+      'media variants'
+      'media unit_price'
+      'media quantity'
+      'media error';
+    column-gap: 16px;
+  }
+
   .cart-drawer__items .cart-items__media {
     position: relative;
     width: 84px;
+  }
+
+  .cart-drawer__items .cart-items__table-row--full-width-variants .cart-items__unit-price-wrapper {
+    font-size: 0.6875rem;
+  }
+
+  .cart-drawer__items .cart-items__quantity {
+    margin-top: 8px;
   }
 
   .cart-drawer__items .cart-items__media-container {
