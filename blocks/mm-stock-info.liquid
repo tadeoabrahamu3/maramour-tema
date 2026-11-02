@@ -46,10 +46,10 @@
     </div>
   {%- else -%}
     <div class="mm-stock__notify">
-      {%- form 'contact', return_to: return_url, class: 'mm-stock__form' -%}
+      {%- form 'contact', return_to: return_url, class: 'mm-stock__form', data-mm-notify-form: '' -%}
         {%- if form.posted_successfully? -%}
           <p class="mm-stock__done" role="status">
-            ¡Listo! Te vamos a escribir apenas vuelva a entrar en stock.
+            ¡Listo! Te avisamos por mail apenas vuelva a entrar en stock.
           </p>
         {%- else -%}
           <p class="mm-stock__title">{{ bs.notify_title | escape }}</p>
@@ -70,9 +70,7 @@
             >
             <button type="submit">Avisame</button>
           </div>
-          {%- if form.errors -%}
-            <p class="mm-stock__error" role="alert">Revisá el email e intentá de nuevo.</p>
-          {%- endif -%}
+          <p class="mm-stock__error" role="alert"{% unless form.errors %} hidden{% endunless %}>Revisá el email e intentá de nuevo.</p>
         {%- endif -%}
       {%- endform -%}
     </div>
@@ -89,7 +87,7 @@
       <h2 class="mm-sheet__title" id="mm-notify-title">Avisame cuando vuelva</h2>
       <p class="mm-sheet__sub"><strong data-mm-notify-variant></strong> está agotado. Dejanos tu email y te escribimos apenas vuelva a entrar.</p>
       {%- assign notify_return = product.url | append: '?mm_notify=ok' -%}
-      {%- form 'contact', id: 'mm-notify-form', class: 'mm-stock__form', return_to: notify_return -%}
+      {%- form 'contact', id: 'mm-notify-form', class: 'mm-stock__form', return_to: notify_return, data-mm-notify-form: '' -%}
         <input type="hidden" name="contact[Motivo]" value="Aviso de stock">
         <input type="hidden" name="contact[Producto]" value="{{ product.title | escape }}">
         <input type="hidden" name="contact[Variante]" value="" data-mm-notify-field="variant">
@@ -102,7 +100,7 @@
         <p class="mm-stock__error" data-mm-notify-error hidden>Revisá el email e intentá de nuevo.</p>
       {%- endform -%}
     </div>
-    <p class="mm-stock__done" data-mm-notify-done hidden role="status">¡Listo! Te vamos a escribir apenas vuelva a entrar en stock.</p>
+    <p class="mm-stock__done" data-mm-notify-done hidden role="status">¡Listo! Te avisamos por mail apenas vuelva a entrar en stock.</p>
   </div>
 </dialog>
 
@@ -166,7 +164,7 @@
 
   .mm-stock__notify {
     padding: 16px;
-    background: #f7f5f3;
+    background: #f7f7f7;
   }
 
   .mm-stock__title {
@@ -233,7 +231,13 @@
 
   .mm-stock__done {
     margin: 0;
-    font-weight: 500;
+    font-weight: 600;
+    color: #c2416c;
+  }
+
+  .mm-stock__error[hidden],
+  .mm-stock__done[hidden] {
+    display: none;
   }
 
   .mm-stock__error {

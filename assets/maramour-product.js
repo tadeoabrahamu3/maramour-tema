@@ -95,21 +95,89 @@ document.addEventListener(
 );
 
 /*
- * Envío del aviso: se hace con el envío normal del formulario (así funciona la verificación
- * anti-spam de Shopify). Al volver a la página (?mm_notify=ok) se muestra la confirmación.
+ * Envío del aviso sin recargar la página: el formulario se envía de forma normal (así funciona la
+ * verificación anti-spam de Shopify) pero dentro de un iframe oculto, con return_to a /cart.js
+ * (respuesta liviana). Si llega ahí, el mensaje se envió → se muestra la confirmación en rosa.
+ * Si Shopify pide verificación (captcha), se reenvía a pantalla completa como antes.
  */
+const NOTIFY_FRAME = 'mm-notify-frame';
+const notifyFrame = () => {
+  let frame = document.querySelector(`iframe[name="${NOTIFY_FRAME}"]`);
+  if (!frame) {
+    frame = document.createElement('iframe');
+    frame.name = NOTIFY_FRAME;
+    frame.title = 'Envío del aviso de stock';
+    frame.tabIndex = -1;
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden';
+    document.body.appendChild(frame);
+  }
+  return frame;
+};
+
+const notifySuccess = (form) => {
+  const dialog = form.closest('#mm-notify');
+  if (dialog) {
+    dialog.querySelector('[data-mm-notify-body]').hidden = true;
+    dialog.querySelector('[data-mm-notify-done]').hidden = false;
+    return;
+  }
+  const done = document.createElement('p');
+  done.className = 'mm-stock__done';
+  done.setAttribute('role', 'status');
+  done.textContent = '¡Listo! Te avisamos por mail apenas vuelva a entrar en stock.';
+  form.replaceChildren(done);
+};
+
 document.addEventListener('submit', (event) => {
   const form = event.target;
-  if (!(form instanceof HTMLFormElement) || form.id !== 'mm-notify-form') return;
+  if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]')) return;
   if (!form.checkValidity()) {
     event.preventDefault();
     form.reportValidity();
     return;
   }
-  try {
-    sessionStorage.setItem('mm-notify', '1');
-  } catch {}
-  form.querySelector('button[type="submit"]')?.setAttribute('disabled', '');
+  if (form.dataset.mmFallback) {
+    try {
+      sessionStorage.setItem('mm-notify', '1');
+    } catch {}
+    return;
+  }
+
+  const returnInput = form.querySelector('input[name="return_to"]');
+  const originalReturn = returnInput?.value;
+  if (returnInput) returnInput.value = '/cart.js?mm_notify=ok';
+  form.target = NOTIFY_FRAME;
+  const frame = notifyFrame();
+  const button = form.querySelector('button[type="submit"]');
+  button?.setAttribute('disabled', '');
+  form.querySelector('[data-mm-notify-error], .mm-stock__error')?.setAttribute('hidden', '');
+
+  frame.addEventListener(
+    'load',
+    () => {
+      let url = '';
+      try {
+        url = frame.contentWindow.location.href;
+      } catch {}
+      button?.removeAttribute('disabled');
+      form.removeAttribute('target');
+      if (returnInput && originalReturn) returnInput.value = originalReturn;
+
+      if (url.includes('/cart.js')) return notifySuccess(form);
+
+      if (url.includes('challenge') || !url) {
+        // Shopify pidió verificación: se envía a pantalla completa (vuelve con ?mm_notify=ok)
+        form.dataset.mmFallback = '1';
+        form.requestSubmit ? form.requestSubmit() : form.submit();
+        return;
+      }
+
+      const error = form.querySelector('[data-mm-notify-error], .mm-stock__error');
+      if (error) error.hidden = false;
+    },
+    { once: true }
+  );
 });
 
 const showNotifyDone = () => {
