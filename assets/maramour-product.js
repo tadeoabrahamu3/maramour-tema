@@ -137,11 +137,18 @@ const sendNotify = async (form) => {
 
   try {
     const response = await fetch(form.action, { method: 'POST', body: data, credentials: 'same-origin' });
-    if (response.ok && response.url.includes('/cart.js')) {
+    const url = response.url || '';
+    if (response.ok && (url.includes('/cart.js') || url.includes('contact_posted=true'))) {
       notifySuccess(form);
       return;
     }
-    fullSubmit(form);
+    if (url.includes('challenge') || response.status === 400 || response.status === 403 || response.status === 429) {
+      fullSubmit(form);
+      return;
+    }
+    // Shopify devolvió el formulario con errores (por ejemplo, email inválido)
+    const error = form.querySelector('[data-mm-notify-error], .mm-stock__error');
+    if (error) error.hidden = false;
   } catch {
     fullSubmit(form);
   } finally {
