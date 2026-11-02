@@ -16,7 +16,7 @@
 <div class="mm-ship{% if missing <= 0 %} mm-ship--done{% endif %}">
   <p class="mm-ship__text" role="status">
     {%- if missing > 0 -%}
-      Te faltan <strong>{{ missing | money_without_trailing_zeros }}</strong> para tener <strong>envío gratis</strong>
+      ¡Te faltan <strong>{{ missing | money_without_trailing_zeros }}</strong> para tener <strong>envío gratis</strong>!
     {%- else -%}
       ¡Tu compra tiene <strong>envío gratis</strong>!
     {%- endif -%}
