@@ -135,8 +135,12 @@
 
   .mm-opt--color .variant-option__button-label::before {
     content: '';
+    position: static !important;
+    inset: auto !important;
     display: block !important;
     flex-shrink: 0;
+    transform: none !important;
+    opacity: 1;
     width: 12px;
     height: 12px;
     background: var(--mm-sw, #ddd);
