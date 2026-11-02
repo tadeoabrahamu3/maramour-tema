@@ -95,25 +95,14 @@ document.addEventListener(
 );
 
 /*
- * Envío del aviso sin recargar la página: el formulario se envía de forma normal (así funciona la
- * verificación anti-spam de Shopify) pero dentro de un iframe oculto, con return_to a /cart.js
- * (respuesta liviana). Si llega ahí, el mensaje se envió → se muestra la confirmación en rosa.
- * Si Shopify pide verificación (captcha), se reenvía a pantalla completa como antes.
+ * Envío del aviso sin recargar la página.
+ * Shopify protege el formulario de contacto con hCaptcha: su script frena el envío, consigue el
+ * token y después llama a form.submit(). Reemplazamos ese submit() del formulario por un envío con
+ * fetch (con el token incluido), así la página no se recarga y mostramos la confirmación en rosa.
+ * Si Shopify pide una verificación visible o algo falla, se envía de la forma normal (con recarga),
+ * y al volver se muestra la misma confirmación.
  */
-const NOTIFY_FRAME = 'mm-notify-frame';
-const notifyFrame = () => {
-  let frame = document.querySelector(`iframe[name="${NOTIFY_FRAME}"]`);
-  if (!frame) {
-    frame = document.createElement('iframe');
-    frame.name = NOTIFY_FRAME;
-    frame.title = 'Envío del aviso de stock';
-    frame.tabIndex = -1;
-    frame.setAttribute('aria-hidden', 'true');
-    frame.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden';
-    document.body.appendChild(frame);
-  }
-  return frame;
-};
+const nativeSubmit = HTMLFormElement.prototype.submit;
 
 const notifySuccess = (form) => {
   const dialog = form.closest('#mm-notify');
@@ -129,55 +118,71 @@ const notifySuccess = (form) => {
   form.replaceChildren(done);
 };
 
-document.addEventListener('submit', (event) => {
-  const form = event.target;
-  if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]')) return;
-  if (!form.checkValidity()) {
-    event.preventDefault();
-    form.reportValidity();
-    return;
-  }
-  if (form.dataset.mmFallback) {
-    try {
-      sessionStorage.setItem('mm-notify', '1');
-    } catch {}
-    return;
-  }
+const fullSubmit = (form) => {
+  try {
+    sessionStorage.setItem('mm-notify', '1');
+  } catch {}
+  nativeSubmit.call(form);
+};
 
-  const returnInput = form.querySelector('input[name="return_to"]');
-  const originalReturn = returnInput?.value;
-  if (returnInput) returnInput.value = '/cart.js?mm_notify=ok';
-  form.target = NOTIFY_FRAME;
-  const frame = notifyFrame();
+const sendNotify = async (form) => {
+  if (form.dataset.mmSending) return;
+  form.dataset.mmSending = '1';
   const button = form.querySelector('button[type="submit"]');
   button?.setAttribute('disabled', '');
   form.querySelector('[data-mm-notify-error], .mm-stock__error')?.setAttribute('hidden', '');
 
-  frame.addEventListener(
-    'load',
-    () => {
-      let url = '';
-      try {
-        url = frame.contentWindow.location.href;
-      } catch {}
-      button?.removeAttribute('disabled');
-      form.removeAttribute('target');
-      if (returnInput && originalReturn) returnInput.value = originalReturn;
+  const data = new FormData(form);
+  data.set('return_to', '/cart.js?mm_notify=ok');
 
-      if (url.includes('/cart.js')) return notifySuccess(form);
+  try {
+    const response = await fetch(form.action, { method: 'POST', body: data, credentials: 'same-origin' });
+    if (response.ok && response.url.includes('/cart.js')) {
+      notifySuccess(form);
+      return;
+    }
+    fullSubmit(form);
+  } catch {
+    fullSubmit(form);
+  } finally {
+    delete form.dataset.mmSending;
+    button?.removeAttribute('disabled');
+  }
+};
 
-      if (url.includes('challenge') || !url) {
-        // Shopify pidió verificación: se envía a pantalla completa (vuelve con ?mm_notify=ok)
-        form.dataset.mmFallback = '1';
-        form.requestSubmit ? form.requestSubmit() : form.submit();
-        return;
-      }
+const bindNotify = (form) => {
+  if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]') || form.mmBound) return;
+  form.mmBound = true;
+  form.submit = () => sendNotify(form);
+};
 
-      const error = form.querySelector('[data-mm-notify-error], .mm-stock__error');
-      if (error) error.hidden = false;
-    },
-    { once: true }
-  );
+for (const type of ['focusin', 'pointerdown']) {
+  document.addEventListener(type, (event) => bindNotify(event.target instanceof Element ? event.target.closest('form') : null), true);
+}
+
+window.addEventListener(
+  'submit',
+  (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]')) return;
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      form.reportValidity();
+      return;
+    }
+    bindNotify(form);
+  },
+  true
+);
+
+window.addEventListener('submit', (event) => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || !form.matches('[data-mm-notify-form]')) return;
+  // Si el script de Shopify ya frenó el envío (está consiguiendo el token), él llamará a form.submit()
+  if (event.defaultPrevented) return;
+  event.preventDefault();
+  sendNotify(form);
 });
 
 const showNotifyDone = () => {
