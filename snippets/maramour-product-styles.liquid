@@ -48,7 +48,7 @@
     }
   }
 
-  /* ---------- Variantes: colores en cuadraditos redondeados, talles en cajitas finas (sin títulos) ---------- */
+  /* ---------- Variantes: colores en círculos, talles en texto con óvalo en el elegido (sin títulos) ---------- */
   .variant-option.mm-opt {
     --variant-min-width: 0px;
 
@@ -88,20 +88,18 @@
     display: none !important;
   }
 
-  /* Color: cuadraditos con puntas redondeadas; el elegido con aro negro separado por blanco */
+  /* Color: círculos con el color real; el elegido con un aro negro fino separado por blanco */
   .variant-option.mm-opt--color {
-    gap: 12px;
+    gap: 14px;
   }
 
-  /* Mismo ancho y alto que las cajitas de talle (6 por fila) para que quede simétrico */
   .mm-opt--color .variant-option__button-label {
     box-sizing: border-box;
     flex: 0 0 auto;
-    width: min(44px, calc((100% - 60px) / 6));
-    aspect-ratio: 1;
-    height: auto;
+    width: 30px;
+    height: 30px;
     min-height: 0;
-    border-radius: 4px !important;
+    border-radius: 50% !important;
     box-shadow: none !important;
     transition: box-shadow 0.15s ease;
   }
@@ -112,12 +110,12 @@
     overflow: hidden;
     font-size: 0;
     background: var(--mm-sw, #ddd);
-    border-radius: 4px;
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
   }
 
   .mm-opt--color .variant-option__button-label:has(:checked) {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--color-foreground) !important;
+    box-shadow: 0 0 0 2.5px #fff, 0 0 0 3.5px var(--color-foreground) !important;
   }
 
   .mm-opt--color .variant-option__button-label:has([data-option-available='false']) .variant-option__button-label__text {
@@ -127,10 +125,11 @@
     opacity: 0.45;
   }
 
-  /* Talle: cajitas finas del mismo ancho, puntas levemente redondeadas; elegida con borde negro; agotada con diagonal */
+  /* Talle: letras repartidas a lo ancho; la elegida dentro de un óvalo fino; agotada gris tachada */
   .variant-option.mm-opt--text {
     flex-wrap: nowrap;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 4px;
     margin-top: 20px !important;
   }
 
@@ -139,16 +138,15 @@
     place-items: center;
     box-sizing: border-box;
     flex: 0 0 auto;
-    width: min(44px, calc((100% - 60px) / 6));
-    aspect-ratio: 1;
-    height: auto;
+    width: 46px;
+    height: 32px;
     min-height: 0;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     color: var(--color-foreground) !important;
-    background: #fff !important;
-    border: 1px solid #e3e3e3 !important;
-    border-radius: 4px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 999px !important;
     box-shadow: none !important;
     transition: border-color 0.15s ease;
   }
@@ -158,20 +156,22 @@
   }
 
   .mm-opt--text .variant-option__button-label:hover {
-    border-color: rgb(var(--color-foreground-rgb) / 0.45) !important;
+    border-color: rgb(var(--color-foreground-rgb) / 0.2) !important;
   }
 
   .mm-opt--text .variant-option__button-label:has(:checked) {
-    font-weight: 700;
+    font-weight: 600;
     border-color: var(--color-foreground) !important;
-    box-shadow: inset 0 0 0 0.5px var(--color-foreground) !important;
   }
 
   .mm-opt--text .variant-option__button-label:has([data-option-available='false']) {
     color: rgb(var(--color-foreground-rgb) / 0.3) !important;
-    background:
-      linear-gradient(to top right, transparent calc(50% - 0.5px), #e3e3e3 calc(50% - 0.5px), #e3e3e3 calc(50% + 0.5px), transparent calc(50% + 0.5px)),
-      #fff !important;
+    font-weight: 400;
+  }
+
+  .mm-opt--text .variant-option__button-label:has([data-option-available='false']) .variant-option__button-label__text {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
   }
 
   .mm-opt .variant-option__button-label:has(:focus-visible) {
