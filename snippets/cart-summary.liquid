@@ -222,6 +222,23 @@
     endif
   -%}
 
+  {%- liquid
+    assign mm_savings = 0
+    for item in cart.items
+      if item.variant.compare_at_price > item.original_price
+        assign mm_line = item.variant.compare_at_price | minus: item.original_price | times: item.quantity
+        assign mm_savings = mm_savings | plus: mm_line
+      endif
+    endfor
+    assign mm_savings = mm_savings | plus: cart.total_discount
+  -%}
+  {%- if mm_savings > 0 -%}
+    <div class="cart-totals__item mm-cart-savings">
+      <span>Ahorro total</span>
+      <span>{{ mm_savings | money_without_trailing_zeros }}</span>
+    </div>
+  {%- endif -%}
+
   <div class="cart-totals__container{% if settings.show_installments %} cart-totals__container--has-installments{% endif %}">
     <span
       class="cart-totals__item cart-totals__total"
@@ -264,9 +281,12 @@
     form="cart-form"
   >
     <span class="button-text">
-      {{ 'content.checkout' | t }}
+      Finalizar compra{% if cart.total_price > 0 %} · {{ cart.total_price | money_without_trailing_zeros }}{% endif %}
     </span>
   </button>
+  {%- if cart.total_price >= 10000000 -%}
+    <p class="mm-cart-note">Envío gratis incluido</p>
+  {%- endif -%}
 
   {% if additional_checkout_buttons and settings.show_accelerated_checkout_buttons %}
     <div

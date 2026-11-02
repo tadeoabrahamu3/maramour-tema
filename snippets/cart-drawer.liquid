@@ -21,6 +21,11 @@
     src="{{ 'cart-drawer.js' | asset_url }}"
     fetchpriority="low"
   ></script>
+  <script
+    type="module"
+    src="{{ 'maramour-cart.js' | asset_url }}"
+    fetchpriority="low"
+  ></script>
 
   {% capture empty_cart_drawer_content %}
     <div
@@ -34,8 +39,13 @@
         {{ 'content.your_cart_is_empty' | t }}
       </h2>
 
-      <div class="cart-drawer__items">
+      <div class="cart-drawer__items mm-cart-empty-default">
         {% render 'cart-products', force_empty: true, context: 'drawer' %}
+      </div>
+
+      <div class="mm-cart-empty">
+        {% render 'maramour-cart-recs', heading: 'Más vendidos', limit: 3 %}
+        <a class="mm-cart-empty__all" href="{{ routes.all_products_collection_url }}">Ver todo</a>
       </div>
     </div>
   {% endcapture %}
@@ -110,8 +120,12 @@
                 class="cart-drawer__content"
                 aria-label="{{ 'accessibility.cart' | t }}"
               >
+                <div class="mm-cart-ship-wrap">
+                  {% render 'maramour-cart-shipping' %}
+                </div>
                 <scroll-hint class="cart-drawer__items">
                   {% render 'cart-products', context: 'drawer' %}
+                  {% render 'maramour-cart-recs', heading: 'Completá tu look', subheading: 'Las favoritas de nuestras clientas', limit: 3 %}
                 </scroll-hint>
 
                 <div class="cart-drawer__summary">
