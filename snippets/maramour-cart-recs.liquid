@@ -312,8 +312,8 @@
     grid-template-columns: 84px minmax(0, 1fr);
     grid-template-areas:
       'media details'
-      'media variants'
       'media unit_price'
+      'media variants'
       'media quantity'
       'media error';
     column-gap: 16px;
@@ -429,6 +429,16 @@
     font-size: 0.6875rem;
     font-weight: 400;
     line-height: 1.4;
+    color: var(--color-foreground) !important;
+  }
+
+  .cart-drawer__items .cart-items__variant *,
+  .cart-drawer__items .cart-items__unit-price-wrapper * {
+    color: inherit !important;
+  }
+
+  .cart-drawer__items .cart-items__unit-price-wrapper {
+    margin-block: 2px 4px;
   }
 
   .cart-drawer__items .cart-items__variant *,
@@ -446,9 +456,7 @@
     margin: 0;
   }
 
-  .mm-variant-line dt {
-    color: rgb(var(--color-foreground-rgb) / 0.6);
-  }
+
 
   .mm-cart-ship-wrap {
     padding: 4px var(--cart-drawer-padding) 16px;
