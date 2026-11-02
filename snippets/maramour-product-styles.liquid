@@ -95,6 +95,8 @@
 
   /* Mismo ancho y alto que las cajitas de talle (6 por fila) para que quede simétrico */
   .mm-opt--color .variant-option__button-label {
+    box-sizing: border-box;
+    flex: 0 0 auto;
     width: min(60px, calc((100% - 30px) / 6));
     height: 38px;
     min-height: 0;
@@ -128,14 +130,15 @@
   .mm-opt--text {
     flex-wrap: nowrap;
     gap: 6px;
-    margin-top: 14px !important;
+    margin-top: 20px !important;
   }
 
   .mm-opt--text .variant-option__button-label {
     display: grid;
     place-items: center;
-    flex: 1 1 0;
-    max-width: 60px;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: min(60px, calc((100% - 30px) / 6));
     height: 38px;
     min-height: 0;
     font-size: 0.75rem;
