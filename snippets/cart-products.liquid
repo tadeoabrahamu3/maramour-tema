@@ -183,19 +183,6 @@
                       -%}
                     </a>
                   {%- endif %}
-                  {%- if context == 'drawer' -%}
-                    {%- assign mm_can_remove = item.instructions.can_remove | default: true, allow_false: true -%}
-                    {%- if mm_can_remove -%}
-                      <button
-                        class="mm-line-remove"
-                        type="button"
-                        aria-label="{{ 'accessibility.remove_item' | t: title: item.title | escape }}"
-                        on:click="/onLineItemRemove/{{ item.index | plus: 1 }}"
-                      >
-                        <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 3l6 6M9 3 3 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-                      </button>
-                    {%- endif -%}
-                  {%- endif -%}
                 </td>
                 <td
                   class="cart-items__details cart-primary-typography"
@@ -384,6 +371,16 @@
                       {{- 'icon-delete.svg' | inline_asset_content -}}
                       <span class="visually-hidden">{{ 'accessibility.remove' | t }}</span>
                     </button>
+                    {%- if context == 'drawer' and can_remove != false -%}
+                      <button
+                        class="mm-line-remove"
+                        type="button"
+                        aria-label="{{ 'accessibility.remove_item' | t: title: item.title | escape }}"
+                        on:click="/onLineItemRemove/{{ item.index | plus: 1 }}"
+                      >
+                        Eliminar
+                      </button>
+                    {%- endif -%}
                   </div>
                 </td>
                 <td

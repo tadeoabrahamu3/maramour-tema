@@ -334,12 +334,27 @@
 
   /* Cantidad compacta, al tono del texto chico */
   #cart-drawer .cart-items .quantity-selector {
-    --quantity-selector-width: 88px;
+    --quantity-selector-width: 84px;
 
     width: var(--quantity-selector-width);
-    height: 30px;
+    height: 28px;
     font-size: 0.75rem;
-    border-radius: 4px;
+    border: 0 !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    background: transparent;
+  }
+
+  #cart-drawer .cart-items .quantity-selector button {
+    color: rgb(var(--color-foreground-rgb) / 0.35);
+  }
+
+  #cart-drawer .cart-items .quantity-selector button:hover {
+    color: var(--color-foreground);
+  }
+
+  #cart-drawer .cart-items .quantity-selector input[type='number'] {
+    border-inline: 1px solid rgb(var(--color-foreground-rgb) / 0.08);
   }
 
   #cart-drawer .cart-items .quantity-selector button {
@@ -370,39 +385,27 @@
     object-fit: cover;
   }
 
+  /* «Eliminar» como texto subrayado al lado de la cantidad */
   .mm-line-remove {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    z-index: 1;
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    color: var(--color-foreground);
-    background: #fff;
+    padding: 4px 0;
+    font: inherit;
+    font-size: 0.6875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
     border: 0;
-    border-radius: 50%;
-    box-shadow: 0 1px 4px rgb(0 0 0 / 0.18), 0 0 0 0.5px rgb(0 0 0 / 0.08);
     cursor: pointer;
-    transition: transform 0.15s ease, background-color 0.15s ease;
-  }
-
-  .mm-line-remove::after {
-    content: '';
-    position: absolute;
-    inset: -11px;
-  }
-
-  .mm-line-remove svg {
-    width: 10px;
-    height: 10px;
   }
 
   .mm-line-remove:hover {
-    color: #fff;
-    background: var(--color-foreground);
+    color: var(--color-foreground);
+  }
+
+  .cart-drawer__items .cart-items__quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
 
   .cart-drawer__items .cart-items__remove,
@@ -451,7 +454,39 @@
     padding: 4px var(--cart-drawer-padding) 16px;
   }
 
+  /* Resumen: solo «Subtotal» y el botón (sin «Total estimado» ni aclaración de impuestos) */
+  .mm-subtotal {
+    display: none;
+  }
+
+  #cart-drawer .mm-subtotal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  #cart-drawer .cart-totals__container {
+    display: none;
+  }
+
+  #cart-drawer .cart-totals:not(:has(.cart-actions)) {
+    padding-block-start: 16px;
+  }
+
+  #cart-drawer .cart__checkout-button {
+    min-height: 48px;
+    height: 48px;
+    border-radius: 4px;
+    background: #111;
+  }
+
+  #cart-drawer .cart__checkout-button .button-text,
   .cart__checkout-button .button-text {
+    font-size: 0.8125rem;
+    font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
