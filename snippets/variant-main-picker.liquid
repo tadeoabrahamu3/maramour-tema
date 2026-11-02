@@ -54,8 +54,8 @@
   >
     <form class="variant-picker__form">
       {%- comment -%}
-        MARAMOUR: colores reales desde el metacampo de categoría (Color) → muestras cuadradas.
-        Las opciones de texto (Talle) se muestran como texto con subrayado en la elegida.
+        MARAMOUR: colores reales desde el metacampo de categoría (Color) → cuadraditos redondeados.
+        Talle en píldoras grises (la elegida en negro). Arriba de cada fila: «Color: …» / «Talle: …».
       {%- endcomment -%}
       {%- assign mm_color_names = '' -%}
       {%- assign mm_color_hexes = '' -%}
@@ -113,10 +113,11 @@
             {{ option_id_attribute }}
           >
             <legend>
-              {{ product_option.name | escape -}}
               {%- if variant_style == 'swatch' -%}
+                {{ product_option.name | escape -}}
                 <span class="variant-option__swatch-value">{{ product_option.selected_value }}</span>
-              {%- elsif mm_opt contains 'color' -%}
+              {%- else -%}
+                <span class="mm-opt__name">{{ product_option.name | escape }}:</span>
                 <span class="mm-opt__value">{{ product_option.selected_value }}</span>
               {%- endif %}
             </legend>

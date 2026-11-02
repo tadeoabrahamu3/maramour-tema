@@ -48,32 +48,46 @@
     }
   }
 
-  /* ---------- Variantes (sin títulos «Color» / «Talle»: se sobreentienden) ---------- */
-  .mm-opt > legend {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
+  /* ---------- Variantes (estilo «Suave»): «Color: …» / «Talle: …» arriba de cada fila ---------- */
   .variant-option.mm-opt {
     --variant-min-width: 0px;
 
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .mm-opt > legend {
+    float: left;
+    flex: 0 0 100%;
+    width: 100%;
+    margin: 0 0 2px;
+    padding: 0;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+  }
+
+  .mm-opt__name {
+    font-weight: 600;
+  }
+
+  .mm-opt__value {
+    color: rgb(var(--color-foreground-rgb) / 0.6);
   }
 
   .mm-opt .variant-option__button-label {
+    position: relative;
     flex: 0 0 auto;
     min-width: 0 !important;
     padding: 0;
     border: 0;
     background: transparent !important;
     overflow: visible;
+    cursor: pointer;
   }
 
   .mm-opt .variant-option__button-label::before,
@@ -83,78 +97,76 @@
     display: none !important;
   }
 
-  /* Color: círculos con el color real; el elegido con un anillo separado */
+  /* Color: cuadraditos redondeados con el color real; el elegido con un aro negro separado */
   .mm-opt--color .variant-option__button-label {
-    flex: 0 0 32px;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     min-height: 0;
-    max-height: 32px;
-    aspect-ratio: 1;
-    align-self: center;
-    border-radius: 50% !important;
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
-  }
-
-  .mm-opt--color .variant-option__button-label::marker {
-    content: none;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    transition: box-shadow 0.15s ease;
   }
 
   .mm-opt--color .variant-option__button-label__text {
     position: absolute;
-    inset: 3px;
+    inset: 0;
     overflow: hidden;
     font-size: 0;
-    border-radius: 50%;
     background: var(--mm-sw, #ddd);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
-  }
-
-  .mm-opt--color .variant-option__button-label:not(:has(:checked)) {
-    box-shadow: none;
-  }
-
-  .mm-opt--color .variant-option__button-label:not(:has(:checked)) .variant-option__button-label__text {
-    inset: 2px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
   }
 
   .mm-opt--color .variant-option__button-label:has(:checked) {
-    box-shadow: inset 0 0 0 1.5px var(--color-foreground);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--color-foreground) !important;
   }
 
-  /* Color sin stock para el talle elegido: más claro con diagonal */
   .mm-opt--color .variant-option__button-label:has([data-option-available='false']) .variant-option__button-label__text {
     background:
       linear-gradient(to top right, transparent calc(50% - 0.75px), rgb(255 255 255 / 0.95) calc(50% - 0.75px), rgb(255 255 255 / 0.95) calc(50% + 0.75px), transparent calc(50% + 0.75px)),
       var(--mm-sw, #ddd);
-    opacity: 0.5;
+    opacity: 0.45;
   }
 
-  /* Talle: texto; el elegido dentro de un círculo; agotado gris y tachado */
+  /* Talle: píldoras gris claro del mismo ancho; la elegida en negro; agotado tachado */
+  .mm-opt--text {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   .mm-opt--text .variant-option__button-label {
     display: grid;
     place-items: center;
-    flex: 0 0 38px;
-    width: 38px;
-    height: 38px;
+    flex: 1 1 0;
+    max-width: 64px;
+    height: 36px;
     min-height: 0;
-    border-radius: 50% !important;
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--color-foreground) !important;
+    background: #f4f4f4 !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .mm-opt--text .variant-option__button-label__text {
     color: inherit !important;
   }
 
+  .mm-opt--text .variant-option__button-label:hover {
+    background: #ebebeb !important;
+  }
+
   .mm-opt--text .variant-option__button-label:has(:checked) {
-    box-shadow: inset 0 0 0 1px var(--color-foreground);
+    color: #fff !important;
+    font-weight: 600;
+    background: var(--color-foreground) !important;
   }
 
   .mm-opt--text .variant-option__button-label:has([data-option-available='false']) {
-    color: rgb(var(--color-foreground-rgb) / 0.38) !important;
-    font-weight: 400;
+    color: rgb(var(--color-foreground-rgb) / 0.3) !important;
+    background: #f7f7f7 !important;
   }
 
   .mm-opt--text .variant-option__button-label:has([data-option-available='false']) .variant-option__button-label__text {
@@ -162,9 +174,19 @@
     text-decoration-thickness: 1px;
   }
 
-  .mm-opt--text .variant-option__button-label:has(:focus-visible) {
+  .mm-opt .variant-option__button-label:has(:focus-visible) {
     outline: 2px solid var(--color-foreground);
     outline-offset: 2px;
+  }
+
+  .mm-opt input[type='radio'] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
   }
 
   /* ---------- Botón de compra (sin selector de cantidad: una prenda por vez) ---------- */
