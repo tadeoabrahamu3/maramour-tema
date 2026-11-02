@@ -27,7 +27,11 @@ class MmVariantSync extends HTMLElement {
         const html = detail?.html;
         if (!html) return;
         const fresh = html.querySelector(`mm-variant-sync[data-mm-sync="${this.dataset.mmSync}"]`);
-        if (fresh) this.innerHTML = fresh.innerHTML;
+        if (fresh) {
+          this.innerHTML = fresh.innerHTML;
+          // Formulario «Avisame» nuevo: conectarlo a la protección anti-spam invisible de Shopify
+          this.querySelectorAll('form[data-shopify-captcha]').forEach((form) => window.Shopify?.captcha?.protect?.(form));
+        }
       })
       .catch(() => {});
   };
