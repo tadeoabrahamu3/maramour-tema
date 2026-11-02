@@ -332,6 +332,31 @@
     margin-top: 8px;
   }
 
+  /* Cantidad compacta, al tono del texto chico */
+  #cart-drawer .cart-items .quantity-selector {
+    --quantity-selector-width: 88px;
+
+    width: var(--quantity-selector-width);
+    height: 30px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+  }
+
+  #cart-drawer .cart-items .quantity-selector button {
+    width: 28px;
+    height: 28px;
+  }
+
+  #cart-drawer .cart-items .quantity-selector button svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  #cart-drawer .cart-items .quantity-selector input[type='number'] {
+    width: calc(var(--quantity-selector-width) - 56px);
+    font-size: 0.75rem;
+  }
+
   .cart-drawer__items .cart-items__media-container {
     aspect-ratio: 2 / 3;
     border-radius: 6px;
@@ -347,8 +372,8 @@
 
   .mm-line-remove {
     position: absolute;
-    top: -7px;
-    left: -7px;
+    top: 6px;
+    left: 6px;
     z-index: 1;
     display: grid;
     place-items: center;
