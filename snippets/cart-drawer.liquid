@@ -21,11 +21,6 @@
     src="{{ 'cart-drawer.js' | asset_url }}"
     fetchpriority="low"
   ></script>
-  <script
-    type="module"
-    src="{{ 'maramour-cart.js' | asset_url }}"
-    fetchpriority="low"
-  ></script>
 
   {% capture empty_cart_drawer_content %}
     <div
@@ -33,11 +28,12 @@
       aria-label="{{ 'accessibility.cart' | t }}"
     >
       <h2
-        class="theme-drawer__title h4"
+        class="theme-drawer__title mm-cart-title mm-cart-title--empty"
         id="cart-drawer-heading"
       >
-        {{ 'content.your_cart_is_empty' | t }}
+        Carrito <span class="mm-cart-title__count">(0 productos)</span>
       </h2>
+      <p class="mm-cart-empty__text">{{ 'content.your_cart_is_empty' | t }}</p>
 
       <div class="cart-drawer__items mm-cart-empty-default">
         {% render 'cart-products', force_empty: true, context: 'drawer' %}
@@ -82,34 +78,27 @@
                 aria-label="{{ 'actions.close' | t }}"
               >
                 <span class="svg-wrapper">
-                  {{- 'icon-close.svg' | inline_asset_content -}}
+                  {{- 'maramour-icon-close.svg' | inline_asset_content -}}
                 </span>
               </button>
             </div>
           {%- else -%}
-            {% capture cart_badge_html %}
-              <span
-                class="theme-drawer__badge{% if cart.item_count == 0 %} visually-hidden{% endif %}"
-                aria-hidden="true"
-                {% if cart.item_count <= 99 %}
-                  data-maintain-ratio
-                {% endif %}
+            <div class="theme-drawer__header">
+              <h2 class="theme-drawer__title mm-cart-title" id="cart-drawer-heading">
+                Carrito
+                <span class="mm-cart-title__count">({{ cart.item_count }} {% if cart.item_count == 1 %}producto{% else %}productos{% endif %})</span>
+              </h2>
+              <button
+                class="theme-drawer__close-button"
+                on:click="#cart-drawer/close"
+                type="button"
+                aria-label="{{ 'actions.close' | t }}"
               >
-                {{- cart.item_count -}}
-              </span>
-              {% if cart.item_count > 0 %}
-                <span class="visually-hidden">
-                  {{ 'accessibility.cart_count' | t }}: {{ cart.item_count }}
+                <span class="svg-wrapper">
+                  {{- 'maramour-icon-close.svg' | inline_asset_content -}}
                 </span>
-              {% endif %}
-            {% endcapture %}
-            {% assign cart_drawer_title = 'content.cart_title' | t %}
-            {% render 'theme-drawer-header',
-              title: cart_drawer_title,
-              drawer_id: 'cart-drawer',
-              heading_id: 'cart-drawer-heading',
-              title_append: cart_badge_html
-            %}
+              </button>
+            </div>
           {%- endif -%}
 
           {% capture cart_items_children %}
