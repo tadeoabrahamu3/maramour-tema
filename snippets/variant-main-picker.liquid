@@ -97,7 +97,8 @@
           endif
         -%}
 
-        {%- if product_option.values.size == 1 and variant_style != 'swatch' -%}
+        {%- assign mm_name_check = product_option.name | downcase -%}
+        {%- if product_option.values.size == 1 and variant_style != 'swatch' and mm_name_check != 'color' and mm_name_check != 'colour' -%}
           <div
             class="variant-option"
             data-testid="variant-option-single"

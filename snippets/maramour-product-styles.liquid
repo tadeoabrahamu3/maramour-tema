@@ -125,10 +125,12 @@
     opacity: 0.45;
   }
 
-  /* Talle: letras repartidas a lo ancho; la elegida dentro de un círculo fino; agotada gris tachada */
+  /* Talle: letras en grilla; la elegida dentro de un círculo fino; agotada gris tachada */
+  /* Grilla de 6 lugares: los talles quedan siempre a la misma distancia, haya 4 o 6 */
   .variant-option.mm-opt--text {
-    flex-wrap: nowrap;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    justify-items: center;
     gap: 4px;
     margin-top: 20px !important;
   }
