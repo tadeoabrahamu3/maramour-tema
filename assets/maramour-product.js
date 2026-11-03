@@ -10,6 +10,21 @@
  */
 import { StandardEvents } from '@shopify/events';
 
+/*
+ * Protección anti-spam invisible de Shopify (hCaptcha) para los formularios «Avisame».
+ * Se conecta recién cuando hace falta (talle agotado visible o popup abierto), así la página no
+ * descarga hCaptcha en cada visita, pero queda lista antes de que la clienta toque «Avisame».
+ */
+const protectNotify = (form) => {
+  if (!(form instanceof HTMLFormElement) || form.dataset.mmProtected) return;
+  const protect = window.Shopify?.captcha?.protect;
+  if (typeof protect !== 'function') return;
+  form.dataset.mmProtected = '1';
+  try {
+    protect(form);
+  } catch {}
+};
+
 class MmVariantSync extends HTMLElement {
   connectedCallback() {
     this.section = this.closest('.shopify-section, dialog');
@@ -29,8 +44,8 @@ class MmVariantSync extends HTMLElement {
         const fresh = html.querySelector(`mm-variant-sync[data-mm-sync="${this.dataset.mmSync}"]`);
         if (fresh) {
           this.innerHTML = fresh.innerHTML;
-          // Formulario «Avisame» nuevo: conectarlo a la protección anti-spam invisible de Shopify
-          this.querySelectorAll('form[data-shopify-captcha]').forEach((form) => window.Shopify?.captcha?.protect?.(form));
+          // Formulario «Avisame» nuevo (variante agotada): conectarlo a la protección anti-spam
+          this.querySelectorAll('form[data-mm-notify-form]').forEach(protectNotify);
         }
       })
       .catch(() => {});
@@ -92,6 +107,7 @@ document.addEventListener(
     dialog.querySelector('[data-mm-notify-done]').hidden = true;
     dialog.querySelector('[data-mm-notify-error]').hidden = true;
     dialog.showModal();
+    protectNotify(dialog.querySelector('form[data-mm-notify-form]'));
     document.documentElement.classList.add('mm-sheet-lock');
     dialog.addEventListener('close', () => document.documentElement.classList.remove('mm-sheet-lock'), { once: true });
   },
@@ -137,3 +153,7 @@ const showNotifyDone = () => {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showNotifyDone);
 else showNotifyDone();
+
+const protectVisibleNotify = () => document.querySelectorAll('.mm-stock__notify form[data-mm-notify-form]').forEach(protectNotify);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', protectVisibleNotify);
+else protectVisibleNotify();

@@ -46,7 +46,7 @@
     </div>
   {%- else -%}
     <div class="mm-stock__notify">
-      {%- form 'contact', return_to: return_url, class: 'mm-stock__form', data-mm-notify-form: '', data-shopify-captcha: 'true' -%}
+      {%- form 'contact', return_to: return_url, class: 'mm-stock__form', data-mm-notify-form: '' -%}
         {%- if form.posted_successfully? -%}
           <p class="mm-stock__done" role="status">
             ¡Listo! Te avisamos por mail apenas vuelva a entrar en stock.
@@ -87,7 +87,7 @@
       <h2 class="mm-sheet__title" id="mm-notify-title">Avisame cuando vuelva</h2>
       <p class="mm-sheet__sub"><strong data-mm-notify-variant></strong> está agotado. Dejanos tu email y te escribimos apenas vuelva a entrar.</p>
       {%- assign notify_return = product.url | append: '?mm_notify=ok' -%}
-      {%- form 'contact', id: 'mm-notify-form', class: 'mm-stock__form', return_to: notify_return, data-mm-notify-form: '', data-shopify-captcha: 'true' -%}
+      {%- form 'contact', id: 'mm-notify-form', class: 'mm-stock__form', return_to: notify_return, data-mm-notify-form: '' -%}
         <input type="hidden" name="contact[Motivo]" value="Aviso de stock">
         <input type="hidden" name="contact[Producto]" value="{{ product.title | escape }}">
         <input type="hidden" name="contact[Variante]" value="" data-mm-notify-field="variant">
