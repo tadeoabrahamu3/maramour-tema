@@ -89,8 +89,13 @@
   }
 
   /* Color: círculos con el color real; el elegido con un aro negro fino separado por blanco */
+  /* Misma grilla de 6 lugares que los talles: cada color queda centrado arriba de un talle */
   .variant-option.mm-opt--color {
-    gap: 14px;
+    display: grid;
+    grid-template-columns: repeat(6, 40px);
+    justify-content: space-between;
+    justify-items: center;
+    gap: 4px;
   }
 
   .mm-opt--color .variant-option__button-label {
