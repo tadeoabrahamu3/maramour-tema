@@ -100,7 +100,13 @@ document.addEventListener(
     const variantTitle = [color, input.value].filter(Boolean).join(' / ');
     const productTitle = picker?.dataset.productTitle || document.title;
 
-    dialog.querySelector('[data-mm-notify-variant]').textContent = `Talle ${input.value}${color ? ` en ${color}` : ''}`;
+    dialog.querySelector('[data-mm-notify-variant]').textContent = [color, `Talle ${input.value}`].filter(Boolean).join(' · ');
+    const img = dialog.querySelector('[data-mm-notify-img]');
+    const colorImg = color && [...document.querySelectorAll('media-gallery img')].find((i) => (i.alt || '').toLowerCase().startsWith(color.toLowerCase()));
+    if (img && colorImg) {
+      img.src = colorImg.currentSrc || colorImg.src;
+      img.removeAttribute('srcset');
+    }
     dialog.querySelector('[data-mm-notify-field="variant"]').value = variantTitle;
     dialog.querySelector('[data-mm-notify-field="body"]').value = `Avisar cuando vuelva a entrar en stock: ${productTitle} — ${variantTitle}`;
     dialog.querySelector('[data-mm-notify-body]').hidden = false;
