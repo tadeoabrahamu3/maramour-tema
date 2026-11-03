@@ -89,13 +89,12 @@
   }
 
   /* Color: círculos con el color real; el elegido con un aro negro fino separado por blanco */
-  /* Misma grilla de 6 lugares que los talles: cada color queda centrado arriba de un talle */
+  /* Colores juntos (14 px entre sí); el primero arranca alineado con el primer talle
+     (círculo de 30 px centrado sobre el de 40 px del talle) */
   .variant-option.mm-opt--color {
-    display: grid;
-    grid-template-columns: repeat(6, 40px);
-    justify-content: space-between;
-    justify-items: center;
-    gap: 4px;
+    display: flex;
+    gap: 14px;
+    padding-inline-start: 5px;
   }
 
   .mm-opt--color .variant-option__button-label {
