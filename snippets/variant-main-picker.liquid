@@ -140,13 +140,24 @@
               {%- liquid
                 assign mm_hex = ''
                 if mm_opt contains 'color'
-                  assign mm_key = product_option_value.name | downcase
-                  for mm_n in mm_color_names
-                    if mm_n == mm_key
-                      assign mm_hex = mm_color_hexes[forloop.index0]
-                      break
-                    endif
-                  endfor
+                  # 1) Muestra nativa de Shopify (color o imagen del valor vinculado)
+                  assign mm_swatch = product_option_value.swatch
+                  if mm_swatch.image
+                    assign mm_hex = mm_swatch.image | image_url: width: 120
+                    assign mm_hex = 'url(' | append: mm_hex | append: ') center / cover no-repeat'
+                  elsif mm_swatch.color
+                    assign mm_hex = mm_swatch.color
+                  endif
+                  # 2) Si no hay, se busca en el metacampo de categoría Color
+                  if mm_hex == blank
+                    assign mm_key = product_option_value.name | downcase
+                    for mm_n in mm_color_names
+                      if mm_n == mm_key
+                        assign mm_hex = mm_color_hexes[forloop.index0]
+                        break
+                      endif
+                    endfor
+                  endif
                 endif
               -%}
               <label
@@ -180,7 +191,7 @@
                     data-current-checked="false"
                   {% endif %}
                 >
-                {% if variant_style == 'swatch' %}
+                {% if variant_style == 'swatch' and mm_opt contains 'text' %}
                   {% liquid
                     assign featured_media = product_option_value.variant.featured_media
 
