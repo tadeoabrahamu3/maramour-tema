@@ -226,7 +226,55 @@
     cursor: pointer;
   }
 
-  /* Popup «Avisame»: mismo panel lateral que «Tabla de talles» y «¿Qué talle soy?» */
+  /* Popup «Avisame»: en compu, panel lateral como «Tabla de talles»; en celular, hoja desde abajo
+     que ocupa solo lo necesario */
+  @media screen and (max-width: 749px) {
+    dialog.mm-sheet.mm-sheet--notify {
+      inset: auto 0 0;
+      width: 100%;
+      max-width: none;
+      height: auto !important;
+      max-height: 88dvh;
+      margin: 0;
+      border-radius: 16px 16px 0 0;
+    }
+
+    dialog.mm-sheet.mm-sheet--notify[open] {
+      animation: mm-notify-up 0.28s ease;
+    }
+
+    .mm-sheet--notify .mm-sheet__panel {
+      height: auto;
+      max-height: 88dvh;
+      padding-top: 40px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .mm-sheet--notify .mm-sheet__panel::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      width: 40px;
+      height: 4px;
+      background: rgb(var(--color-foreground-rgb) / 0.15);
+      border-radius: 4px;
+      transform: translateX(-50%);
+    }
+
+    .mm-sheet--notify .mm-sheet__close {
+      top: 16px;
+    }
+  }
+
+  @keyframes mm-notify-up {
+    from {
+      transform: translateY(40px);
+      opacity: 0;
+    }
+  }
+
+  /* Contenido del popup «Avisame» */
   .mm-notify__item {
     display: grid;
     grid-template-columns: 72px 1fr;
