@@ -57,11 +57,23 @@
         MARAMOUR: Color = cuadraditos redondeados con el color real (metacampo de categoría);
         Talle = cajitas finas con puntas redondeadas. Títulos ocultos (solo lectores de pantalla).
       {%- endcomment -%}
+      {%- comment -%}
+        Cada color puede tener un color sólido o una imagen (rayado, estampado, jaspeado): si la
+        entrada del metacampo tiene imagen, la muestra se pinta con esa imagen.
+      {%- endcomment -%}
       {%- assign mm_color_names = '' -%}
       {%- assign mm_color_hexes = '' -%}
       {%- for mm_entry in product_resource.metafields.shopify['color-pattern'].value -%}
-        {%- assign mm_color_names = mm_color_names | append: mm_entry.label.value | downcase | append: '|' -%}
-        {%- assign mm_color_hexes = mm_color_hexes | append: mm_entry.color.value | append: '|' -%}
+        {%- liquid
+          assign mm_sw = mm_entry.color.value | default: '#ddd'
+          assign mm_img = mm_entry.image.value
+          if mm_img != blank
+            assign mm_img_url = mm_img | image_url: width: 120
+            assign mm_sw = 'url(' | append: mm_img_url | append: ') center / cover no-repeat'
+          endif
+          assign mm_color_names = mm_color_names | append: mm_entry.label.value | downcase | append: '|'
+          assign mm_color_hexes = mm_color_hexes | append: mm_sw | append: '|'
+        -%}
       {%- endfor -%}
       {%- assign mm_color_names = mm_color_names | split: '|' -%}
       {%- assign mm_color_hexes = mm_color_hexes | split: '|' -%}
