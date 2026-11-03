@@ -23,7 +23,7 @@
   {%- if product.description != blank -%}
     <details class="mm-acc__item" name="mm-pdp-acc" id="mm-acc-descripcion"{% if bs.open_first %} open{% endif %}>
       <summary class="mm-acc__q">Descripción{% render 'maramour-acc-icon' %}</summary>
-      <div class="mm-acc__a rte">{{ product.description }}</div>
+      <div class="mm-acc__a mm-acc__desc rte">{{ product.description }}</div>
     </details>
   {%- endif -%}
 
@@ -68,6 +68,40 @@
 </div>
 
 {% stylesheet %}
+  /* Descripción pegada desde otra web (Elementor, Word, etc.): se ignoran sus estilos de diseño
+     para que siempre se lea como texto normal, un bloque debajo del otro */
+  .mm-acc__desc div,
+  .mm-acc__desc section {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  .mm-acc__desc > * + *,
+  .mm-acc__desc div > * + * {
+    margin-top: 12px;
+  }
+
+  .mm-acc__desc p:empty,
+  .mm-acc__desc .e-n-accordion {
+    display: none !important;
+  }
+
+  .mm-acc__desc ul {
+    margin: 12px 0 0;
+    padding-left: 18px;
+  }
+
+  .mm-acc__desc li + li {
+    margin-top: 4px;
+  }
+
   .mm-acc__heading {
     margin: 0 0 4px;
     font-size: 1rem;
