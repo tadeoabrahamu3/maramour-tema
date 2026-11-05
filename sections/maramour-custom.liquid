@@ -268,7 +268,7 @@
       const colorMsg = two && c2
         ? `${lower(m.dataset.l1)} ${c1.dataset.name} y ${lower(m.dataset.l2)} ${c2.dataset.name}`
         : `en color ${c1.dataset.name}`;
-      const msg = `¡Hola! Quiero un personalizado: ${m.dataset.name}${two ? ', ' : ' '}${colorMsg}, talle ${size ? size.value : ''}.`;
+      const msg = `¡Hola! Quiero una prenda personalizada: ${m.dataset.name}${two ? ', ' : ' '}${colorMsg}, talle ${size ? size.value : ''}.`;
       $('[data-mm-cz-wa]').href = `https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(msg)}`;
     };
 
