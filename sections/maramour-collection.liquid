@@ -764,7 +764,19 @@
     color: rgb(var(--color-foreground-rgb) / 0.7);
   }
 
+  .mm-shop__filters {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  .mm-shop__price label {
+    min-width: 0;
+  }
+
   .mm-shop__price input {
+    width: 100%;
+    min-width: 0;
     height: 44px;
     padding: 0 12px;
     font: inherit;
@@ -777,6 +789,7 @@
   .mm-shop__factions {
     position: sticky;
     bottom: 0;
+    margin-top: auto !important;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
