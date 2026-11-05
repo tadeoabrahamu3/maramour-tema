@@ -142,6 +142,10 @@
       assign base = paginate.current_offset
     -%}
     <ul class="mm-shop__grid list-unstyled" role="list" data-mm-shop-grid>
+      {%- comment -%} Con colores separados: 1.ª vuelta lo disponible, 2.ª vuelta lo agotado (al final) {%- endcomment -%}
+      {%- assign passes = 1 -%}
+      {%- if split_on -%}{%- assign passes = 2 -%}{%- endif -%}
+      {%- for pass in (1..passes) -%}
       {%- for product in collection.products -%}
         {%- if product.gift_card? and collection.handle == 'all' -%}{%- continue -%}{%- endif -%}
         {%- liquid
@@ -170,9 +174,31 @@
           if card_colors.size < 2
             assign card_colors = 'mm-single' | split: '§'
           endif
+          assign copt_index = -1
+          if copt
+            assign copt_index = copt.position | minus: 1
+          endif
         -%}
         {%- for card_color in card_colors -%}
           {%- liquid
+            assign col_avail = product.available
+            if card_color != 'mm-single'
+              assign col_avail = false
+              for v in product.variants
+                if v.options[copt_index] == card_color and v.available
+                  assign col_avail = true
+                  break
+                endif
+              endfor
+            endif
+            if passes == 2
+              if pass == 1 and col_avail == false
+                continue
+              endif
+              if pass == 2 and col_avail
+                continue
+              endif
+            endif
             assign shown = shown | plus: 1
             assign g = base | plus: shown | minus: 1
             assign featured = false
@@ -207,12 +233,14 @@
             -%}
           </li>
         {%- endfor -%}
-      {%- else -%}
+      {%- endfor -%}
+      {%- endfor -%}
+      {%- if collection.products.size == 0 -%}
         <li class="mm-shop__empty">
           <p>No encontramos prendas con esos filtros.</p>
           <a href="{{ collection.url }}">Ver todas</a>
         </li>
-      {%- endfor -%}
+      {%- endif -%}
     </ul>
 
     {%- if paginate.next -%}
