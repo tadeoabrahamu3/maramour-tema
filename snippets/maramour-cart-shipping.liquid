@@ -38,9 +38,9 @@
       {%- if ship_missing > 0 -%}
         ¡Te faltan <strong>{{ ship_missing | money_without_trailing_zeros }}</strong> para tener <strong>envío gratis</strong>!
       {%- elsif gift_missing > 0 -%}
-        ¡Ya tenés envío gratis! Te faltan <strong>{{ gift_missing | money_without_trailing_zeros }}</strong> para tu <strong>regalo gratis</strong>.
+        ¡Ya tenés envío gratis! Te faltan <strong>{{ gift_missing | money_without_trailing_zeros }}</strong> para tu <strong>regalo especial</strong>.
       {%- else -%}
-        ¡Tu compra tiene <strong>envío gratis</strong> y un <strong>regalo</strong>!
+        ¡Tu compra tiene <strong>envío gratis</strong> y un <strong>regalo especial</strong>!
       {%- endif -%}
       {%- if has_gift -%}
         <span class="mm-ship__gift-name">Regalo: {{ gift.title | escape }}</span>
@@ -112,7 +112,7 @@
 
   .mm-ship__track {
     position: relative;
-    margin: 30px 18px 0 0;
+    margin: 30px 26px 0 0;
     padding-bottom: 46px;
   }
 
@@ -170,11 +170,6 @@
     text-align: center;
     white-space: nowrap;
     color: rgb(var(--color-foreground-rgb) / 0.6);
-  }
-
-  .mm-ship__goal--gift .mm-ship__label {
-    right: -6px;
-    text-align: right;
   }
 
   .mm-ship--ship .mm-ship__goal--ship .mm-ship__label,
