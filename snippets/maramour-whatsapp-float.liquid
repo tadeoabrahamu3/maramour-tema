@@ -1,17 +1,14 @@
 {%- doc -%}
   MARAMOUR — Botón flotante de WhatsApp (toda la web, abajo a la derecha).
-  Rosa de la marca con ícono blanco. En una prenda el mensaje ya lleva su nombre.
+  Rosa claro de la marca (#F9E3E8) con el ícono en rosa; visible desde que carga la página.
+  Mensaje general para toda la web.
   Sube cuando aparece la barra fija de «Agregar al carrito» y se oculta con los paneles abiertos.
   Sin apps ni scripts: un enlace con el ícono dibujado en SVG.
 {%- enddoc -%}
 
 {%- liquid
   assign wa_number = '5492236685697'
-  if template.name == 'product' and product
-    assign wa_text = '¡Hola! Tengo una consulta sobre ' | append: product.title | append: '.'
-  else
-    assign wa_text = '¡Hola! Tengo una consulta.'
-  endif
+  assign wa_text = '¡Hola! Tengo una consulta.'
 -%}
 
 <a
@@ -41,14 +38,6 @@
     gap: 10px;
     text-decoration: none;
     transition: bottom 0.25s ease, opacity 0.2s ease;
-    animation: mm-wa-in 0.4s ease 1s both;
-  }
-
-  @keyframes mm-wa-in {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
   }
 
   .mm-wa__btn {
@@ -56,10 +45,10 @@
     place-items: center;
     width: 54px;
     height: 54px;
-    color: #fff;
-    background: #c2416c;
+    color: #c2416c;
+    background: #f9e3e8;
     border-radius: 50%;
-    box-shadow: 0 6px 18px rgb(122 30 62 / 0.32);
+    box-shadow: 0 6px 18px rgb(122 30 62 / 0.22), inset 0 0 0 1px rgb(194 65 108 / 0.12);
     transition: transform 0.2s ease, background 0.2s ease;
   }
 
@@ -69,7 +58,7 @@
   }
 
   .mm-wa:hover .mm-wa__btn {
-    background: #a8355b;
+    background: #f5d2db;
     transform: scale(1.05);
   }
 
@@ -119,12 +108,6 @@
   body:has(dialog[open]) .mm-wa {
     opacity: 0;
     pointer-events: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .mm-wa {
-      animation: none;
-    }
   }
 
   @media screen and (min-width: 750px) {
