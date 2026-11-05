@@ -244,6 +244,29 @@
     <span>{{ cart.total_price | money_without_trailing_zeros }}</span>
   </div>
 
+  {%- comment -%}
+    Total pagando por transferencia: 10% sobre las prendas (las gift cards no tienen descuento en Shopify).
+    El descuento real lo aplica la app Scala Discounts con el botón «Pagar con transferencia»;
+    si cambia el % en la app, cambiar `mm_transfer_pct` acá.
+  {%- endcomment -%}
+  {%- liquid
+    assign mm_transfer_pct = 10
+    assign mm_transfer_base = 0
+    for item in cart.items
+      unless item.product.gift_card?
+        assign mm_transfer_base = mm_transfer_base | plus: item.final_line_price
+      endunless
+    endfor
+    assign mm_transfer_off = mm_transfer_base | times: mm_transfer_pct | divided_by: 100
+    assign mm_transfer_total = cart.total_price | minus: mm_transfer_off
+  -%}
+  {%- if mm_transfer_off > 0 -%}
+    <div class="mm-transfer-total">
+      <span>Pagando con transferencia <span class="mm-transfer-total__badge">{{ mm_transfer_pct }}% OFF</span></span>
+      <span>{{ mm_transfer_total | money_without_trailing_zeros }}</span>
+    </div>
+  {%- endif -%}
+
   <div class="cart-totals__container{% if settings.show_installments %} cart-totals__container--has-installments{% endif %}">
     <span
       class="cart-totals__item cart-totals__total"
