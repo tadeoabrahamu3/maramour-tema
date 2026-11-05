@@ -78,6 +78,21 @@
     endif
   endif
 
+  comment
+    Disponibilidad: si se pidió un color, «Agotado» se calcula solo con las variantes de ese color.
+  endcomment
+  assign is_available = product.available
+  if color_opt and pref != blank and active != blank
+    assign is_available = false
+    for v in product.variants
+      assign vk = v.options[color_index] | downcase | strip
+      if vk == active and v.available
+        assign is_available = true
+        break
+      endif
+    endfor
+  endif
+
   assign on_sale = false
   if product.compare_at_price > product.price
     assign on_sale = true
@@ -168,7 +183,7 @@
     </button>
     <div class="mm-pc__dots" data-mm-pc-dots aria-hidden="true"></div>
 
-    {%- if product.available == false -%}
+    {%- if is_available == false -%}
       <span class="mm-pc__badge mm-pc__badge--out">Agotado</span>
     {%- elsif on_sale -%}
       <span class="mm-pc__badge">Sale</span>

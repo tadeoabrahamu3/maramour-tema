@@ -20,6 +20,12 @@
   endif
   assign per_page = s.per_page
   assign every = s.featured_every
+  assign split_on = false
+  if s.split_colors == 'all'
+    assign split_on = true
+  elsif s.split_colors == 'categories' and collection.handle != 'all'
+    assign split_on = true
+  endif
   assign group = every | plus: 1
 
   assign active_filters = 0
@@ -139,35 +145,68 @@
       {%- for product in collection.products -%}
         {%- if product.gift_card? and collection.handle == 'all' -%}{%- continue -%}{%- endif -%}
         {%- liquid
-          assign shown = shown | plus: 1
-          assign g = base | plus: shown | minus: 1
-          assign featured = false
-          assign right = false
-          if every > 0 and collection.products_count > 2 or collection.products_count == 1
-            assign mod = g | modulo: group
-            if mod == 0
-              assign featured = true
-              assign gi = g | divided_by: group | modulo: 2
-              if gi == 1
-                assign right = true
-              endif
+          comment
+            Un color = una tarjeta (solo los colores que tienen fotos propias, texto alternativo que
+            empieza con el nombre del color). Sin filtro de color activo.
+          endcomment
+          assign card_colors = ''
+          if split_on and preferred_color == blank
+            assign copt = product.options_with_values | where: 'name', 'Color' | first
+            if copt and copt.values.size > 1
+              for value in copt.values
+                assign k = value | downcase | strip
+                for media in product.media
+                  assign malt = media.alt | downcase | strip
+                  assign pre = malt | slice: 0, k.size
+                  if pre == k
+                    assign card_colors = card_colors | append: value | append: '§'
+                    break
+                  endif
+                endfor
+              endfor
             endif
           endif
-          assign loading = 'lazy'
-          if paginate.current_page == 1 and shown <= 3
-            assign loading = 'eager'
+          assign card_colors = card_colors | split: '§'
+          if card_colors.size < 2
+            assign card_colors = 'mm-single' | split: '§'
           endif
         -%}
-        <li class="mm-shop__item{% if featured %} mm-shop__item--featured{% if right %} mm-shop__item--right{% endif %}{% endif %}">
-          {%- render 'maramour-collection-card',
-            product: product,
-            featured: featured,
-            loading: loading,
-            installments: s.installments,
-            transfer_discount: s.transfer_discount,
-            preferred_color: preferred_color
+        {%- for card_color in card_colors -%}
+          {%- liquid
+            assign shown = shown | plus: 1
+            assign g = base | plus: shown | minus: 1
+            assign featured = false
+            assign right = false
+            if every > 0 and collection.products_count > 2 or collection.products_count == 1
+              assign mod = g | modulo: group
+              if mod == 0
+                assign featured = true
+                assign gi = g | divided_by: group | modulo: 2
+                if gi == 1
+                  assign right = true
+                endif
+              endif
+            endif
+            assign loading = 'lazy'
+            if paginate.current_page == 1 and shown <= 3
+              assign loading = 'eager'
+            endif
+            assign pc = preferred_color
+            if card_color != 'mm-single'
+              assign pc = card_color
+            endif
           -%}
-        </li>
+          <li class="mm-shop__item{% if featured %} mm-shop__item--featured{% if right %} mm-shop__item--right{% endif %}{% endif %}">
+            {%- render 'maramour-collection-card',
+              product: product,
+              featured: featured,
+              loading: loading,
+              installments: s.installments,
+              transfer_discount: s.transfer_discount,
+              preferred_color: pc
+            -%}
+          </li>
+        {%- endfor -%}
       {%- else -%}
         <li class="mm-shop__empty">
           <p>No encontramos prendas con esos filtros.</p>
@@ -1306,6 +1345,18 @@
     { "type": "text", "id": "all_title", "label": "Título en «Ver todo»", "default": "Tienda" },
     { "type": "range", "id": "per_page", "label": "Prendas por página", "min": 10, "max": 50, "step": 5, "default": 25 },
     { "type": "range", "id": "featured_every", "label": "Prendas chicas entre cada grande", "info": "0 = sin prendas grandes.", "min": 0, "max": 8, "step": 2, "default": 4 },
+    {
+      "type": "select",
+      "id": "split_colors",
+      "label": "Cada color como una prenda aparte",
+      "info": "Muestra una tarjeta por color (solo los colores con fotos propias).",
+      "options": [
+        { "value": "none", "label": "No" },
+        { "value": "categories", "label": "Solo en las categorías" },
+        { "value": "all", "label": "En todas (también «Ver todo»)" }
+      ],
+      "default": "categories"
+    },
     { "type": "range", "id": "installments", "label": "Cuotas sin interés", "min": 1, "max": 12, "step": 1, "default": 3 },
     { "type": "range", "id": "transfer_discount", "label": "Descuento por transferencia", "min": 0, "max": 30, "step": 1, "unit": "%", "default": 10 }
   ],

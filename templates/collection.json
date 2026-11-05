@@ -51,7 +51,8 @@
         "per_page": 25,
         "installments": 3,
         "transfer_discount": 10,
-        "featured_every": 4
+        "featured_every": 4,
+        "split_colors": "categories"
       }
     }
   },
