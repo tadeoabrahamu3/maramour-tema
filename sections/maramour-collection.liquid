@@ -281,7 +281,38 @@
                 {%- for v in f.values -%}
                   {%- liquid
                     assign bg = ''
-                    if v.swatch.image
+                    comment
+                      Tonos de la marca para las familias de color (los de Shopify son genéricos y muy saturados).
+                    endcomment
+                    if kind == 'color'
+                      assign fam = v.label | downcase | strip
+                      case fam
+                        when 'negro'
+                          assign bg = '#141414'
+                        when 'blanco'
+                          assign bg = '#f6f1e7'
+                        when 'beige'
+                          assign bg = '#dccbb0'
+                        when 'gris'
+                          assign bg = '#9a8f86'
+                        when 'marrón', 'marron'
+                          assign bg = '#5b3a2c'
+                        when 'verde'
+                          assign bg = '#5a5e4f'
+                        when 'rosa'
+                          assign bg = '#e8b9c5'
+                        when 'rojo'
+                          assign bg = '#8e2f3a'
+                        when 'azul'
+                          assign bg = '#2f3c55'
+                        when 'bordó', 'bordo', 'vino'
+                          assign bg = '#5e1f2b'
+                        when 'multicolor'
+                          assign bg = 'conic-gradient(#1a1a1a 0 25%, #f1eadc 0 50%, #1a1a1a 0 75%, #f1eadc 0)'
+                      endcase
+                    endif
+                    if bg != blank
+                    elsif v.swatch.image
                       assign bg = v.swatch.image | image_url: width: 60
                       assign bg = 'url(' | append: bg | append: ') center / cover no-repeat'
                     elsif v.swatch.color
