@@ -175,24 +175,40 @@
     {%- endif -%}
   </div>
 
-  <div class="mm-pc__info">
-    <div class="mm-pc__text">
-      <a class="mm-pc__name" href="{{ product.url }}" data-mm-pc-link>{{ product.title | escape }}</a>
-      <p class="mm-pc__price">
-        {{ price | money_without_trailing_zeros }}
-        {%- if on_sale -%}<s>{{ product.compare_at_price | money_without_trailing_zeros }}</s>{%- endif -%}
-      </p>
-      {%- if n > 1 -%}
-        <p class="mm-pc__line">{{ n }} cuotas sin interés de <strong>{{ cuota | money_without_trailing_zeros }}</strong></p>
-      {%- endif -%}
-      {%- if pct > 0 -%}
-        <p class="mm-pc__line mm-pc__line--transfer"><strong>{{ transfer | money_without_trailing_zeros }}</strong> con transferencia</p>
-      {%- endif -%}
-    </div>
+  {%- liquid
+    # Reseñas (metacampos estándar que completa Judge.me): sin JavaScript ni pedidos extra
+    assign r_count = product.metafields.reviews.rating_count.value | default: 0
+    assign r_data = product.metafields.reviews.rating.value
+    assign r_value = r_data.rating | default: 0
+    assign r_max = r_data.scale_max | default: 5 | round
+    assign r_pct = r_value | times: 100.0 | divided_by: r_max
+    assign r1 = r_value | round: 1
+    assign r0 = r_value | round
+    assign r_text = r1
+    if r1 == r0
+      assign r_text = r0
+    endif
 
+    # Con estrellas al lado, en las tarjetas chicas entran 3 colores (+N)
+    assign color_limit = 5
+    if r_count > 0 and featured != true
+      assign color_limit = 3
+    endif
+  -%}
+
+  {%- capture rating_html -%}
+    {%- if r_count > 0 -%}
+      <span class="mm-pc__rating" role="img" aria-label="{{ r_text }} de {{ r_max }} estrellas, {{ r_count }} {% if r_count == 1 %}reseña{% else %}reseñas{% endif %}">
+        <span class="mm-pc__stars" style="--mm-rating: {{ r_pct }}%;" aria-hidden="true"></span>
+        <span class="mm-pc__count" aria-hidden="true">({{ r_count }})</span>
+      </span>
+    {%- endif -%}
+  {%- endcapture -%}
+
+  {%- capture colors_html -%}
     {%- if color_opt and color_opt.values.size > 0 -%}
       <ul class="mm-pc__colors list-unstyled" role="list" aria-label="Colores">
-        {%- for value in color_opt.values limit: 5 -%}
+        {%- for value in color_opt.values limit: color_limit -%}
           {%- liquid
             assign key = value | downcase | strip
             capture bg
@@ -226,10 +242,49 @@
             ></button>
           </li>
         {%- endfor -%}
-        {%- if color_opt.values.size > 5 -%}
-          <li class="mm-pc__more">+{{ color_opt.values.size | minus: 5 }}</li>
+        {%- if color_opt.values.size > color_limit -%}
+          <li class="mm-pc__more">+{{ color_opt.values.size | minus: color_limit }}</li>
         {%- endif -%}
       </ul>
     {%- endif -%}
-  </div>
+  {%- endcapture -%}
+
+  {%- capture price_html -%}
+    <p class="mm-pc__price">
+      {{ price | money_without_trailing_zeros }}
+      {%- if on_sale -%}<s>{{ product.compare_at_price | money_without_trailing_zeros }}</s>{%- endif -%}
+    </p>
+  {%- endcapture -%}
+
+  {%- capture lines_html -%}
+    {%- if n > 1 -%}
+      <p class="mm-pc__line">{{ n }} cuotas sin interés de <strong>{{ cuota | money_without_trailing_zeros }}</strong></p>
+    {%- endif -%}
+    {%- if pct > 0 -%}
+      <p class="mm-pc__line mm-pc__line--transfer"><strong>{{ transfer | money_without_trailing_zeros }}</strong> con transferencia</p>
+    {%- endif -%}
+  {%- endcapture -%}
+
+  {%- if featured -%}
+    {%- comment -%} Grande: nombre | colores — precio | estrellas, ambos pegados a la derecha {%- endcomment -%}
+    <div class="mm-pc__info">
+      <a class="mm-pc__name" href="{{ product.url }}" data-mm-pc-link>{{ product.title | escape }}</a>
+      <div class="mm-pc__side">{{ colors_html }}</div>
+      {{ price_html }}
+      <div class="mm-pc__side">{{ rating_html }}</div>
+      <div class="mm-pc__lines">{{ lines_html }}</div>
+    </div>
+  {%- else -%}
+    {%- comment -%} Chica: colores | estrellas arriba, después nombre, precio y cuotas {%- endcomment -%}
+    <div class="mm-pc__info">
+      {%- if colors_html != blank or rating_html != blank -%}
+        <div class="mm-pc__meta">{{ colors_html }}{{ rating_html }}</div>
+      {%- endif -%}
+      <div class="mm-pc__text">
+        <a class="mm-pc__name" href="{{ product.url }}" data-mm-pc-link>{{ product.title | escape }}</a>
+        {{ price_html }}
+        {{ lines_html }}
+      </div>
+    </div>
+  {%- endif -%}
 </article>

@@ -843,16 +843,86 @@
 
   .mm-pc__info {
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
     gap: 8px;
     padding: 10px 8px 0;
   }
 
-  .mm-pc--featured .mm-pc__info {
-    flex-direction: row;
-    align-items: flex-start;
+  .mm-pc__meta {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 6px;
+    min-height: 17px;
+  }
+
+  .mm-pc__meta .mm-pc__rating {
+    margin-left: auto;
+  }
+
+  /* Grande: nombre | colores, precio | estrellas (las dos cosas pegadas a la derecha) */
+  .mm-pc--featured .mm-pc__info {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 4px;
+  }
+
+  .mm-pc--featured .mm-pc__name {
+    align-self: start;
+    margin-bottom: 0;
+  }
+
+  .mm-pc__side {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .mm-pc--featured .mm-pc__side:first-of-type {
+    align-self: start;
+  }
+
+  .mm-pc--featured .mm-pc__price {
+    margin: 0;
+  }
+
+  .mm-pc__lines {
+    grid-column: 1 / -1;
+  }
+
+  /* Estrellas: 5 enteras, se pintan según el promedio */
+  .mm-pc__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .mm-pc__stars {
+    --mm-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1.5l2.6 5.5 6 .7-4.4 4.1 1.1 6L10 14.9 4.7 17.8l1.1-6L1.4 7.7l6-.7z'/%3E%3C/svg%3E");
+
+    width: 55px;
+    height: 10px;
+    background: linear-gradient(90deg, #c2416c var(--mm-rating, 0%), rgb(var(--color-foreground-rgb) / 0.18) var(--mm-rating, 0%));
+    -webkit-mask: var(--mm-star) left center / 11px 10px repeat-x;
+    mask: var(--mm-star) left center / 11px 10px repeat-x;
+  }
+
+  .mm-pc__count {
+    font-size: 0.6875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .mm-pc--featured .mm-pc__stars {
+    width: 70px;
+    height: 13px;
+    -webkit-mask-size: 14px 13px;
+    mask-size: 14px 13px;
+  }
+
+  .mm-pc--featured .mm-pc__count {
+    font-size: 0.75rem;
   }
 
   .mm-pc__text {
@@ -956,9 +1026,8 @@
   }
 
   .mm-pc--featured .mm-pc__colors {
-    flex-shrink: 0;
+    flex-wrap: nowrap;
     justify-content: flex-end;
-    max-width: 120px;
     padding-top: 3px;
   }
 
