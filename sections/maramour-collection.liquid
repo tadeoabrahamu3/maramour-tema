@@ -2,10 +2,13 @@
   MARAMOUR — Página de tienda / categoría (plantilla de colecciones).
   1) Título («Tienda» en /collections/all, si no el nombre de la categoría).
   2) Tarjetas de categorías en carrusel (bloques «Categoría»), la actual marcada.
-  3) Barra: Filtrar (panel lateral con los filtros de Shopify Search & Discovery), cantidad y Ordenar.
-  4) Grilla: la primera prenda grande (opcional) y el resto de a 2 (celular) / 4 (compu).
+  3) Barra: Filtrar (panel lateral con los filtros de Search & Discovery: Color, Talle, Precio),
+     cantidad y Ordenar. Disponibilidad no se muestra: al filtrar por talle o color se agrega sola
+     («solo lo que hay»).
+  4) Grilla: 1 prenda grande (foto completa, una columna) + N chicas (2 columnas) y se repite.
+     En compu la grande ocupa 2×2 y alterna izquierda/derecha.
      Paginación con «Ver más prendas» (agrega la página siguiente sin recargar).
-  Sin apps ni librerías: todo en Liquid + un script chico.
+  Sin apps de tienda ni librerías: Liquid + un script chico.
 {%- enddoc -%}
 
 {%- liquid
@@ -16,15 +19,45 @@
     assign page_title = collection.title
   endif
   assign per_page = s.per_page
+  assign every = s.featured_every
+  assign group = every | plus: 1
+
   assign active_filters = 0
+  assign preferred_color = ''
   for f in collection.filters
+    if f.param_name == 'filter.v.availability'
+      continue
+    endif
     assign active_filters = active_filters | plus: f.active_values.size
     if f.type == 'price_range'
       if f.min_value.value != nil or f.max_value.value != nil
         assign active_filters = active_filters | plus: 1
       endif
     endif
+    assign fl = f.label | downcase
+    if fl contains 'color' and f.active_values.size > 0
+      assign preferred_color = f.active_values.first.label
+    endif
   endfor
+
+  comment
+    Muestras de color para el filtro: las de los productos de la página («nombre::fondo»).
+  endcomment
+  assign sw_map = ''
+  for p in collection.products
+    assign copt = p.options_with_values | where: 'name', 'Color' | first
+    for value in copt.values
+      assign k = value | downcase | strip
+      capture bg
+        render 'maramour-color-bg', product: p, value: value
+      endcapture
+      assign bg = bg | strip
+      if bg != blank
+        assign sw_map = sw_map | append: k | append: '::' | append: bg | append: '§'
+      endif
+    endfor
+  endfor
+  assign sw_map = sw_map | split: '§'
 -%}
 
 <div class="mm-shop" data-mm-shop>
@@ -55,7 +88,7 @@
             <a href="{{ c.url }}" class="mm-shop__cat-link{% if is_current %} is-current{% endif %}"{% if is_current %} aria-current="page"{% endif %}>
               <span class="mm-shop__cat-media">
                 {%- if img -%}
-                  {{ img | image_url: width: 400 | image_tag: loading: 'eager', widths: '160, 240, 320, 400', sizes: '(min-width: 990px) 180px, 28vw', alt: '', class: 'mm-shop__cat-img' }}
+                  {{ img | image_url: width: 500 | image_tag: loading: 'eager', widths: '200, 300, 400, 500', sizes: '(min-width: 750px) 190px, 40vw', alt: '', class: 'mm-shop__cat-img' }}
                 {%- endif -%}
               </span>
               <span class="mm-shop__cat-label">{{ label | escape }}</span>
@@ -94,6 +127,7 @@
     {%- if active_filters > 0 -%}
       <div class="mm-shop__chips">
         {%- for f in collection.filters -%}
+          {%- if f.param_name == 'filter.v.availability' -%}{%- continue -%}{%- endif -%}
           {%- for v in f.active_values -%}
             <a class="mm-shop__chip" href="{{ v.url_to_remove }}">{{ v.label | escape }} <span aria-hidden="true">×</span><span class="visually-hidden">Quitar filtro</span></a>
           {%- endfor -%}
@@ -106,34 +140,45 @@
             {%- endif -%}
           {%- endif -%}
         {%- endfor -%}
-        <a class="mm-shop__chip mm-shop__chip--clear" href="{{ collection.url }}?sort_by={{ collection.sort_by }}">Limpiar todo</a>
+        <a class="mm-shop__chip mm-shop__chip--clear" href="{{ collection.url }}{% if collection.sort_by != blank %}?sort_by={{ collection.sort_by }}{% endif %}">Limpiar todo</a>
       </div>
     {%- endif -%}
 
     {%- liquid
       assign shown = 0
+      assign base = paginate.current_offset
     -%}
     <ul class="mm-shop__grid list-unstyled" role="list" data-mm-shop-grid>
       {%- for product in collection.products -%}
         {%- if product.gift_card? and collection.handle == 'all' -%}{%- continue -%}{%- endif -%}
         {%- liquid
           assign shown = shown | plus: 1
+          assign g = base | plus: shown | minus: 1
           assign featured = false
-          if s.featured_first and paginate.current_page == 1 and shown == 1 and collection.products_count > 2
-            assign featured = true
+          assign right = false
+          if every > 0 and collection.products_count > 2
+            assign mod = g | modulo: group
+            if mod == 0
+              assign featured = true
+              assign gi = g | divided_by: group | modulo: 2
+              if gi == 1
+                assign right = true
+              endif
+            endif
           endif
           assign loading = 'lazy'
-          if paginate.current_page == 1 and shown <= 2
+          if paginate.current_page == 1 and shown <= 3
             assign loading = 'eager'
           endif
         -%}
-        <li class="mm-shop__item{% if featured %} mm-shop__item--featured{% endif %}">
+        <li class="mm-shop__item{% if featured %} mm-shop__item--featured{% if right %} mm-shop__item--right{% endif %}{% endif %}">
           {%- render 'maramour-collection-card',
             product: product,
             featured: featured,
             loading: loading,
             installments: s.installments,
-            transfer_discount: s.transfer_discount
+            transfer_discount: s.transfer_discount,
+            preferred_color: preferred_color
           -%}
         </li>
       {%- else -%}
@@ -162,29 +207,44 @@
       {%- if collection.sort_by != blank -%}<input type="hidden" name="sort_by" value="{{ collection.sort_by }}">{%- endif -%}
 
       {%- for f in collection.filters -%}
-        <fieldset class="mm-shop__fgroup">
+        {%- if f.param_name == 'filter.v.availability' -%}{%- continue -%}{%- endif -%}
+        {%- liquid
+          assign fl = f.label | downcase
+          assign kind = 'list'
+          if f.type == 'price_range'
+            assign kind = 'price'
+          elsif fl contains 'color' or fl contains 'colour'
+            assign kind = 'color'
+          elsif fl contains 'talle' or fl contains 'size' or fl contains 'tamaño'
+            assign kind = 'size'
+          endif
+        -%}
+        <fieldset class="mm-shop__fgroup mm-shop__fgroup--{{ kind }}">
           <legend class="mm-shop__flabel">{{ f.label | escape }}</legend>
-          {%- case f.type -%}
-            {%- when 'price_range' -%}
+          {%- case kind -%}
+            {%- when 'price' -%}
               <div class="mm-shop__price">
                 <label>
                   <span>Desde</span>
-                  <input type="number" inputmode="numeric" name="{{ f.min_value.param_name }}" value="{% if f.min_value.value != nil %}{{ f.min_value.value | divided_by: 100 }}{% endif %}" placeholder="0" min="0">
+                  <input type="number" inputmode="numeric" name="{{ f.min_value.param_name }}" value="{% if f.min_value.value != nil %}{{ f.min_value.value | divided_by: 100 }}{% endif %}" placeholder="$ 0" min="0">
                 </label>
                 <label>
                   <span>Hasta</span>
-                  <input type="number" inputmode="numeric" name="{{ f.max_value.param_name }}" value="{% if f.max_value.value != nil %}{{ f.max_value.value | divided_by: 100 }}{% endif %}" placeholder="{{ f.range_max | divided_by: 100 }}" min="0">
+                  <input type="number" inputmode="numeric" name="{{ f.max_value.param_name }}" value="{% if f.max_value.value != nil %}{{ f.max_value.value | divided_by: 100 }}{% endif %}" placeholder="$ {{ f.range_max | divided_by: 100 }}" min="0">
                 </label>
               </div>
-            {%- when 'boolean' -%}
-              {%- for v in f.values -%}
-                <label class="mm-shop__opt">
-                  <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
-                  <span>{{ v.label | escape }}</span>
-                </label>
-              {%- endfor -%}
+            {%- when 'size' -%}
+              <p class="mm-shop__fhint">Te mostramos solo las prendas con tu talle disponible.</p>
+              <div class="mm-shop__sizes">
+                {%- for v in f.values -%}
+                  <label class="mm-shop__size{% if v.count == 0 and v.active == false %} is-disabled{% endif %}">
+                    <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}" data-mm-needs-stock{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
+                    <span>{{ v.label | escape }}</span>
+                  </label>
+                {%- endfor -%}
+              </div>
             {%- else -%}
-              <div class="mm-shop__opts{% if f.presentation == 'swatch' %} mm-shop__opts--swatch{% endif %}">
+              <div class="mm-shop__opts{% if kind == 'color' %} mm-shop__opts--color{% endif %}">
                 {%- for v in f.values -%}
                   {%- liquid
                     assign bg = ''
@@ -193,13 +253,21 @@
                       assign bg = 'url(' | append: bg | append: ') center / cover no-repeat'
                     elsif v.swatch.color
                       assign bg = v.swatch.color
+                    elsif kind == 'color'
+                      assign vk = v.label | downcase | strip | append: '::'
+                      for pair in sw_map
+                        assign pk = pair | split: '::' | first | append: '::'
+                        if pk == vk
+                          assign bg = pair | remove_first: vk
+                          break
+                        endif
+                      endfor
                     endif
                   -%}
                   <label class="mm-shop__opt{% if v.count == 0 and v.active == false %} is-disabled{% endif %}">
-                    <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
-                    {%- if bg != blank -%}<span class="mm-shop__sw" style="--mm-sw: {{ bg }};"></span>{%- endif -%}
+                    <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if kind == 'color' %} data-mm-needs-stock{% endif %}{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
+                    {%- if kind == 'color' -%}<span class="mm-shop__sw" style="--mm-sw: {{ bg | default: '#ddd' }};"></span>{%- endif -%}
                     <span>{{ v.label | escape }}</span>
-                    <span class="mm-shop__opt-count">{{ v.count }}</span>
                   </label>
                 {%- endfor -%}
               </div>
@@ -240,48 +308,110 @@
     sheet?.addEventListener('click', (e) => {
       if (e.target === sheet || e.target.closest('[data-mm-shop-close]')) sheet.close();
     });
-    /* No mandar campos de precio vacíos (Shopify los tomaría como 0) */
     sheet?.querySelector('form')?.addEventListener('submit', (e) => {
-      e.currentTarget.querySelectorAll('input[type="number"]').forEach((i) => {
+      const form = e.currentTarget;
+      /* No mandar campos de precio vacíos */
+      form.querySelectorAll('input[type="number"]').forEach((i) => {
         if (i.value === '') i.disabled = true;
       });
+      /* Talle o color elegido → solo lo que hay en stock */
+      if (form.querySelector('[data-mm-needs-stock]:checked') && !form.querySelector('[name="filter.v.availability"]')) {
+        const i = document.createElement('input');
+        i.type = 'hidden';
+        i.name = 'filter.v.availability';
+        i.value = '1';
+        form.appendChild(i);
+      }
     });
 
-    /* Ver más prendas: agrega la página siguiente sin recargar */
-    root.addEventListener('click', async (e) => {
+    /* Fotos de cada tarjeta: puntitos que indican la foto actual */
+    const slidesOf = (card) => [...card.querySelectorAll('.mm-pc__slide:not([hidden])')];
+    const dots = (card) => {
+      const box = card.querySelector('[data-mm-pc-dots]');
+      if (!box) return;
+      const n = slidesOf(card).length;
+      card.classList.toggle('has-many', n > 1);
+      box.innerHTML = n > 1 ? '<span></span>'.repeat(n) : '';
+      mark(card);
+    };
+    const mark = (card) => {
+      const track = card.querySelector('[data-mm-pc-track]');
+      const i = Math.round(track.scrollLeft / (track.clientWidth || 1));
+      card.querySelectorAll('[data-mm-pc-dots] span').forEach((d, k) => d.classList.toggle('is-on', k === i));
+    };
+    const setLinks = (card, url) => url && card.querySelectorAll('[data-mm-pc-link]').forEach((a) => (a.href = url));
+    const init = (scope) =>
+      scope.querySelectorAll('[data-mm-pc]:not([data-ready])').forEach((card) => {
+        card.dataset.ready = '1';
+        dots(card);
+        setLinks(card, card.querySelector('.mm-pc__color.is-active')?.dataset.mmPcUrl);
+      });
+    init(root);
+
+    let raf = 0;
+    root.addEventListener(
+      'scroll',
+      (e) => {
+        const track = e.target.closest?.('[data-mm-pc-track]');
+        if (!track) return;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => mark(track.closest('[data-mm-pc]')));
+      },
+      { capture: true, passive: true }
+    );
+
+    root.addEventListener('click', (e) => {
+      /* Flechas (compu) */
+      const arrow = e.target.closest('[data-mm-pc-prev], [data-mm-pc-next]');
+      if (arrow) {
+        const track = arrow.closest('[data-mm-pc]').querySelector('[data-mm-pc-track]');
+        track.scrollBy({ left: (arrow.matches('[data-mm-pc-next]') ? 1 : -1) * track.clientWidth, behavior: 'smooth' });
+        return;
+      }
+
+      /* Colores: muestran las fotos de ese color y el enlace abre ese color */
+      const btn = e.target.closest('.mm-pc__color');
+      if (btn) {
+        const card = btn.closest('[data-mm-pc]');
+        const key = btn.dataset.mmPcKey;
+        card.querySelectorAll('.mm-pc__color').forEach((b) => {
+          b.classList.toggle('is-active', b === btn);
+          b.setAttribute('aria-pressed', b === btn);
+        });
+        const track = card.querySelector('[data-mm-pc-track]');
+        const slides = [...card.querySelectorAll('.mm-pc__slide')];
+        if (slides.some((s) => s.dataset.color === key)) {
+          slides.forEach((s) => (s.hidden = !!s.dataset.color && s.dataset.color !== key));
+        }
+        track.scrollTo({ left: 0 });
+        slidesOf(card)[0]?.querySelector('img')?.setAttribute('loading', 'eager');
+        dots(card);
+        setLinks(card, btn.dataset.mmPcUrl);
+        return;
+      }
+
+      /* Ver más prendas: agrega la página siguiente sin recargar */
       const more = e.target.closest('[data-mm-shop-more]');
       if (!more) return;
       e.preventDefault();
       more.setAttribute('aria-busy', 'true');
-      try {
-        const url = new URL(more.href, location.origin);
-        url.searchParams.set('section_id', '{{ section.id }}');
-        const html = new DOMParser().parseFromString(await fetch(url).then((r) => r.text()), 'text/html');
-        const grid = root.querySelector('[data-mm-shop-grid]');
-        html.querySelectorAll('[data-mm-shop-grid] > li').forEach((li) => grid.appendChild(document.importNode(li, true)));
-        const next = html.querySelector('.mm-shop__more');
-        const current = root.querySelector('.mm-shop__more');
-        if (next) current.replaceWith(document.importNode(next, true));
-        else current.remove();
-        history.replaceState(null, '', more.href);
-      } catch {
-        location.href = more.href;
-      }
-    });
-
-    /* Colores de la tarjeta: cambian la foto y el enlace a ese color */
-    root.addEventListener('click', (e) => {
-      const btn = e.target.closest('.mm-pc__color');
-      if (!btn) return;
-      const card = btn.closest('[data-mm-pc]');
-      card.querySelectorAll('.mm-pc__color').forEach((b) => b.classList.toggle('is-active', b === btn));
-      const img = card.querySelector('[data-mm-pc-img]');
-      if (img && btn.dataset.mmPcSrc) {
-        img.removeAttribute('srcset');
-        img.src = btn.dataset.mmPcSrc;
-        card.classList.add('is-color-picked');
-      }
-      if (btn.dataset.mmPcUrl) card.querySelectorAll('[data-mm-pc-link]').forEach((a) => (a.href = btn.dataset.mmPcUrl));
+      (async () => {
+        try {
+          const url = new URL(more.href, location.origin);
+          url.searchParams.set('section_id', '{{ section.id }}');
+          const html = new DOMParser().parseFromString(await fetch(url).then((r) => r.text()), 'text/html');
+          const grid = root.querySelector('[data-mm-shop-grid]');
+          html.querySelectorAll('[data-mm-shop-grid] > li').forEach((li) => grid.appendChild(document.importNode(li, true)));
+          init(grid);
+          const next = html.querySelector('.mm-shop__more');
+          const current = root.querySelector('.mm-shop__more');
+          if (next) current.replaceWith(document.importNode(next, true));
+          else current.remove();
+          history.replaceState(null, '', more.href);
+        } catch {
+          location.href = more.href;
+        }
+      })();
     });
   })();
 </script>
@@ -326,8 +456,7 @@
   }
 
   .mm-shop__cat {
-    flex: 0 0 28%;
-    max-width: 180px;
+    flex: 0 0 38%;
     scroll-snap-align: start;
   }
 
@@ -359,7 +488,7 @@
   .mm-shop__cat-label {
     display: block;
     padding-top: 8px;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     text-align: center;
     letter-spacing: 0.04em;
   }
@@ -472,6 +601,7 @@
   .mm-shop__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: dense;
     gap: 24px var(--mm-shop-gap);
     margin: 14px 0 0;
     padding: 0;
@@ -529,13 +659,36 @@
     pointer-events: none;
   }
 
-  /* Tarjeta */
+  /* Tarjeta: fotos deslizables */
   .mm-pc__media {
     position: relative;
-    display: block;
     aspect-ratio: 2 / 3;
     overflow: hidden;
     background: #f2f2f2;
+  }
+
+  .mm-pc__track {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .mm-pc__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mm-pc__slide {
+    flex: 0 0 100%;
+    display: block;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .mm-pc__slide[hidden] {
+    display: none;
   }
 
   .mm-pc__img {
@@ -545,15 +698,68 @@
     object-fit: cover;
   }
 
-  .mm-pc__img--second {
+  .mm-pc__dots {
     position: absolute;
-    inset: 0;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    pointer-events: none;
+  }
+
+  .mm-pc__dots span {
+    width: 5px;
+    height: 5px;
+    background: rgb(255 255 255 / 0.55);
+    border-radius: 50%;
+    box-shadow: 0 0 2px rgb(0 0 0 / 0.25);
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .mm-pc__dots span.is-on {
+    background: #fff;
+    transform: scale(1.25);
+  }
+
+  .mm-pc__arrow {
+    position: absolute;
+    top: 50%;
+    display: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: var(--color-foreground);
+    background: rgb(255 255 255 / 0.85);
+    border: 0;
+    border-radius: 50%;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: translateY(-50%);
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+
+  .mm-pc__arrow svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .mm-pc__arrow--prev {
+    left: 8px;
+  }
+
+  .mm-pc__arrow--next {
+    right: 8px;
   }
 
   @media (hover: hover) {
-    .mm-pc:not(.is-color-picked) .mm-pc__media:hover .mm-pc__img--second {
+    .mm-pc.has-many .mm-pc__arrow {
+      display: grid;
+    }
+
+    .mm-pc__media:hover .mm-pc__arrow {
       opacity: 1;
     }
   }
@@ -631,7 +837,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     margin: 0;
     padding: 0 0 0 2px;
   }
@@ -639,8 +845,8 @@
   .mm-pc__color {
     position: relative;
     display: block;
-    width: 14px;
-    height: 14px;
+    width: 17px;
+    height: 17px;
     padding: 0;
     background: var(--mm-sw, #ddd);
     border: 0;
@@ -661,12 +867,21 @@
 
   .mm-pc__more {
     font-size: 0.6875rem;
-    line-height: 14px;
+    line-height: 17px;
   }
 
   /* Tarjeta grande: más aire en el texto */
   .mm-pc--featured .mm-pc__media {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: var(--mm-ar, 2 / 3);
+  }
+
+  .mm-pc--featured .mm-pc__dots {
+    bottom: 12px;
+  }
+
+  .mm-pc--featured .mm-pc__dots span {
+    width: 6px;
+    height: 6px;
   }
 
   .mm-pc--featured .mm-pc__info {
@@ -690,8 +905,8 @@
   }
 
   .mm-pc--featured .mm-pc__color {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   /* Panel de filtros */
@@ -734,6 +949,92 @@
 
   .mm-shop__opt.is-disabled {
     opacity: 0.4;
+  }
+
+  .mm-shop__opts--color {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 12px;
+  }
+
+  .mm-shop__opts--color .mm-shop__opt {
+    position: relative;
+  }
+
+  .mm-shop__opts--color input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .mm-shop__opts--color .mm-shop__sw {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+  }
+
+  .mm-shop__opts--color input:checked + .mm-shop__sw {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--color-foreground);
+  }
+
+  .mm-shop__opts--color input:checked ~ span:last-child {
+    font-weight: 600;
+  }
+
+  .mm-shop__opts--color input:focus-visible + .mm-shop__sw {
+    outline: 2px solid #c2416c;
+    outline-offset: 4px;
+  }
+
+  .mm-shop__fhint {
+    clear: both;
+    margin: -4px 0 14px;
+    font-size: 0.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .mm-shop__sizes {
+    clear: both;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .mm-shop__size {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .mm-shop__size input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .mm-shop__size span {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 10px;
+    font-size: 0.875rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 999px;
+  }
+
+  .mm-shop__size input:checked + span {
+    color: #fff;
+    background: var(--color-foreground);
+    border-color: var(--color-foreground);
+  }
+
+  .mm-shop__size input:focus-visible + span {
+    outline: 2px solid #c2416c;
+    outline-offset: 2px;
+  }
+
+  .mm-shop__size.is-disabled {
+    opacity: 0.35;
+    text-decoration: line-through;
   }
 
   .mm-shop__opt-count {
@@ -833,8 +1134,12 @@
     }
 
     .mm-shop__item--featured {
-      grid-column: span 2;
+      grid-column: 1 / span 2;
       grid-row: span 2;
+    }
+
+    .mm-shop__item--right {
+      grid-column: 3 / span 2;
     }
 
     .mm-pc--featured {
@@ -847,6 +1152,11 @@
       flex: 1;
       aspect-ratio: auto;
       min-height: 0;
+    }
+
+    .mm-pc--featured .mm-pc__track {
+      position: absolute;
+      inset: 0;
     }
 
     .mm-pc--featured .mm-pc__info {
@@ -863,8 +1173,8 @@
   "enabled_on": { "templates": ["collection"] },
   "settings": [
     { "type": "text", "id": "all_title", "label": "Título en «Ver todo»", "default": "Tienda" },
-    { "type": "range", "id": "per_page", "label": "Prendas por página", "min": 8, "max": 48, "step": 4, "default": 24 },
-    { "type": "checkbox", "id": "featured_first", "label": "Primera prenda en grande", "default": true },
+    { "type": "range", "id": "per_page", "label": "Prendas por página", "min": 10, "max": 50, "step": 5, "default": 25 },
+    { "type": "range", "id": "featured_every", "label": "Prendas chicas entre cada grande", "info": "0 = sin prendas grandes.", "min": 0, "max": 8, "step": 2, "default": 4 },
     { "type": "range", "id": "installments", "label": "Cuotas sin interés", "min": 1, "max": 12, "step": 1, "default": 3 },
     { "type": "range", "id": "transfer_discount", "label": "Descuento por transferencia", "min": 0, "max": 30, "step": 1, "unit": "%", "default": 10 }
   ],

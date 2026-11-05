@@ -1,0 +1,30 @@
+{%- doc -%}
+  MARAMOUR — Imprime el fondo CSS de un color (para `--mm-sw`): muestra propia de Shopify
+  (imagen o color) y, si no hay, la del metacampo de categoría «Color» del producto.
+  Uso: {% capture bg %}{% render 'maramour-color-bg', product: product, value: value %}{% endcapture %}
+
+  @param {object} product - Producto
+  @param {object} value - Valor de la opción Color
+{%- enddoc -%}
+{%- liquid
+  if value.swatch.image
+    assign u = value.swatch.image | image_url: width: 60
+    echo 'url(' | append: u | append: ') center / cover no-repeat'
+  elsif value.swatch.color
+    echo value.swatch.color
+  else
+    assign key = value | downcase | strip
+    for entry in product.metafields.shopify['color-pattern'].value
+      assign label = entry.label.value | downcase | strip
+      if label == key
+        if entry.image.value != blank
+          assign u = entry.image.value | image_url: width: 60
+          echo 'url(' | append: u | append: ') center / cover no-repeat'
+        else
+          echo entry.color.value
+        endif
+        break
+      endif
+    endfor
+  endif
+-%}

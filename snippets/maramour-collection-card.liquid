@@ -1,14 +1,15 @@
 {%- doc -%}
   MARAMOUR — Tarjeta de producto de la tienda (colecciones).
-  Foto 2:3 (la 2.ª foto al pasar el mouse en compu), nombre, precio, cuotas, precio con transferencia
-  y colores. Tocar un color cambia la foto por la de ese color (texto alternativo que empieza con el
-  nombre del color, igual que en la página de producto) y el enlace abre la prenda en ese color.
+  Fotos deslizables (solo las del color elegido + las que no tienen color en el texto alternativo,
+  igual que en la página de producto), nombre, precio, cuotas, precio con transferencia y colores.
+  Tocar un color cambia las fotos por las de ese color y el enlace abre la prenda en ese color.
 
   @param {object} product - Producto
-  @param {boolean} [featured] - Tarjeta grande (primera de la grilla)
+  @param {boolean} [featured] - Tarjeta grande (una sola columna, foto completa)
   @param {string} [loading] - 'lazy' (por defecto) o 'eager'
   @param {number} [installments] - Cuotas sin interés (por defecto 3)
   @param {number} [transfer_discount] - % de descuento por transferencia (por defecto 10)
+  @param {string} [preferred_color] - Color a mostrar primero (por ejemplo el del filtro activo)
 {%- enddoc -%}
 
 {%- liquid
@@ -24,13 +25,14 @@
     assign fp = 'high'
   endif
   if featured
-    assign sizes = '(min-width: 990px) 50vw, 100vw'
+    assign sizes = '(min-width: 750px) 50vw, 100vw'
+    assign widths = '450, 600, 750, 900, 1100, 1300'
   else
-    assign sizes = '(min-width: 990px) 25vw, 50vw'
+    assign sizes = '(min-width: 750px) 25vw, 50vw'
+    assign widths = '300, 450, 600, 750'
   endif
 
   assign first = product.featured_media
-  assign second = product.media[1]
 
   assign color_opt = product.options_with_values | where: 'name', 'Color' | first
   assign color_index = -1
@@ -38,19 +40,33 @@
     assign color_index = color_opt.position | minus: 1
   endif
 
-  assign names = ''
-  assign hexes = ''
-  for entry in product.metafields.shopify['color-pattern'].value
-    assign sw = entry.color.value | default: '#ddd'
-    if entry.image.value != blank
-      assign sw = entry.image.value | image_url: width: 60
-      assign sw = 'url(' | append: sw | append: ') center / cover no-repeat'
+  comment
+    Color activo: el preferido (filtro) si existe, si no el de la foto principal, si no el primero.
+  endcomment
+  assign active = ''
+  if color_opt
+    assign pref = preferred_color | downcase | strip
+    for value in color_opt.values
+      assign k = value | downcase | strip
+      if k == pref and pref != blank
+        assign active = k
+        break
+      endif
+    endfor
+    if active == blank
+      assign falt = first.alt | downcase | strip
+      for value in color_opt.values
+        assign k = value | downcase | strip
+        assign pre = falt | slice: 0, k.size
+        if pre == k and k.size > active.size
+          assign active = k
+        endif
+      endfor
     endif
-    assign names = names | append: entry.label.value | downcase | append: '|'
-    assign hexes = hexes | append: sw | append: '|'
-  endfor
-  assign names = names | split: '|'
-  assign hexes = hexes | split: '|'
+    if active == blank
+      assign active = color_opt.values.first | downcase | strip
+    endif
+  endif
 
   assign on_sale = false
   if product.compare_at_price > product.price
@@ -59,36 +75,80 @@
 -%}
 
 <article class="mm-pc{% if featured %} mm-pc--featured{% endif %}" data-mm-pc>
-  <a class="mm-pc__media" href="{{ product.url }}" data-mm-pc-link aria-label="{{ product.title | escape }}">
-    {%- if first -%}
-      {{
-        first.preview_image
-        | image_url: width: 1200
-        | image_tag:
-          loading: img_loading,
-          fetchpriority: fp,
-          widths: '300, 450, 600, 750, 900, 1200',
-          sizes: sizes,
-          class: 'mm-pc__img',
-          alt: product.title,
-          data-mm-pc-img: ''
-      }}
-      {%- if second -%}
-        {{
-          second.preview_image
-          | image_url: width: 900
-          | image_tag: loading: 'lazy', widths: '300, 450, 600, 900', sizes: sizes, class: 'mm-pc__img mm-pc__img--second', alt: '', data-mm-pc-img2: ''
-        }}
-      {%- endif -%}
-    {%- else -%}
-      {{ 'product-apparel-1' | placeholder_svg_tag: 'mm-pc__img' }}
-    {%- endif -%}
+  <div class="mm-pc__media"{% if featured and first %} style="--mm-ar: {{ first.aspect_ratio | default: 0.6667 }};"{% endif %}>
+    <div class="mm-pc__track" data-mm-pc-track>
+      {%- assign shown_slides = 0 -%}
+      {%- for media in product.media limit: 24 -%}
+        {%- liquid
+          if media.preview_image == blank
+            continue
+          endif
+          assign mkey = ''
+          if color_opt
+            assign malt = media.alt | downcase | strip
+            for value in color_opt.values
+              assign k = value | downcase | strip
+              assign pre = malt | slice: 0, k.size
+              if pre == k and k.size > mkey.size
+                assign mkey = k
+              endif
+            endfor
+          endif
+          assign is_hidden = false
+          if mkey != blank and mkey != active
+            assign is_hidden = true
+          endif
+          assign slide_loading = 'lazy'
+          assign slide_fp = 'auto'
+          if is_hidden == false
+            assign shown_slides = shown_slides | plus: 1
+            if shown_slides == 1
+              assign slide_loading = img_loading
+              assign slide_fp = fp
+            endif
+          endif
+        -%}
+        <a
+          class="mm-pc__slide"
+          href="{{ product.url }}"
+          data-mm-pc-link
+          data-color="{{ mkey | escape }}"
+          tabindex="-1"
+          {% if is_hidden %}hidden{% endif %}
+        >
+          {{
+            media.preview_image
+            | image_url: width: 1300
+            | image_tag:
+              loading: slide_loading,
+              fetchpriority: slide_fp,
+              widths: widths,
+              sizes: sizes,
+              class: 'mm-pc__img',
+              alt: product.title
+          }}
+        </a>
+      {%- else -%}
+        <a class="mm-pc__slide" href="{{ product.url }}" data-mm-pc-link>
+          {{ 'product-apparel-1' | placeholder_svg_tag: 'mm-pc__img' }}
+        </a>
+      {%- endfor -%}
+    </div>
+
+    <button type="button" class="mm-pc__arrow mm-pc__arrow--prev" data-mm-pc-prev aria-label="Foto anterior">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12 5-5 5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button type="button" class="mm-pc__arrow mm-pc__arrow--next" data-mm-pc-next aria-label="Foto siguiente">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m8 5 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="mm-pc__dots" data-mm-pc-dots aria-hidden="true"></div>
+
     {%- if product.available == false -%}
       <span class="mm-pc__badge mm-pc__badge--out">Agotado</span>
     {%- elsif on_sale -%}
       <span class="mm-pc__badge">Sale</span>
     {%- endif -%}
-  </a>
+  </div>
 
   <div class="mm-pc__info">
     <div class="mm-pc__text">
@@ -110,32 +170,10 @@
         {%- for value in color_opt.values limit: 5 -%}
           {%- liquid
             assign key = value | downcase | strip
-            assign bg = ''
-            if value.swatch.image
-              assign bg = value.swatch.image | image_url: width: 60
-              assign bg = 'url(' | append: bg | append: ') center / cover no-repeat'
-            elsif value.swatch.color
-              assign bg = value.swatch.color
-            endif
-            if bg == blank
-              for nm in names
-                if nm == key
-                  assign bg = hexes[forloop.index0]
-                  break
-                endif
-              endfor
-            endif
-
-            # Primera foto del color (texto alternativo que empieza con el nombre del color)
-            assign color_img = ''
-            for media in product.media
-              assign alt = media.alt | downcase | strip
-              assign prefix = alt | slice: 0, key.size
-              if prefix == key
-                assign color_img = media.preview_image | image_url: width: 900
-                break
-              endif
-            endfor
+            capture bg
+              render 'maramour-color-bg', product: product, value: value
+            endcapture
+            assign bg = bg | strip
 
             # Primera variante disponible de ese color
             assign color_variant = ''
@@ -153,11 +191,12 @@
           <li>
             <button
               type="button"
-              class="mm-pc__color{% if forloop.first %} is-active{% endif %}"
+              class="mm-pc__color{% if key == active %} is-active{% endif %}"
               style="--mm-sw: {{ bg | default: '#ddd' }};"
               title="{{ value | escape }}"
               aria-label="{{ value | escape }}"
-              {% if color_img != blank %}data-mm-pc-src="{{ color_img }}"{% endif %}
+              aria-pressed="{% if key == active %}true{% else %}false{% endif %}"
+              data-mm-pc-key="{{ key | escape }}"
               {% if color_variant != blank %}data-mm-pc-url="{{ color_variant.url }}"{% endif %}
             ></button>
           </li>

@@ -3,21 +3,59 @@
     "main": {
       "type": "maramour-collection",
       "blocks": {
-        "cat_all": { "type": "category", "settings": { "collection": "", "label": "Ver todo" } },
-        "cat_sweaters": { "type": "category", "settings": { "collection": "sweaters", "label": "Sweaters" } },
-        "cat_tops": { "type": "category", "settings": { "collection": "tops", "label": "Tops" } },
-        "cat_cardigans": { "type": "category", "settings": { "collection": "cardigans", "label": "Cárdigans" } },
-        "cat_camperas": { "type": "category", "settings": { "collection": "camperas", "label": "Camperas" } }
+        "cat_all": {
+          "type": "category",
+          "settings": {
+            "collection": "",
+            "label": "Ver todo"
+          }
+        },
+        "cat_sweaters": {
+          "type": "category",
+          "settings": {
+            "collection": "sweaters",
+            "label": "Sweaters"
+          }
+        },
+        "cat_tops": {
+          "type": "category",
+          "settings": {
+            "collection": "tops",
+            "label": "Tops"
+          }
+        },
+        "cat_cardigans": {
+          "type": "category",
+          "settings": {
+            "collection": "cardigans",
+            "label": "Cárdigans"
+          }
+        },
+        "cat_camperas": {
+          "type": "category",
+          "settings": {
+            "collection": "camperas",
+            "label": "Camperas"
+          }
+        }
       },
-      "block_order": ["cat_all", "cat_sweaters", "cat_tops", "cat_cardigans", "cat_camperas"],
+      "block_order": [
+        "cat_all",
+        "cat_sweaters",
+        "cat_tops",
+        "cat_cardigans",
+        "cat_camperas"
+      ],
       "settings": {
         "all_title": "Tienda",
-        "per_page": 24,
-        "featured_first": true,
+        "per_page": 25,
         "installments": 3,
-        "transfer_discount": 10
+        "transfer_discount": 10,
+        "featured_every": 4
       }
     }
   },
-  "order": ["main"]
+  "order": [
+    "main"
+  ]
 }
