@@ -1,51 +1,121 @@
 {%- doc -%}
-  MARAMOUR — Barra de envío gratis en el carrito. Umbral: $100.000 (mismo valor que la tarifa de
-  envío gratis configurada en Shopify → Envíos). Si cambia, actualizar `threshold` (en centavos).
+  MARAMOUR — Barra de beneficios del carrito con dos metas:
+  1) Envío gratis desde $100.000 (mismo valor que la tarifa gratis de Shopify → Envíos).
+  2) Regalo gratis desde $150.000.
+  Montos en centavos (`ship_at`, `gift_at`). Si cambian en Shopify, actualizarlos acá.
+  `gift_handle`: producto del regalo (para mostrar su foto y nombre). Vacío = «regalo sorpresa».
 {%- enddoc -%}
 
 {%- liquid
-  assign threshold = 10000000
+  assign ship_at = 10000000
+  assign gift_at = 15000000
+  assign gift_handle = ''
+
   assign total = cart.total_price
-  assign missing = threshold | minus: total
-  assign pct = total | times: 100.0 | divided_by: threshold
+  assign ship_missing = ship_at | minus: total
+  assign gift_missing = gift_at | minus: total
+  assign pct = total | times: 100.0 | divided_by: gift_at
   if pct > 100
     assign pct = 100
   endif
+  assign ship_pos = ship_at | times: 100.0 | divided_by: gift_at
+
+  assign gift = blank
+  if gift_handle != blank
+    assign gift = all_products[gift_handle]
+  endif
 -%}
 
-<div class="mm-ship{% if missing <= 0 %} mm-ship--done{% endif %}">
-  <p class="mm-ship__text" role="status">
-    {%- if missing > 0 -%}
-      ¡Te faltan <strong>{{ missing | money_without_trailing_zeros }}</strong> para tener <strong>envío gratis</strong>!
-    {%- else -%}
-      ¡Tu compra tiene <strong>envío gratis</strong>!
+<div class="mm-ship{% if ship_missing <= 0 %} mm-ship--ship{% endif %}{% if gift_missing <= 0 %} mm-ship--gift{% endif %}">
+  <div class="mm-ship__head">
+    {%- if gift and gift.featured_media -%}
+      {{ gift.featured_media.preview_image | image_url: width: 120 | image_tag: class: 'mm-ship__gift-img', alt: '', loading: 'lazy', width: 44, height: 44 }}
     {%- endif -%}
-  </p>
-  <div class="mm-ship__bar" aria-hidden="true">
-    <span class="mm-ship__fill" style="width: {{ pct }}%;"></span>
-    <span class="mm-ship__icon">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 3.5 28 9v14l-12 5.5L4 23V9l12-5.5Z" fill="#c98a4b"/>
-        <path d="M16 3.5 28 9l-12 5.5L4 9l12-5.5Z" fill="#e2ad6d"/>
-        <path d="M16 14.5V28.5L4 23V9l12 5.5Z" fill="#b5763a"/>
-        <path d="M9.8 6.3 22 11.9v5.3l-3 1.4v-5.3L6.8 7.7l3-1.4Z" fill="#f3d9a8"/>
-        <path d="M16 14.5 28 9M16 14.5 4 9M16 14.5v14" stroke="#8f5a2a" stroke-width=".6" stroke-opacity=".5" fill="none"/>
-      </svg>
-    </span>
+    <p class="mm-ship__text" role="status">
+      {%- if ship_missing > 0 -%}
+        ¡Te faltan <strong>{{ ship_missing | money_without_trailing_zeros }}</strong> para tener <strong>envío gratis</strong>!
+      {%- elsif gift_missing > 0 -%}
+        ¡Ya tenés envío gratis! Te faltan <strong>{{ gift_missing | money_without_trailing_zeros }}</strong> para tu <strong>regalo gratis</strong>.
+      {%- else -%}
+        ¡Tu compra tiene <strong>envío gratis</strong> y un <strong>regalo</strong>!
+      {%- endif -%}
+      {%- if gift -%}
+        <span class="mm-ship__gift-name">Regalo: {{ gift.title | escape }}</span>
+      {%- endif -%}
+    </p>
+  </div>
+
+  <div class="mm-ship__track" aria-hidden="true">
+    <div class="mm-ship__bar">
+      <span class="mm-ship__fill" style="width: {{ pct }}%;"></span>
+    </div>
+
+    <div class="mm-ship__goal mm-ship__goal--ship" style="left: {{ ship_pos }}%;">
+      <span class="mm-ship__icon">
+        <svg viewBox="0 0 32 32">
+          <path d="M16 3.5 28 9v14l-12 5.5L4 23V9l12-5.5Z" fill="#c98a4b"/>
+          <path d="M16 3.5 28 9l-12 5.5L4 9l12-5.5Z" fill="#e2ad6d"/>
+          <path d="M16 14.5V28.5L4 23V9l12 5.5Z" fill="#b5763a"/>
+          <path d="M9.8 6.3 22 11.9v5.3l-3 1.4v-5.3L6.8 7.7l3-1.4Z" fill="#f3d9a8"/>
+          <path d="M16 14.5 28 9M16 14.5 4 9M16 14.5v14" stroke="#8f5a2a" stroke-width=".6" stroke-opacity=".5" fill="none"/>
+        </svg>
+      </span>
+      <span class="mm-ship__label">Envío gratis<br>{{ ship_at | money_without_trailing_zeros }}</span>
+    </div>
+
+    <div class="mm-ship__goal mm-ship__goal--gift" style="left: 100%;">
+      <span class="mm-ship__icon">
+        <svg viewBox="0 0 32 32">
+          <rect x="5" y="13" width="22" height="15" rx="1.5" fill="#d9577f"/>
+          <rect x="3.5" y="9" width="25" height="6" rx="1.5" fill="#e8799b"/>
+          <rect x="14" y="9" width="4" height="19" fill="#f9e3e8"/>
+          <path d="M16 9c-1.6-3.6-5.6-5.2-7.3-3.3-1.4 1.6.4 3.3 7.3 3.3Zm0 0c1.6-3.6 5.6-5.2 7.3-3.3 1.4 1.6-.4 3.3-7.3 3.3Z" fill="#f9e3e8" stroke="#c2416c" stroke-width="1"/>
+          <rect x="5" y="15" width="22" height="1.6" fill="#b8436a" opacity=".45"/>
+        </svg>
+      </span>
+      <span class="mm-ship__label">Regalo<br>{{ gift_at | money_without_trailing_zeros }}</span>
+    </div>
   </div>
 </div>
 
 {% stylesheet %}
+  .mm-ship__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mm-ship__gift-img {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #f2f2f2;
+  }
+
   .mm-ship__text {
-    margin: 0 0 10px;
+    margin: 0;
     font-size: 0.8125rem;
     line-height: 1.4;
+  }
+
+  .mm-ship__gift-name {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.6875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .mm-ship__track {
+    position: relative;
+    margin: 30px 18px 0 0;
+    padding-bottom: 46px;
   }
 
   .mm-ship__bar {
     position: relative;
     height: 6px;
-    margin-inline-end: 16px;
     background: rgb(var(--color-foreground-rgb) / 0.1);
     border-radius: 99px;
   }
@@ -58,19 +128,25 @@
     transition: width 0.4s ease;
   }
 
-  .mm-ship__icon {
+  .mm-ship__goal {
     position: absolute;
-    top: 50%;
-    right: -16px;
+    top: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -50%);
+  }
+
+  .mm-ship__icon {
     display: grid;
     place-items: center;
     width: 34px;
     height: 34px;
     background: #fff;
-    border: 2px solid #e9a3b8;
+    border: 2px solid #e5e5e5;
     border-radius: 50%;
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
-    transform: translateY(-50%);
+    transition: border-color 0.3s ease;
   }
 
   .mm-ship__icon svg {
@@ -78,7 +154,29 @@
     height: 22px;
   }
 
-  .mm-ship--done .mm-ship__icon {
+  .mm-ship--ship .mm-ship__goal--ship .mm-ship__icon,
+  .mm-ship--gift .mm-ship__goal--gift .mm-ship__icon {
     border-color: #c2416c;
+  }
+
+  .mm-ship__label {
+    position: absolute;
+    top: 38px;
+    font-size: 0.625rem;
+    line-height: 1.3;
+    text-align: center;
+    white-space: nowrap;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .mm-ship__goal--gift .mm-ship__label {
+    right: -6px;
+    text-align: right;
+  }
+
+  .mm-ship--ship .mm-ship__goal--ship .mm-ship__label,
+  .mm-ship--gift .mm-ship__goal--gift .mm-ship__label {
+    font-weight: 600;
+    color: #c2416c;
   }
 {% endstylesheet %}
