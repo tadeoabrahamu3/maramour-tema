@@ -110,18 +110,6 @@
         "type": "shopify://apps/judge-me-reviews/blocks/judgeme_core/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
         "disabled": false,
         "settings": {}
-      },
-      "15188581332139481108": {
-        "type": "shopify://apps/scala-discounts/blocks/cartButton/24748891-1ee0-454d-bfde-d80e65983c18",
-        "disabled": false,
-        "settings": {
-          "textSelector": "Finalizar compra",
-          "textSelector2": "Check out, checkout, check-out",
-          "selector": ":is(button,input)[name=\"checkout\"]",
-          "message": "Pagar con transferencia (10% OFF)",
-          "position": "after",
-          "customliquid": "{% comment %}\n<style>\nbutton { \n background: #000000;\n}\n</style>\n{% endcomment %}\n\n{% # delete the comment to apply, styles here apply to the app button only %}"
-        }
       }
     },
     "color_palette": {

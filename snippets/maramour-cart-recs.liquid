@@ -506,54 +506,6 @@
     color: rgb(var(--color-foreground-rgb) / 0.7);
   }
 
-  .mm-transfer-total {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 6px;
-    font-size: 0.8125rem;
-    color: rgb(var(--color-foreground-rgb) / 0.75);
-  }
-
-  .mm-transfer-total > span:last-child {
-    font-weight: 600;
-    color: #c2416c;
-  }
-
-  .mm-transfer-total__badge {
-    display: inline-block;
-    margin-left: 4px;
-    padding: 1px 6px;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: #c2416c;
-    background: #f9e3e8;
-    border-radius: 4px;
-  }
-
-  /* Botón «Pagar con transferencia» de la app Scala Discounts: secundario, con borde,
-     para que no compita con «Finalizar compra» */
-  scala-cart-button {
-    display: block;
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  scala-cart-button::part(actualbutton) {
-    width: 100%;
-    height: 50px;
-    color: #141414;
-    font-weight: 600;
-    background: #fff;
-    border: 1px solid #141414;
-    transition: background 0.2s ease;
-  }
-
-  scala-cart-button::part(actualbutton):hover {
-    background: #f7f7f7;
-  }
-
   .mm-cart-savings {
     margin-bottom: 8px;
     font-size: 0.8125rem;
