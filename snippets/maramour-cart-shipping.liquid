@@ -38,7 +38,7 @@
       {%- if ship_missing > 0 -%}
         ¡Te faltan <strong>{{ ship_missing | money_without_trailing_zeros }}</strong> para tener <strong>envío gratis</strong>!
       {%- elsif gift_missing > 0 -%}
-        ¡Ya tenés envío gratis! Te faltan <strong>{{ gift_missing | money_without_trailing_zeros }}</strong> para tu <strong>regalo especial</strong>.
+        ¡Ya tenés envío gratis! Te faltan <strong>{{ gift_missing | money_without_trailing_zeros }}</strong> para <strong>un regalo especial</strong>.
       {%- else -%}
         ¡Tu compra tiene <strong>envío gratis</strong> y un <strong>regalo especial</strong>!
       {%- endif -%}
