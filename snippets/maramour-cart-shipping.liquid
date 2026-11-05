@@ -20,15 +20,18 @@
   endif
   assign ship_pos = ship_at | times: 100.0 | divided_by: gift_at
 
-  assign gift = blank
+  assign has_gift = false
   if gift_handle != blank
     assign gift = all_products[gift_handle]
+    if gift.id
+      assign has_gift = true
+    endif
   endif
 -%}
 
 <div class="mm-ship{% if ship_missing <= 0 %} mm-ship--ship{% endif %}{% if gift_missing <= 0 %} mm-ship--gift{% endif %}">
   <div class="mm-ship__head">
-    {%- if gift and gift.featured_media -%}
+    {%- if has_gift and gift.featured_media -%}
       {{ gift.featured_media.preview_image | image_url: width: 120 | image_tag: class: 'mm-ship__gift-img', alt: '', loading: 'lazy', width: 44, height: 44 }}
     {%- endif -%}
     <p class="mm-ship__text" role="status">
@@ -39,7 +42,7 @@
       {%- else -%}
         ¡Tu compra tiene <strong>envío gratis</strong> y un <strong>regalo</strong>!
       {%- endif -%}
-      {%- if gift -%}
+      {%- if has_gift -%}
         <span class="mm-ship__gift-name">Regalo: {{ gift.title | escape }}</span>
       {%- endif -%}
     </p>
