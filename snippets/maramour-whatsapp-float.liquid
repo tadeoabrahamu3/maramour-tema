@@ -1,6 +1,6 @@
 {%- doc -%}
   MARAMOUR — Botón flotante de WhatsApp (toda la web, abajo a la derecha).
-  Rosa claro de la marca (#F9E3E8) con el ícono en rosa; visible desde que carga la página.
+  Rosa claro de la marca (#F9E3E8) con el ícono en blanco; visible desde que carga la página.
   Mensaje general para toda la web.
   Sube cuando aparece la barra fija de «Agregar al carrito» y se oculta con los paneles abiertos.
   Sin apps ni scripts: un enlace con el ícono dibujado en SVG.
@@ -45,7 +45,7 @@
     place-items: center;
     width: 54px;
     height: 54px;
-    color: #c2416c;
+    color: #fff;
     background: #f9e3e8;
     border-radius: 50%;
     box-shadow: 0 6px 18px rgb(122 30 62 / 0.22), inset 0 0 0 1px rgb(194 65 108 / 0.12);
@@ -55,6 +55,8 @@
   .mm-wa__btn svg {
     width: 28px;
     height: 28px;
+    /* sombra mínima para que el blanco se lea sobre el rosa claro */
+    filter: drop-shadow(0 1px 1.5px rgb(194 65 108 / 0.45));
   }
 
   .mm-wa:hover .mm-wa__btn {
