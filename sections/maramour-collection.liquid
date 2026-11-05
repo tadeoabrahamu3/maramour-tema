@@ -143,7 +143,7 @@
           assign g = base | plus: shown | minus: 1
           assign featured = false
           assign right = false
-          if every > 0 and collection.products_count > 2
+          if every > 0 and collection.products_count > 2 or collection.products_count == 1
             assign mod = g | modulo: group
             if mod == 0
               assign featured = true
