@@ -1349,7 +1349,8 @@
     .mm-pc--featured .mm-pc__media {
       flex: 1;
       aspect-ratio: auto;
-      min-height: 0;
+      /* Sin prendas al lado (categoría con una sola), la foto igual tiene altura */
+      min-height: min(78vh, 900px);
     }
 
     .mm-pc--featured .mm-pc__track {
