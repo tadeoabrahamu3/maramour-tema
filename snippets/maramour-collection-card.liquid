@@ -53,6 +53,16 @@
         break
       endif
     endfor
+    if active == blank and pref != blank
+      for value in color_opt.values
+        assign k = value | downcase | strip
+        assign pre = k | slice: 0, pref.size
+        if pre == pref
+          assign active = k
+          break
+        endif
+      endfor
+    endif
     if active == blank
       assign falt = first.alt | downcase | strip
       for value in color_opt.values
