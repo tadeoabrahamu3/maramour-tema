@@ -1,0 +1,184 @@
+{
+  "sections": {
+    "main": {
+      "type": "maramour-custom",
+      "blocks": {
+        "model_1": {
+          "type": "model",
+          "settings": {
+            "product": "musculosa-en-punto-canale",
+            "legend_1": "Color de la base",
+            "legend_2": "Color de las rayas"
+          }
+        },
+        "model_2": {
+          "type": "model",
+          "settings": {
+            "product": "campera-en-punto-trenzado-con-flecos",
+            "legend_1": "",
+            "legend_2": ""
+          }
+        },
+        "model_3": {
+          "type": "model",
+          "settings": {
+            "product": "musculosa-en-punto-canale-copy",
+            "legend_1": "Color de la base",
+            "legend_2": "Color de las rayas"
+          }
+        },
+        "model_4": {
+          "type": "model",
+          "settings": {
+            "product": "cardigan-retenidos-mohair",
+            "legend_1": "",
+            "legend_2": ""
+          }
+        },
+        "model_5": {
+          "type": "model",
+          "settings": {
+            "product": "sweater-rombos-calados",
+            "legend_1": "",
+            "legend_2": ""
+          }
+        },
+        "model_6": {
+          "type": "model",
+          "settings": {
+            "product": "sweater-trenzado-de-viscosa",
+            "legend_1": "",
+            "legend_2": ""
+          }
+        },
+        "model_7": {
+          "type": "model",
+          "settings": {
+            "product": "sweater-animal-print-de-viscosa",
+            "legend_1": "Color del fondo",
+            "legend_2": "Color de las manchas"
+          }
+        },
+        "color_1": {
+          "type": "color",
+          "settings": {
+            "name": "Crudo",
+            "color": "#f2e6d8"
+          }
+        },
+        "color_2": {
+          "type": "color",
+          "settings": {
+            "name": "Camel",
+            "color": "#c9a27e"
+          }
+        },
+        "color_3": {
+          "type": "color",
+          "settings": {
+            "name": "Chocolate",
+            "color": "#6b4a3a"
+          }
+        },
+        "color_4": {
+          "type": "color",
+          "settings": {
+            "name": "Negro",
+            "color": "#1f1f1f"
+          }
+        },
+        "color_5": {
+          "type": "color",
+          "settings": {
+            "name": "Verde oliva",
+            "color": "#7c8b6f"
+          }
+        },
+        "color_6": {
+          "type": "color",
+          "settings": {
+            "name": "Frambuesa",
+            "color": "#b5485d"
+          }
+        },
+        "color_7": {
+          "type": "color",
+          "settings": {
+            "name": "Celeste",
+            "color": "#9db4c8"
+          }
+        },
+        "faq_1": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Cuánto tarda?",
+            "answer": "<p>Entre 15 y 20 días corridos desde que confirmás el pedido, más el tiempo de envío.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Cómo se paga?",
+            "answer": "<p>Cuando nos escribís por WhatsApp te pasamos el total y los medios de pago. Se paga completo para empezar a tejerlo.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Puedo cambiar el largo o las medidas?",
+            "answer": "<p>No. Es el mismo modelo de la tienda, con el mismo tejido y las mismas medidas: solo cambia el color.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Se puede cambiar o devolver?",
+            "answer": "<p>Al ser hecho especialmente para vos, no tiene cambio ni devolución, salvo que tenga una falla.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Cuesta más que una prenda de la tienda?",
+            "answer": ""
+          }
+        }
+      },
+      "block_order": [
+        "model_1",
+        "model_2",
+        "model_3",
+        "model_4",
+        "model_5",
+        "model_6",
+        "model_7",
+        "color_1",
+        "color_2",
+        "color_3",
+        "color_4",
+        "color_5",
+        "color_6",
+        "color_7",
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/sweater-mujer-flecos-crema-frente-2.jpg",
+        "grayscale": true,
+        "overlay": 35,
+        "eyebrow": "Hecho para vos",
+        "heading": "Personalizados",
+        "text": "<p>Elegí tu modelo favorito en el color que más te guste. Lo tejemos especialmente para vos.</p>",
+        "button_label": "Armá el tuyo",
+        "lead_time": "15 a 20 días corridos",
+        "whatsapp_number": "5492236685697"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

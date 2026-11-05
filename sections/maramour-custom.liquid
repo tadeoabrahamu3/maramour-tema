@@ -1,0 +1,970 @@
+{%- doc -%}
+  MARAMOUR — Página «Personalizados» (plantilla page.personalizados).
+  Portada (foto en blanco y negro opcional) · Cómo funciona · Armá el tuyo (modelo → color(es) → talle)
+  · resumen · «Pedir por WhatsApp» con el pedido ya escrito · preguntas frecuentes.
+  Bloques: «Prenda» (producto; si lleva dos colores, se completan los dos títulos de color),
+  «Color» (nombre + color) y «Pregunta». Los talles salen de la opción «Talle» de cada prenda.
+  En prendas de dos colores, el segundo no puede repetir el primero.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign wa_number = s.whatsapp_number | remove: '+' | remove: ' ' | remove: '-'
+  assign size_order = 'XXS,XS,S,M,L,XL,XXL,XXXL' | split: ','
+  assign models = section.blocks | where: 'type', 'model'
+  assign colors = section.blocks | where: 'type', 'color'
+  assign faqs = section.blocks | where: 'type', 'faq'
+-%}
+
+<div class="mm-cz" data-mm-cz data-wa="{{ wa_number }}">
+  <section class="mm-cz__hero{% if s.grayscale %} mm-cz__hero--bn{% endif %}">
+    {%- if s.image -%}
+      {{ s.image | image_url: width: 1600 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '600, 800, 1000, 1300, 1600', sizes: '100vw', class: 'mm-cz__hero-img', alt: '' }}
+    {%- endif -%}
+    <div class="mm-cz__hero-shade" style="--mm-shade: {{ s.overlay | divided_by: 100.0 }};"></div>
+    <div class="mm-cz__hero-text">
+      {%- if s.eyebrow != blank -%}<p class="mm-cz__eyebrow">{{ s.eyebrow | escape }}</p>{%- endif -%}
+      <h1 class="mm-cz__title">{{ s.heading | default: page.title | escape }}</h1>
+      {%- if s.text != blank -%}<div class="mm-cz__lead">{{ s.text }}</div>{%- endif -%}
+      {%- if colors.size > 0 -%}
+        <div class="mm-cz__hero-dots" aria-hidden="true">
+          {%- for c in colors limit: 8 -%}<span style="--mm-sw: {{ c.settings.color }};"></span>{%- endfor -%}
+        </div>
+      {%- endif -%}
+      <a class="mm-cz__hero-btn" href="#mm-cz-arma">{{ s.button_label | escape }}</a>
+    </div>
+  </section>
+
+  <section class="mm-cz__how" aria-labelledby="mm-cz-how">
+    <h2 class="mm-cz__h2" id="mm-cz-how">Cómo funciona</h2>
+    <ol class="mm-cz__steps list-unstyled" role="list">
+      <li><span class="mm-cz__num">1</span><p class="mm-cz__step-t">Elegís el modelo</p><p class="mm-cz__step-d">Cualquiera de nuestros tejidos.</p></li>
+      <li><span class="mm-cz__num">2</span><p class="mm-cz__step-t">Elegís el color</p><p class="mm-cz__step-d">Entre los hilados que tenemos.</p></li>
+      <li><span class="mm-cz__num">3</span><p class="mm-cz__step-t">Lo confirmás</p><p class="mm-cz__step-d">Por WhatsApp, donde lo pagás completo.</p></li>
+      <li><span class="mm-cz__num">4</span><p class="mm-cz__step-t">Lo tejemos</p><p class="mm-cz__step-d">Y te llega en {{ s.lead_time | escape }}.</p></li>
+    </ol>
+  </section>
+
+  {%- if models.size > 0 and colors.size > 0 -%}
+    <section class="mm-cz__build" id="mm-cz-arma" aria-labelledby="mm-cz-arma-t">
+      <div class="mm-cz__build-head">
+        <h2 class="mm-cz__h2 mm-cz__h2--big" id="mm-cz-arma-t">Armá el tuyo</h2>
+        {%- if s.build_text != blank -%}<p class="mm-cz__build-text">{{ s.build_text | escape }}</p>{%- endif -%}
+      </div>
+
+      <fieldset class="mm-cz__group">
+        <legend class="mm-cz__legend"><span>1.</span> Elegí el modelo</legend>
+        <div class="mm-cz__models">
+          {%- for b in models -%}
+            {%- liquid
+              assign p = b.settings.product
+              if p == blank
+                continue
+              endif
+              assign img = b.settings.image | default: p.featured_media.preview_image
+              assign talle = p.options_with_values | where: 'name', 'Talle' | first
+              assign sizes = ''
+              if talle
+                for so in size_order
+                  for v in talle.values
+                    assign vu = v | upcase | strip
+                    if vu == so
+                      assign sizes = sizes | append: so | append: ','
+                    endif
+                  endfor
+                endfor
+              else
+                assign sizes = 'XS,S,M,L,XL,XXL'
+              endif
+              assign two = false
+              if b.settings.legend_2 != blank
+                assign two = true
+              endif
+            -%}
+            <label class="mm-cz__model" {{ b.shopify_attributes }}>
+              <input
+                type="radio"
+                name="mm_cz_model"
+                value="{{ forloop.index0 }}"
+                data-name="{{ p.title | escape }}"
+                data-price="{{ p.price | money_without_trailing_zeros | escape }}"
+                data-img="{{ img | image_url: width: 200 }}"
+                data-sizes="{{ sizes }}"
+                data-l1="{{ b.settings.legend_1 | default: 'Elegí el color' | escape }}"
+                data-l2="{{ b.settings.legend_2 | escape }}"
+                {% if forloop.first %}checked{% endif %}
+              >
+              <span class="mm-cz__model-card">
+                {%- if img -%}
+                  {{ img | image_url: width: 400 | image_tag: loading: 'lazy', widths: '200, 300, 400', sizes: '140px', class: 'mm-cz__model-img', alt: '' }}
+                {%- endif -%}
+                <span class="mm-cz__model-name">{{ p.title | escape }}</span>
+                <span class="mm-cz__model-price">{{ p.price | money_without_trailing_zeros }}</span>
+                {%- if two -%}<span class="mm-cz__model-tag">2 colores</span>{%- endif -%}
+              </span>
+            </label>
+          {%- endfor -%}
+        </div>
+      </fieldset>
+
+      {%- for group in (1..2) -%}
+        <fieldset class="mm-cz__group" data-mm-cz-colors="{{ group }}"{% if group == 2 %} hidden{% endif %}>
+          <legend class="mm-cz__legend">
+            <span>{% if group == 1 %}2.{% else %}3.{% endif %}</span>
+            <b data-mm-cz-legend>Elegí el color</b>
+            <em>· <i data-mm-cz-cname></i></em>
+          </legend>
+          <div class="mm-cz__colors">
+            {%- for c in colors -%}
+              <label class="mm-cz__color" title="{{ c.settings.name | escape }}" {{ c.shopify_attributes }}>
+                <input
+                  type="radio"
+                  name="mm_cz_c{{ group }}"
+                  value="{{ forloop.index0 }}"
+                  data-name="{{ c.settings.name | escape }}"
+                  data-hex="{{ c.settings.color }}"
+                  {% if group == 1 and forloop.index0 == 0 %}checked{% endif %}
+                  {% if group == 2 and forloop.index0 == 1 %}checked{% endif %}
+                >
+                <span style="--mm-sw: {{ c.settings.color }};"><span class="visually-hidden">{{ c.settings.name | escape }}</span></span>
+              </label>
+            {%- endfor -%}
+          </div>
+        </fieldset>
+      {%- endfor -%}
+
+      <fieldset class="mm-cz__group">
+        <legend class="mm-cz__legend"><span data-mm-cz-sizestep>3.</span> Elegí tu talle</legend>
+        <div class="mm-cz__sizes mm-opt--text">
+          {%- for so in size_order -%}
+            <label class="mm-cz__size" data-size="{{ so }}">
+              <input type="radio" name="mm_cz_size" value="{{ so }}"{% if so == 'M' %} checked{% endif %}>
+              <span>{{ so }}</span>
+            </label>
+          {%- endfor -%}
+        </div>
+        <div class="mm-cz__size-help">
+          <button type="button" data-mm-dialog="mm-size-table">Tabla de talles</button>
+          <button type="button" data-mm-dialog="mm-size-finder">¿Qué talle soy?</button>
+        </div>
+      </fieldset>
+
+      <div class="mm-cz__summary">
+        <div class="mm-cz__sum-row">
+          <img class="mm-cz__sum-img" src="" alt="" width="64" height="86" data-mm-cz-sum-img>
+          <div class="mm-cz__sum-info">
+            <p class="mm-cz__sum-tag">PERSONALIZADO</p>
+            <p class="mm-cz__sum-name" data-mm-cz-sum-name></p>
+            <p class="mm-cz__sum-var"><span class="mm-cz__sum-sw" data-mm-cz-sum-sw></span><span data-mm-cz-sum-var></span></p>
+            <p class="mm-cz__sum-price" data-mm-cz-sum-price></p>
+          </div>
+        </div>
+        <p class="mm-cz__sum-time">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Lo tejemos y te llega en {{ s.lead_time | escape }}
+        </p>
+        <a class="mm-cz__wa" href="https://wa.me/{{ wa_number }}" target="_blank" rel="noopener" data-mm-cz-wa>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 19.5 5.6 16A8 8 0 1 1 8.5 18.6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.2 9.3c.2 2.5 2.7 5 5.4 5.4l1.1-1.2-1.6-1-1 .6c-.9-.4-1.6-1.1-2-2l.6-1-1-1.6Z" fill="currentColor"/></svg>
+          Pedir por WhatsApp
+        </a>
+        {%- if s.notice != blank -%}
+          <p class="mm-cz__notice">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5.5M12 7.6v.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            {{ s.notice | escape }}
+          </p>
+        {%- endif -%}
+      </div>
+    </section>
+  {%- endif -%}
+
+  {%- liquid
+    assign faq_count = 0
+    for f in faqs
+      if f.settings.answer != blank
+        assign faq_count = faq_count | plus: 1
+      endif
+    endfor
+  -%}
+  {%- if faq_count > 0 -%}
+    <section class="mm-cz__faq" aria-labelledby="mm-cz-faq">
+      <h2 class="mm-cz__h2" id="mm-cz-faq">Preguntas frecuentes</h2>
+      {%- assign opened = false -%}
+      {%- for f in faqs -%}
+        {%- if f.settings.answer == blank -%}{%- continue -%}{%- endif -%}
+        <details class="mm-cz__q" {{ f.shopify_attributes }}{% unless opened %} open{% endunless %}>
+          <summary>{{ f.settings.question | escape }}<span aria-hidden="true"></span></summary>
+          <div class="mm-cz__a">{{ f.settings.answer }}</div>
+        </details>
+        {%- assign opened = true -%}
+      {%- endfor -%}
+    </section>
+  {%- endif -%}
+</div>
+
+{%- render 'maramour-size-dialogs',
+  table_src: s.size_table,
+  model_text: '',
+  whatsapp_url: s.whatsapp_url,
+  whatsapp_label: s.whatsapp_label,
+  hours: s.hours,
+  contact_url: '/pages/contacto'
+-%}
+
+<script>
+  (() => {
+    const root = document.querySelector('[data-mm-cz]');
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const $ = (sel) => root.querySelector(sel);
+    const $$ = (sel) => [...root.querySelectorAll(sel)];
+    const g2 = $('[data-mm-cz-colors="2"]');
+    const lower = (t) => (t ? t.charAt(0).toLowerCase() + t.slice(1) : t);
+
+    const update = () => {
+      const m = $('input[name="mm_cz_model"]:checked');
+      if (!m) return;
+      const two = !!m.dataset.l2;
+      const c1 = $('input[name="mm_cz_c1"]:checked');
+
+      /* Colores: el 2.º grupo solo en prendas de dos colores y sin repetir el 1.º */
+      g2.hidden = !two;
+      $$('input[name="mm_cz_c2"]').forEach((i) => {
+        i.disabled = i.value === c1.value;
+        i.closest('label').classList.toggle('is-off', i.disabled);
+      });
+      let c2 = $('input[name="mm_cz_c2"]:checked');
+      if (two && (!c2 || c2.disabled)) {
+        c2 = $('input[name="mm_cz_c2"]:not(:disabled)');
+        if (c2) c2.checked = true;
+      }
+      const legends = $$('[data-mm-cz-legend]');
+      legends[0].textContent = two ? m.dataset.l1 : 'Elegí el color';
+      legends[1].textContent = m.dataset.l2 || '';
+      const names = $$('[data-mm-cz-cname]');
+      names[0].textContent = c1.dataset.name;
+      names[1].textContent = c2 ? c2.dataset.name : '';
+      $('[data-mm-cz-sizestep]').textContent = two ? '4.' : '3.';
+
+      /* Talles: solo los que tiene la prenda */
+      const sizes = m.dataset.sizes.split(',').filter(Boolean);
+      $$('.mm-cz__size').forEach((l) => (l.hidden = !sizes.includes(l.dataset.size)));
+      let size = $('input[name="mm_cz_size"]:checked');
+      if (!size || !sizes.includes(size.value)) {
+        const fallback = sizes.includes('M') ? 'M' : sizes[0];
+        size = $(`input[name="mm_cz_size"][value="${fallback}"]`);
+        if (size) size.checked = true;
+      }
+
+      /* Resumen */
+      $('[data-mm-cz-sum-img]').src = m.dataset.img;
+      $('[data-mm-cz-sum-name]').textContent = m.dataset.name;
+      $('[data-mm-cz-sum-price]').textContent = m.dataset.price;
+      const sw = $('[data-mm-cz-sum-sw]');
+      sw.style.background = two && c2 ? `linear-gradient(90deg, ${c1.dataset.hex} 0 50%, ${c2.dataset.hex} 50% 100%)` : c1.dataset.hex;
+      const colorText = two && c2 ? `${c1.dataset.name} y ${c2.dataset.name}` : c1.dataset.name;
+      $('[data-mm-cz-sum-var]').textContent = `${colorText} · Talle ${size ? size.value : ''}`;
+
+      /* Mensaje de WhatsApp (no se muestra en la página) */
+      const colorMsg = two && c2
+        ? `${lower(m.dataset.l1)} ${c1.dataset.name} y ${lower(m.dataset.l2)} ${c2.dataset.name}`
+        : `en color ${c1.dataset.name}`;
+      const msg = `¡Hola! Quiero un personalizado: ${m.dataset.name}${two ? ', ' : ' '}${colorMsg}, talle ${size ? size.value : ''}.`;
+      $('[data-mm-cz-wa]').href = `https://wa.me/${root.dataset.wa}?text=${encodeURIComponent(msg)}`;
+    };
+
+    root.addEventListener('change', update);
+    update();
+
+    /* «Elegir talle X» del recomendador elige el talle acá */
+    document.addEventListener('click', (e) => {
+      const pick = e.target instanceof Element && e.target.closest('[data-mm-pick]');
+      if (!pick) return;
+      const input = $(`input[name="mm_cz_size"][value="${pick.dataset.size}"]`);
+      if (input && !input.closest('label').hidden) {
+        input.checked = true;
+        update();
+      }
+    });
+  })();
+</script>
+
+<style>
+  .mm-cz {
+    --mm-cz-pad: var(--page-margin, 16px);
+    padding-bottom: 24px;
+  }
+
+  .mm-cz [hidden] {
+    display: none !important;
+  }
+
+  /* Portada */
+  .mm-cz__hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: 540px;
+    overflow: hidden;
+    color: #fff;
+    background: #2a2a2a;
+  }
+
+  .mm-cz__hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+  }
+
+  .mm-cz__hero--bn .mm-cz__hero-img {
+    filter: grayscale(1);
+  }
+
+  .mm-cz__hero-shade {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / var(--mm-shade, 0.35));
+  }
+
+  .mm-cz__hero-text {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    max-width: 520px;
+    padding: 40px 28px;
+    text-align: center;
+  }
+
+  .mm-cz__eyebrow {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .mm-cz__title {
+    margin: 0;
+    font-size: 2.125rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: inherit;
+    text-transform: none;
+  }
+
+  .mm-cz__lead,
+  .mm-cz__lead p {
+    margin: 0;
+    max-width: 320px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .mm-cz__hero-dots {
+    display: flex;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .mm-cz__hero-dots span {
+    width: 16px;
+    height: 16px;
+    background: var(--mm-sw);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6);
+  }
+
+  .mm-cz__hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    height: 48px;
+    margin-top: 4px;
+    padding: 0 24px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #141414;
+    text-decoration: none;
+    background: #fff;
+    border-radius: 6px;
+  }
+
+  /* Títulos */
+  .mm-cz__h2 {
+    margin: 0 0 18px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .mm-cz__h2--big {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  /* Cómo funciona */
+  .mm-cz__how {
+    padding: 32px var(--mm-cz-pad) 8px;
+  }
+
+  .mm-cz__steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mm-cz__steps li {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    background: #f7f7f7;
+    border-radius: 12px;
+  }
+
+  .mm-cz__num {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #8f2f50;
+    background: #f9e3e8;
+    border-radius: 50%;
+  }
+
+  .mm-cz__step-t,
+  .mm-cz__step-d {
+    margin: 0;
+  }
+
+  .mm-cz__step-t {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .mm-cz__step-d {
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  /* Armá el tuyo */
+  .mm-cz__build {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    padding: 32px var(--mm-cz-pad) 8px;
+    scroll-margin-top: 80px;
+  }
+
+  .mm-cz__build-head {
+    display: grid;
+    gap: 4px;
+  }
+
+  .mm-cz__build-text {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .mm-cz__group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .mm-cz__legend {
+    padding: 0;
+    margin-bottom: 12px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .mm-cz__legend span {
+    color: #b0365f;
+  }
+
+  .mm-cz__legend b {
+    font-weight: 600;
+  }
+
+  .mm-cz__legend em,
+  .mm-cz__legend i {
+    font-style: normal;
+    font-weight: 400;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .mm-cz__model input,
+  .mm-cz__color input,
+  .mm-cz__size input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .mm-cz__models {
+    display: flex;
+    gap: 8px;
+    margin-right: calc(var(--mm-cz-pad) * -1);
+    padding: 2px var(--mm-cz-pad) 4px 2px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .mm-cz__models::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mm-cz__model {
+    position: relative;
+    flex: 0 0 136px;
+    scroll-snap-align: start;
+    cursor: pointer;
+  }
+
+  .mm-cz__model-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 4px 4px 8px;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    transition: border-color 0.15s;
+  }
+
+  .mm-cz__model input:checked + .mm-cz__model-card {
+    border-color: var(--color-foreground);
+  }
+
+  .mm-cz__model input:focus-visible + .mm-cz__model-card {
+    outline: 2px solid #c2416c;
+    outline-offset: 2px;
+  }
+
+  .mm-cz__model-img {
+    display: block;
+    width: 100%;
+    height: 186px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #f2f2f2;
+  }
+
+  .mm-cz__model-name {
+    padding: 8px 2px 0;
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .mm-cz__model-price {
+    padding: 2px 2px 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .mm-cz__model-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 2px 7px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #8f2f50;
+    background: #f9e3e8;
+    border-radius: 3px;
+  }
+
+  .mm-cz__colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-left: 3px;
+  }
+
+  .mm-cz__color {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .mm-cz__color > span {
+    display: block;
+    width: 36px;
+    height: 36px;
+    background: var(--mm-sw, #ddd);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+  }
+
+  .mm-cz__color input:checked + span {
+    box-shadow: 0 0 0 2.5px #fff, 0 0 0 3.5px var(--color-foreground);
+  }
+
+  .mm-cz__color input:focus-visible + span {
+    outline: 2px solid #c2416c;
+    outline-offset: 5px;
+  }
+
+  .mm-cz__color.is-off {
+    cursor: not-allowed;
+    opacity: 0.25;
+  }
+
+  .mm-cz__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mm-cz__size {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .mm-cz__size span {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 44px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid #dcdcdc;
+    border-radius: 999px;
+  }
+
+  .mm-cz__size input:checked + span {
+    color: #fff;
+    background: var(--color-foreground);
+    border-color: var(--color-foreground);
+  }
+
+  .mm-cz__size input:focus-visible + span {
+    outline: 2px solid #c2416c;
+    outline-offset: 2px;
+  }
+
+  .mm-cz__size-help {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 14px;
+  }
+
+  .mm-cz__size-help button {
+    padding: 4px 0;
+    font: inherit;
+    font-size: 0.75rem;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgb(var(--color-foreground-rgb) / 0.35);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  /* Resumen */
+  .mm-cz__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    background: #f7f7f7;
+    border-radius: 12px;
+  }
+
+  .mm-cz__sum-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mm-cz__sum-img {
+    flex-shrink: 0;
+    width: 64px;
+    height: 86px;
+    object-fit: cover;
+    background: #eaeaea;
+    border-radius: 6px;
+  }
+
+  .mm-cz__sum-info {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .mm-cz__sum-info p {
+    margin: 0;
+  }
+
+  .mm-cz__sum-tag {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #b0365f;
+  }
+
+  .mm-cz__sum-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .mm-cz__sum-var {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.78);
+  }
+
+  .mm-cz__sum-sw {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+  }
+
+  .mm-cz__sum-price {
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .mm-cz__sum-time,
+  .mm-cz__notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb) / 0.78);
+  }
+
+  .mm-cz__notice {
+    font-size: 0.6875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .mm-cz__sum-time svg,
+  .mm-cz__notice svg {
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+    margin-top: 1px;
+  }
+
+  .mm-cz__wa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 52px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    background: #141414;
+    border-radius: 6px;
+  }
+
+  .mm-cz__wa svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Preguntas */
+  .mm-cz__faq {
+    padding: 36px var(--mm-cz-pad) 0;
+  }
+
+  .mm-cz__faq .mm-cz__h2 {
+    margin-bottom: 4px;
+  }
+
+  .mm-cz__q {
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / 0.08);
+  }
+
+  .mm-cz__q summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .mm-cz__q summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mm-cz__q summary span {
+    position: relative;
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+  }
+
+  .mm-cz__q summary span::before,
+  .mm-cz__q summary span::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 12px;
+    height: 1.4px;
+    background: currentColor;
+    transition: transform 0.2s;
+  }
+
+  .mm-cz__q summary span::after {
+    transform: rotate(90deg);
+  }
+
+  .mm-cz__q[open] summary span::after {
+    transform: rotate(0deg);
+  }
+
+  .mm-cz__a {
+    padding-bottom: 16px;
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .mm-cz__a p {
+    margin: 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .mm-cz__hero {
+      min-height: 620px;
+    }
+
+    .mm-cz__title {
+      font-size: 3rem;
+    }
+
+    .mm-cz__lead,
+    .mm-cz__lead p {
+      max-width: 440px;
+      font-size: 1rem;
+    }
+
+    .mm-cz__how,
+    .mm-cz__build,
+    .mm-cz__faq {
+      max-width: 760px;
+      margin-inline: auto;
+      box-sizing: border-box;
+    }
+
+    .mm-cz__how {
+      padding-top: 56px;
+    }
+
+    .mm-cz__steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .mm-cz__models {
+      flex-wrap: wrap;
+      margin-right: 0;
+      padding-right: 2px;
+      overflow: visible;
+    }
+
+    .mm-cz__model {
+      flex-basis: 160px;
+    }
+
+    .mm-cz__model-img {
+      height: 220px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Personalizados",
+  "tag": "section",
+  "class": "section-wrapper",
+  "enabled_on": { "templates": ["page"] },
+  "settings": [
+    { "type": "header", "content": "Portada" },
+    { "type": "image_picker", "id": "image", "label": "Foto" },
+    { "type": "checkbox", "id": "grayscale", "label": "Pasar la foto a blanco y negro", "default": true },
+    { "type": "range", "id": "overlay", "label": "Oscurecido", "min": 0, "max": 80, "step": 5, "unit": "%", "default": 35 },
+    { "type": "text", "id": "eyebrow", "label": "Texto chico", "default": "Hecho para vos" },
+    { "type": "text", "id": "heading", "label": "Título", "default": "Personalizados" },
+    { "type": "richtext", "id": "text", "label": "Texto", "default": "<p>Elegí tu modelo favorito en el color que más te guste. Lo tejemos especialmente para vos.</p>" },
+    { "type": "text", "id": "button_label", "label": "Botón", "default": "Armá el tuyo" },
+    { "type": "header", "content": "Armá el tuyo" },
+    { "type": "text", "id": "build_text", "label": "Texto", "default": "Es el mismo modelo de la tienda, con el mismo tejido y las mismas medidas: solo cambia el color." },
+    { "type": "text", "id": "lead_time", "label": "Demora", "default": "15 a 20 días corridos" },
+    { "type": "text", "id": "notice", "label": "Aviso debajo del botón", "default": "Al ser hecho especialmente para vos, no tiene cambio ni devolución, salvo que tenga una falla." },
+    { "type": "text", "id": "whatsapp_number", "label": "WhatsApp para los pedidos", "info": "Con código de país, sin espacios. Ej.: 5492236685697", "default": "5492236685697" },
+    { "type": "header", "content": "Ayuda con el talle" },
+    { "type": "textarea", "id": "size_table", "label": "Tabla de talles", "info": "Una fila por línea, columnas con «|», la primera línea son los títulos.", "default": "Talle | Contorno pecho | Contorno cintura | Contorno cadera\nXXS | 72 – 76 | 56 – 60 | 82 – 86\nXS | 77 – 81 | 61 – 65 | 87 – 91\nS | 82 – 86 | 66 – 70 | 92 – 96\nM | 87 – 91 | 71 – 75 | 97 – 101\nL | 92 – 96 | 76 – 80 | 102 – 106\nXL | 97 – 101 | 81 – 85 | 107 – 111\nXXL | 102 – 106 | 86 – 90 | 112 – 116" },
+    { "type": "text", "id": "whatsapp_url", "label": "Enlace de WhatsApp (ayuda)", "default": "https://wa.me/5492236685697" },
+    { "type": "text", "id": "whatsapp_label", "label": "Número visible", "default": "+54 9 223 668-5697" },
+    { "type": "text", "id": "hours", "label": "Horario", "default": "Lunes a sábado de 9 a 20 h · Domingos de 9 a 18 h" }
+  ],
+  "blocks": [
+    {
+      "type": "model",
+      "name": "Prenda",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Producto" },
+        { "type": "image_picker", "id": "image", "label": "Foto (opcional)", "info": "Vacío = la foto principal del producto." },
+        { "type": "text", "id": "legend_1", "label": "Título del 1.er color", "info": "Solo para prendas de dos colores. Ej.: Color de la base" },
+        { "type": "text", "id": "legend_2", "label": "Título del 2.º color", "info": "Completalo solo si la prenda lleva dos colores. Ej.: Color de las rayas" }
+      ]
+    },
+    {
+      "type": "color",
+      "name": "Color",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Nombre", "default": "Crudo" },
+        { "type": "color", "id": "color", "label": "Color", "default": "#f2e6d8" }
+      ]
+    },
+    {
+      "type": "faq",
+      "name": "Pregunta",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Pregunta" },
+        { "type": "richtext", "id": "answer", "label": "Respuesta", "info": "Sin respuesta, no se muestra." }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Personalizados" }]
+}
+{% endschema %}
