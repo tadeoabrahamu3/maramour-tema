@@ -177,21 +177,39 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 48px;
-    padding-inline: 28px;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    gap: 10px;
+    min-width: 220px;
+    min-height: 50px;
+    padding-inline: 32px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: #111;
     background: #fff;
+    border: 1px solid #fff;
     border-radius: 6px;
     text-decoration: none;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.25s, color 0.25s;
+  }
+
+  .mm-hero__button::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-top: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.25s;
   }
 
   .mm-hero__button:hover {
     color: #fff;
-    background: #111;
+    background: transparent;
+  }
+
+  .mm-hero__button:hover::after {
+    transform: translateX(3px) rotate(45deg);
   }
 
   @media screen and (min-width: 990px) {

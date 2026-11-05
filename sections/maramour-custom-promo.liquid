@@ -14,7 +14,7 @@
 
 <div
   class="mm-custom mm-custom--{{ s.text_color }} mm-custom--{{ s.position }}{% if s.grayscale %} mm-custom--bw{% endif %}"
-  style="--mm-custom-ratio: {{ s.image_ratio }}; --mm-custom-ratio-desktop: {{ s.image_ratio_desktop }}; --mm-custom-overlay: {{ s.overlay_opacity | divided_by: 100.0 }};"
+  style="--mm-custom-focal: {{ s.focal_y | default: 50 }}%; --mm-custom-ratio: {{ s.image_ratio }}; --mm-custom-ratio-desktop: {{ s.image_ratio_desktop }}; --mm-custom-overlay: {{ s.overlay_opacity | divided_by: 100.0 }};"
 >
   <div class="mm-custom__media" aria-hidden="true">
     {%- if s.image != blank -%}
@@ -87,6 +87,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center var(--mm-custom-focal, 50%);
   }
 
   .mm-custom--bw .mm-custom__img {
@@ -245,6 +246,7 @@
   "settings": [
     { "type": "header", "content": "Foto de fondo" },
     { "type": "image_picker", "id": "image", "label": "Foto" },
+    { "type": "range", "id": "focal_y", "label": "Posición de la foto (arriba ↔ abajo)", "info": "0 = muestra la parte de arriba, 100 = la de abajo.", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 50 },
     {
       "type": "select",
       "id": "image_ratio",

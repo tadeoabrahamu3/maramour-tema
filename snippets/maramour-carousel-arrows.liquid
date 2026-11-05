@@ -1,0 +1,107 @@
+{%- doc -%}
+  MARAMOUR — Flechas para carruseles (solo en compu; en el celular se desliza con el dedo).
+  Uso: un contenedor con `data-mm-arrows` y `position: relative`, que tenga adentro el carrusel con
+  `data-mm-arrows-track`; renderizar este snippet dentro del contenedor.
+  Cada flecha avanza lo que se ve en pantalla; se ocultan al llegar a cada punta.
+{%- enddoc -%}
+
+<button type="button" class="mm-arrow mm-arrow--prev" data-mm-arrow="-1" aria-label="Ver anteriores" disabled>
+  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12 4.5-5.5 5.5 5.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+<button type="button" class="mm-arrow mm-arrow--next" data-mm-arrow="1" aria-label="Ver siguientes">
+  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m8 4.5 5.5 5.5L8 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+
+<script>
+  (() => {
+    if (window.mmArrows) return;
+    window.mmArrows = true;
+
+    const refresh = (wrap) => {
+      const track = wrap.querySelector('[data-mm-arrows-track]');
+      if (!track) return;
+      const max = track.scrollWidth - track.clientWidth - 2;
+      const prev = wrap.querySelector('[data-mm-arrow="-1"]');
+      const next = wrap.querySelector('[data-mm-arrow="1"]');
+      if (prev) prev.disabled = track.scrollLeft <= 2;
+      if (next) next.disabled = track.scrollLeft >= max;
+    };
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target instanceof Element && e.target.closest('[data-mm-arrow]');
+      if (!btn) return;
+      const wrap = btn.closest('[data-mm-arrows]');
+      const track = wrap?.querySelector('[data-mm-arrows-track]');
+      if (!track) return;
+      const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+      track.scrollBy({ left: Number(btn.dataset.mmArrow) * (track.clientWidth - pad * 2), behavior: 'smooth' });
+    });
+
+    document.addEventListener(
+      'scroll',
+      (e) => {
+        const track = e.target instanceof Element && e.target.closest('[data-mm-arrows-track]');
+        if (track) requestAnimationFrame(() => refresh(track.closest('[data-mm-arrows]')));
+      },
+      { capture: true, passive: true }
+    );
+
+    const init = () => document.querySelectorAll('[data-mm-arrows]').forEach(refresh);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+    window.addEventListener('resize', init, { passive: true });
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-arrow {
+    display: none;
+  }
+
+  @media screen and (min-width: 990px) {
+    .mm-arrow {
+      position: absolute;
+      top: var(--mm-arrow-top, 42%);
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      color: #141414;
+      background: rgb(255 255 255 / 0.92);
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      transform: translateY(-50%);
+      transition: opacity 0.2s ease, background 0.2s ease;
+    }
+
+    .mm-arrow:hover {
+      background: #fff;
+    }
+
+    .mm-arrow svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .mm-arrow--prev {
+      left: calc(var(--page-margin, 16px) + 12px);
+    }
+
+    .mm-arrow--next {
+      right: calc(var(--page-margin, 16px) + 12px);
+    }
+
+    .mm-arrow[disabled] {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mm-arrow:focus-visible {
+      outline: 2px solid #c2416c;
+      outline-offset: 2px;
+    }
+  }
+{% endstylesheet %}

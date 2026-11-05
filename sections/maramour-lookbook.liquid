@@ -43,7 +43,8 @@
     <div class="mm-look__intro">{{ s.intro }}</div>
   {%- endif -%}
 
-  <ul class="mm-look__track list-unstyled" role="list" {% unless is_grid %}data-mm-look-track{% endunless %}>
+  <div class="mm-look__wrap"{% unless is_grid %} data-mm-arrows{% endunless %}>
+  <ul class="mm-look__track list-unstyled" role="list" {% unless is_grid %}data-mm-look-track data-mm-arrows-track{% endunless %}>
     {%- for block in section.blocks -%}
       {%- liquid
         assign p = block.settings.product
@@ -102,6 +103,8 @@
       </li>
     {%- endfor -%}
   </ul>
+  {%- unless is_grid -%}{%- render 'maramour-carousel-arrows' -%}{%- endunless -%}
+  </div>
 
   {%- unless is_grid -%}
     <div class="mm-look__progress" aria-hidden="true">
@@ -173,6 +176,11 @@
   .mm-look__all svg {
     width: 18px;
     height: 18px;
+  }
+
+  .mm-look__wrap {
+    position: relative;
+    --mm-arrow-top: 50%;
   }
 
   .mm-look__track {

@@ -66,10 +66,19 @@
         "main_tab_label": "Destacados",
         "link_label": "Ver todo",
         "link_url": "/collections/all",
-        "limit": 5,
+        "limit": 7,
         "image_ratio": "2 / 3",
         "show_second_image": true,
-        "show_sale_badge": true
+        "show_sale_badge": true,
+        "products": [
+          "sweater-trenzado-de-viscosa",
+          "sweater-animal-print-de-viscosa",
+          "sweater-intarsia-de-viscosa",
+          "cardigan-retenidos-mohair",
+          "musculosa-rayada-de-viscosa",
+          "musculosa-en-punto-canale",
+          "campera-en-punto-trenzado-con-flecos"
+        ]
       }
     },
     "categories": {
@@ -192,7 +201,7 @@
       "settings": {
         "image_ratio": "4 / 5",
         "image_ratio_desktop": "16 / 9",
-        "grayscale": false,
+        "grayscale": true,
         "overlay_opacity": 30,
         "text_color": "light",
         "position": "center",
@@ -202,7 +211,9 @@
         "show_swatches": true,
         "swatches": "#F2E6D8\n#C9A27E\n#6B4A3A\n#1F1F1F\n#7C8B6F\n#B5485D\n#9DB4C8",
         "button_label": "Quiero el mío",
-        "button_link": "/pages/personalizados"
+        "button_link": "/pages/personalizados",
+        "image": "shopify://shop_images/sweater-mujer-flecos-crema-frente-2.jpg",
+        "focal_y": 65
       }
     }
   },
