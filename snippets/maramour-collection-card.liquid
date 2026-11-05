@@ -116,17 +116,32 @@
           tabindex="-1"
           {% if is_hidden %}hidden{% endif %}
         >
-          {{
-            media.preview_image
-            | image_url: width: 1300
-            | image_tag:
-              loading: slide_loading,
-              fetchpriority: slide_fp,
-              widths: widths,
-              sizes: sizes,
-              class: 'mm-pc__img',
-              alt: product.title
-          }}
+          {%- if media.media_type == 'video' -%}
+            {{
+              media
+              | video_tag:
+                image_size: '900x',
+                autoplay: false,
+                loop: true,
+                muted: true,
+                controls: false,
+                preload: 'none',
+                class: 'mm-pc__img mm-pc__video',
+                data-mm-pc-video: ''
+            }}
+          {%- else -%}
+            {{
+              media.preview_image
+              | image_url: width: 1300
+              | image_tag:
+                loading: slide_loading,
+                fetchpriority: slide_fp,
+                widths: widths,
+                sizes: sizes,
+                class: 'mm-pc__img',
+                alt: product.title
+            }}
+          {%- endif -%}
         </a>
       {%- else -%}
         <a class="mm-pc__slide" href="{{ product.url }}" data-mm-pc-link>
