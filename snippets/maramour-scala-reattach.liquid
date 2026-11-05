@@ -1,0 +1,32 @@
+{%- doc -%}
+  MARAMOUR — Arreglo para el botón «Pagar con transferencia (10% OFF)» de la app Scala Discounts.
+  Cuando Horizon vuelve a dibujar el carrito (cambiar cantidad, eliminar una prenda), el botón de la
+  app desaparece y la app no lo vuelve a poner sola. La app lo reinserta cuando ve un toque sobre un
+  elemento de carrito, así que acá se simula ese toque cada vez que falta el botón.
+  Si se desinstala Scala, este snippet no hace nada (y se puede borrar junto con su render en theme.liquid).
+{%- enddoc -%}
+
+<span class="mm-scala-cart-drawer-toggle" hidden aria-hidden="true"></span>
+<script>
+  (() => {
+    const ping = document.querySelector('.mm-scala-cart-drawer-toggle');
+    if (!ping) return;
+    let timer;
+
+    const check = () => {
+      if (!customElements.get('scala-cart-button')) return;
+      document.querySelectorAll('.cart__ctas').forEach((ctas) => {
+        const box = ctas.parentElement;
+        const hasItems = ctas.querySelector('[name="checkout"]:not([disabled])');
+        if (box && hasItems && !box.querySelector('scala-cart-button')) {
+          ['pointerup', 'click'].forEach((type) => ping.dispatchEvent(new Event(type, { bubbles: true })));
+        }
+      });
+    };
+
+    new MutationObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(check, 150);
+    }).observe(document.body, { childList: true, subtree: true });
+  })();
+</script>
