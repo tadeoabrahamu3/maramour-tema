@@ -1,0 +1,833 @@
+{%- doc -%}
+  MARAMOUR — Página de la Gift Card (plantilla product.gift-card).
+  Tarjeta visual con el monto elegido, montos en botones, «Para mí / Para regalar» con el formulario
+  de destinatario de Shopify (mail, nombre, mensaje, fecha de envío), «Cómo funciona» y preguntas
+  frecuentes (bloques; una pregunta sin respuesta no se muestra).
+  Sin cuotas de transferencia: en una gift card el 10 % sería regalar plata sin vender más.
+  Agrega al carrito sin recargar y abre el carrito lateral (mismo evento que usa el tema).
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign n = s.installments
+  assign current = product.selected_variant
+  if current == blank
+    assign current = product.variants[1] | default: product.selected_or_first_available_variant
+  endif
+  assign logo = s.logo | default: settings.logo
+  assign cuota = current.price | divided_by: n | divided_by: 100 | times: 100
+  assign min_price = product.price_min | money_without_trailing_zeros
+  assign max_price = product.price_max | money_without_trailing_zeros
+-%}
+
+<div class="mm-gc" data-mm-gc>
+  <div class="mm-gc__top">
+    <div class="mm-gc__visual">
+      <div class="mm-gc__card" aria-hidden="true">
+        <div class="mm-gc__card-row">
+          {%- if logo -%}
+            {{ logo | image_url: width: 600 | image_tag: class: 'mm-gc__logo', alt: '', loading: 'eager', widths: '300, 450, 600' }}
+          {%- else -%}
+            <span class="mm-gc__wordmark">{{ shop.name | upcase }}</span>
+          {%- endif -%}
+          <span class="mm-gc__label">GIFT CARD</span>
+        </div>
+        <div class="mm-gc__card-row mm-gc__card-row--bottom">
+          <span class="mm-gc__where">Para usar en<br>la tienda online</span>
+          <span class="mm-gc__amount" data-mm-gc-amount>{{ current.price | money_without_trailing_zeros }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mm-gc__buy">
+      <div class="mm-gc__head">
+        <h1 class="mm-gc__title">{{ product.title | escape }}</h1>
+        {%- if s.intro != blank -%}
+          <div class="mm-gc__intro">{{ s.intro }}</div>
+        {%- endif -%}
+      </div>
+
+      <div class="mm-gc__price">
+        <p class="mm-gc__price-main" data-mm-gc-price>{{ current.price | money_without_trailing_zeros }}</p>
+        {%- if n > 1 -%}
+          <p class="mm-gc__price-cuotas">{{ n }} cuotas sin interés de <strong data-mm-gc-cuota>{{ cuota | money_without_trailing_zeros }}</strong></p>
+        {%- endif -%}
+      </div>
+
+      <form class="mm-gc__form" action="{{ routes.cart_add_url }}" method="post" data-mm-gc-form novalidate>
+        <input type="hidden" name="form_type" value="product">
+        <input type="hidden" name="utf8" value="✓">
+
+        <fieldset class="mm-gc__group">
+          <legend class="mm-gc__legend">Elegí el monto</legend>
+          <div class="mm-gc__amounts">
+            {%- for v in product.variants -%}
+              {%- assign vc = v.price | divided_by: n | divided_by: 100 | times: 100 -%}
+              <label class="mm-gc__pill">
+                <input
+                  type="radio"
+                  name="id"
+                  value="{{ v.id }}"
+                  data-price="{{ v.price | money_without_trailing_zeros | escape }}"
+                  data-cuota="{{ vc | money_without_trailing_zeros | escape }}"
+                  {% if v.id == current.id %}checked{% endif %}
+                  {% unless v.available %}disabled{% endunless %}
+                >
+                <span>{{ v.title | escape }}</span>
+              </label>
+            {%- endfor -%}
+          </div>
+        </fieldset>
+
+        <fieldset class="mm-gc__group">
+          <legend class="mm-gc__legend">¿Para quién es?</legend>
+          <div class="mm-gc__seg">
+            <label>
+              <input type="radio" name="mm_gc_mode" value="self" data-mm-gc-mode>
+              <span>Para mí</span>
+            </label>
+            <label>
+              <input type="radio" name="mm_gc_mode" value="gift" data-mm-gc-mode checked>
+              <span>Para regalar</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="mm-gc__recipient" data-mm-gc-recipient>
+          <label class="mm-gc__field">
+            <span>Mail de quien la recibe *</span>
+            <input type="email" name="properties[Recipient email]" placeholder="nombre@mail.com" autocomplete="off" required data-mm-gc-email>
+          </label>
+          <label class="mm-gc__field">
+            <span>Su nombre</span>
+            <input type="text" name="properties[Recipient name]" placeholder="Ej.: Sofi" autocomplete="off">
+          </label>
+          <label class="mm-gc__field mm-gc__field--wide">
+            <span>Mensaje (opcional)</span>
+            <textarea name="properties[Message]" rows="3" maxlength="200" placeholder="¡Feliz cumple! Elegí lo que más te guste."></textarea>
+          </label>
+          <label class="mm-gc__field mm-gc__field--wide">
+            <span>¿Cuándo se la mandamos?</span>
+            <input type="date" name="properties[Send on]" data-mm-gc-date>
+            <small>Si lo dejás vacío, le llega apenas confirmes la compra.</small>
+          </label>
+          <input type="hidden" name="properties[__shopify_offset]" value="" data-mm-gc-offset>
+        </div>
+
+        <p class="mm-gc__error" role="alert" hidden data-mm-gc-error></p>
+
+        <button type="submit" class="mm-gc__submit" data-mm-gc-submit>Agregar al carrito</button>
+
+        <ul class="mm-gc__perks list-unstyled" role="list">
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5" stroke="currentColor" stroke-width="1.5"/></svg>
+            Llega por mail
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12.5 9 17.5 20 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Sirve para varias compras
+          </li>
+        </ul>
+      </form>
+    </div>
+  </div>
+
+  <section class="mm-gc__how" aria-labelledby="mm-gc-how">
+    <h2 class="mm-gc__h2" id="mm-gc-how">Cómo funciona</h2>
+    <ol class="mm-gc__steps list-unstyled" role="list">
+      <li>
+        <span class="mm-gc__num" aria-hidden="true">1</span>
+        <div>
+          <p class="mm-gc__step-title">Elegís el monto</p>
+          <p class="mm-gc__step-text">Desde {{ min_price }} hasta {{ max_price }}{% if n > 1 %}, en {{ n }} cuotas sin interés{% endif %}.</p>
+        </div>
+      </li>
+      <li>
+        <span class="mm-gc__num" aria-hidden="true">2</span>
+        <div>
+          <p class="mm-gc__step-title">Le llega por mail</p>
+          <p class="mm-gc__step-text">Con su código y tu mensaje, en el momento o el día que elijas.</p>
+        </div>
+      </li>
+      <li>
+        <span class="mm-gc__num" aria-hidden="true">3</span>
+        <div>
+          <p class="mm-gc__step-title">Elige lo que más le gusta</p>
+          <p class="mm-gc__step-text">Ingresa el código al pagar. Si no usa todo el saldo, le queda para la próxima.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  {%- liquid
+    assign faq_count = 0
+    for block in section.blocks
+      if block.settings.answer != blank
+        assign faq_count = faq_count | plus: 1
+      endif
+    endfor
+  -%}
+  {%- if faq_count > 0 -%}
+    <section class="mm-gc__faq" aria-labelledby="mm-gc-faq">
+      <h2 class="mm-gc__h2" id="mm-gc-faq">Preguntas frecuentes</h2>
+      {%- for block in section.blocks -%}
+        {%- if block.settings.answer == blank -%}{%- continue -%}{%- endif -%}
+        <details class="mm-gc__q" {{ block.shopify_attributes }}{% if forloop.first %} open{% endif %}>
+          <summary>{{ block.settings.question | escape }}<span aria-hidden="true"></span></summary>
+          <div class="mm-gc__a">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor -%}
+    </section>
+  {%- endif -%}
+</div>
+
+<script type="module">
+  const root = document.querySelector('[data-mm-gc]');
+  if (root && !root.dataset.ready) {
+    root.dataset.ready = '1';
+    const form = root.querySelector('[data-mm-gc-form]');
+    const recipient = root.querySelector('[data-mm-gc-recipient]');
+    const error = root.querySelector('[data-mm-gc-error]');
+    const submit = root.querySelector('[data-mm-gc-submit]');
+    const submitText = submit.textContent;
+
+    /* Monto: actualiza la tarjeta, el precio y las cuotas */
+    form.addEventListener('change', (e) => {
+      const r = e.target;
+      if (r.name === 'id') {
+        root.querySelectorAll('[data-mm-gc-amount], [data-mm-gc-price]').forEach((el) => (el.textContent = r.dataset.price));
+        const c = root.querySelector('[data-mm-gc-cuota]');
+        if (c) c.textContent = r.dataset.cuota;
+        const url = new URL(location.href);
+        url.searchParams.set('variant', r.value);
+        history.replaceState(null, '', url);
+      }
+      if (r.matches('[data-mm-gc-mode]')) setMode();
+    });
+
+    /* Para mí / Para regalar: los campos del destinatario solo se envían si es regalo */
+    const setMode = () => {
+      const gift = form.querySelector('[data-mm-gc-mode]:checked')?.value === 'gift';
+      recipient.hidden = !gift;
+      recipient.querySelectorAll('input, textarea').forEach((i) => (i.disabled = !gift));
+      error.hidden = true;
+    };
+    setMode();
+
+    const date = root.querySelector('[data-mm-gc-date]');
+    const today = new Date();
+    const pad = (x) => String(x).padStart(2, '0');
+    date.min = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    root.querySelector('[data-mm-gc-offset]').value = String(today.getTimezoneOffset());
+
+    const showError = (msg) => {
+      error.textContent = msg;
+      error.hidden = false;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.hidden = true;
+      const email = root.querySelector('[data-mm-gc-email]');
+      if (!email.disabled && !email.checkValidity()) {
+        showError('Escribí el mail de quien recibe la gift card.');
+        email.focus();
+        return;
+      }
+
+      submit.disabled = true;
+      submit.textContent = 'Agregando…';
+      const data = new FormData(form);
+      data.delete('mm_gc_mode');
+      if (!data.get('properties[Send on]')) data.delete('properties[Send on]');
+      const sectionIds = [...document.querySelectorAll('cart-items-component')].map((c) => c.dataset.sectionId).filter(Boolean);
+      if (sectionIds.length) data.append('sections', sectionIds.join(','));
+
+      let events = null;
+      let deferred = null;
+      try {
+        events = await import('@shopify/events');
+        deferred = events.CartLinesUpdateEvent.createPromise();
+        form.dispatchEvent(
+          new events.CartLinesUpdateEvent({
+            action: 'add',
+            context: 'product',
+            lines: [{ merchandiseId: String(data.get('id')), quantity: 1 }],
+            promise: deferred.promise,
+          })
+        );
+      } catch {}
+
+      try {
+        const res = await fetch(`${window.Shopify?.routes?.root || '/'}cart/add.js`, {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: data,
+        }).then((r) => r.json());
+        const cart = await fetch(`${window.Shopify?.routes?.root || '/'}cart.js`).then((r) => r.json());
+
+        if (res.status) {
+          deferred?.resolve({ cart: events.CartLinesUpdateEvent.createCartFromAjaxResponse(cart), detail: { didError: true, items: cart.items, source: 'mm-gift-card' } });
+          showError(res.description || res.message || 'No pudimos agregarla. Probá de nuevo.');
+        } else if (deferred) {
+          deferred.resolve({
+            cart: events.CartLinesUpdateEvent.createCartFromAjaxResponse(cart),
+            detail: { didError: false, items: cart.items, source: 'mm-gift-card', itemCount: 1, sections: res.sections },
+          });
+          submit.textContent = '¡Agregada!';
+          setTimeout(() => (submit.textContent = submitText), 2000);
+        } else {
+          location.href = `${window.Shopify?.routes?.root || '/'}cart`;
+        }
+      } catch {
+        deferred?.reject?.(new Error('add failed'));
+        form.submit();
+      } finally {
+        submit.disabled = false;
+        if (submit.textContent === 'Agregando…') submit.textContent = submitText;
+      }
+    });
+  }
+</script>
+
+<style>
+  .mm-gc {
+    --mm-gc-pad: var(--page-margin, 16px);
+    padding-bottom: 32px;
+  }
+
+  .mm-gc [hidden] {
+    display: none !important;
+  }
+
+  .mm-gc__visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 44px 32px;
+    background: #f9e3e8;
+  }
+
+  .mm-gc__card {
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1.6;
+    box-sizing: border-box;
+    padding: 7% 7% 6%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff;
+    background: #c2416c;
+    border-radius: 14px;
+    box-shadow: 0 14px 32px rgb(122 30 62 / 0.28);
+  }
+
+  .mm-gc__card-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mm-gc__card-row--bottom {
+    align-items: flex-end;
+  }
+
+  .mm-gc__logo {
+    width: 41%;
+    height: auto;
+    filter: brightness(0) invert(1);
+  }
+
+  .mm-gc__wordmark {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+  }
+
+  .mm-gc__label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+  }
+
+  .mm-gc__where {
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    opacity: 0.9;
+  }
+
+  .mm-gc__amount {
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .mm-gc__buy {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 22px var(--mm-gc-pad) 0;
+  }
+
+  .mm-gc__head {
+    display: grid;
+    gap: 6px;
+  }
+
+  .mm-gc__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .mm-gc__intro,
+  .mm-gc__intro p {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .mm-gc__price p {
+    margin: 0;
+  }
+
+  .mm-gc__price-main {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .mm-gc__price-cuotas {
+    font-size: 0.8125rem;
+  }
+
+  .mm-gc__form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .mm-gc__group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .mm-gc__legend {
+    padding: 0;
+    margin-bottom: 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .mm-gc__amounts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mm-gc__pill,
+  .mm-gc__seg label {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .mm-gc__pill input,
+  .mm-gc__seg input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .mm-gc__pill span {
+    display: grid;
+    place-items: center;
+    height: 48px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid #dcdcdc;
+    border-radius: 999px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .mm-gc__pill input:checked + span {
+    color: #fff;
+    background: var(--color-foreground);
+    border-color: var(--color-foreground);
+  }
+
+  .mm-gc__pill input:disabled + span {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+
+  .mm-gc__pill input:focus-visible + span,
+  .mm-gc__seg input:focus-visible + span {
+    outline: 2px solid #c2416c;
+    outline-offset: 2px;
+  }
+
+  .mm-gc__seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 4px;
+    background: #f2f2f2;
+    border-radius: 999px;
+  }
+
+  .mm-gc__seg span {
+    display: grid;
+    place-items: center;
+    height: 40px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+    border-radius: 999px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .mm-gc__seg input:checked + span {
+    color: var(--color-foreground);
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  }
+
+  .mm-gc__recipient {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    background: #f7f7f7;
+    border-radius: 12px;
+  }
+
+  .mm-gc__field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .mm-gc__field input,
+  .mm-gc__field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-foreground);
+    background: #fff;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+  }
+
+  .mm-gc__field input {
+    height: 46px;
+  }
+
+  .mm-gc__field textarea {
+    padding-block: 12px;
+    line-height: 1.4;
+    resize: none;
+  }
+
+  .mm-gc__field input:focus,
+  .mm-gc__field textarea:focus {
+    outline: none;
+    border-color: var(--color-foreground);
+  }
+
+  .mm-gc__field small {
+    font-size: 0.6875rem;
+    font-weight: 400;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .mm-gc__error {
+    margin: -8px 0 0;
+    font-size: 0.8125rem;
+    color: #b3261e;
+  }
+
+  .mm-gc__submit {
+    height: 52px;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #141414;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .mm-gc__submit:disabled {
+    opacity: 0.6;
+  }
+
+  .mm-gc__perks {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: -10px 0 0;
+    padding: 0;
+    font-size: 0.6875rem;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .mm-gc__perks li {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .mm-gc__perks svg {
+    width: 14px;
+    height: 14px;
+    color: var(--color-foreground);
+  }
+
+  .mm-gc__how {
+    margin-top: 36px;
+    padding: 28px var(--mm-gc-pad) 8px;
+    border-top: 1px solid rgb(var(--color-foreground-rgb) / 0.08);
+  }
+
+  .mm-gc__h2 {
+    margin: 0 0 18px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .mm-gc__steps {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mm-gc__steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .mm-gc__num {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #8f2f50;
+    background: #f9e3e8;
+    border-radius: 50%;
+  }
+
+  .mm-gc__step-title,
+  .mm-gc__step-text {
+    margin: 0;
+  }
+
+  .mm-gc__step-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .mm-gc__step-text {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .mm-gc__faq {
+    padding: 28px var(--mm-gc-pad) 0;
+  }
+
+  .mm-gc__faq .mm-gc__h2 {
+    margin-bottom: 4px;
+  }
+
+  .mm-gc__q {
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / 0.08);
+  }
+
+  .mm-gc__q summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .mm-gc__q summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mm-gc__q summary span {
+    position: relative;
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+  }
+
+  .mm-gc__q summary span::before,
+  .mm-gc__q summary span::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 12px;
+    height: 1.4px;
+    background: currentColor;
+    transition: transform 0.2s;
+  }
+
+  .mm-gc__q summary span::after {
+    transform: rotate(90deg);
+  }
+
+  .mm-gc__q[open] summary span::after {
+    transform: rotate(0deg);
+  }
+
+  .mm-gc__a {
+    padding-bottom: 16px;
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .mm-gc__a p {
+    margin: 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .mm-gc__top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    .mm-gc__visual {
+      flex: 999 1 520px;
+      min-width: 0;
+      padding: 72px 48px;
+    }
+
+    .mm-gc__card {
+      max-width: 520px;
+      border-radius: 20px;
+    }
+
+    .mm-gc__label {
+      font-size: 0.8125rem;
+    }
+
+    .mm-gc__where {
+      font-size: 0.875rem;
+    }
+
+    .mm-gc__amount {
+      font-size: 3rem;
+    }
+
+    .mm-gc__buy {
+      flex: 1 1 400px;
+      max-width: 560px;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 48px 56px;
+    }
+
+    .mm-gc__title {
+      font-size: 1.625rem;
+    }
+
+    .mm-gc__amounts {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .mm-gc__recipient {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .mm-gc__field--wide {
+      grid-column: 1 / -1;
+    }
+
+    .mm-gc__how,
+    .mm-gc__faq {
+      max-width: 1120px;
+      margin-inline: auto;
+      box-sizing: border-box;
+    }
+
+    .mm-gc__how {
+      margin-top: 56px;
+      padding-top: 56px;
+    }
+
+    .mm-gc__how .mm-gc__h2 {
+      font-size: 1.125rem;
+      text-align: center;
+    }
+
+    .mm-gc__steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .mm-gc__steps li {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .mm-gc__faq {
+      max-width: 720px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Gift Card Maramour",
+  "tag": "section",
+  "class": "section-wrapper",
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    { "type": "richtext", "id": "intro", "label": "Texto debajo del título", "default": "<p>El regalo que siempre acierta: llega por mail con un código para usar en la tienda online.</p>" },
+    { "type": "image_picker", "id": "logo", "label": "Logo de la tarjeta", "info": "Vacío = el logo del encabezado (se muestra en blanco)." },
+    { "type": "range", "id": "installments", "label": "Cuotas sin interés", "min": 1, "max": 12, "step": 1, "default": 3 }
+  ],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "Pregunta",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Pregunta" },
+        { "type": "richtext", "id": "answer", "label": "Respuesta", "info": "Sin respuesta, la pregunta no se muestra." }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Gift Card Maramour" }]
+}
+{% endschema %}

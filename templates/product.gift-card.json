@@ -1,0 +1,43 @@
+{
+  "sections": {
+    "main": {
+      "type": "maramour-gift-card",
+      "blocks": {
+        "faq_varias": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Se puede usar en más de una compra?",
+            "answer": "<p>Sí. El saldo que no se usa queda guardado en el código para la próxima compra.</p>"
+          }
+        },
+        "faq_diferencia": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Y si la compra cuesta más que la gift card?",
+            "answer": "<p>Se usa todo el saldo de la gift card y la diferencia se paga con cualquier otro medio de pago.</p>"
+          }
+        },
+        "faq_vence": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Tiene vencimiento?",
+            "answer": ""
+          }
+        },
+        "faq_devolucion": {
+          "type": "faq",
+          "settings": {
+            "question": "¿Se puede cambiar el monto o devolver?",
+            "answer": ""
+          }
+        }
+      },
+      "block_order": ["faq_varias", "faq_diferencia", "faq_vence", "faq_devolucion"],
+      "settings": {
+        "intro": "<p>El regalo que siempre acierta: llega por mail con un código para usar en la tienda online.</p>",
+        "installments": 3
+      }
+    }
+  },
+  "order": ["main"]
+}
