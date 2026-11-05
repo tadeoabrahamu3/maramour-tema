@@ -212,6 +212,8 @@
         </div>
       </fieldset>
 
+      {%- assign kinds_order = 'color,size,price,list' | split: ',' -%}
+      {%- for want in kinds_order -%}
       {%- for f in collection.filters -%}
         {%- if f.param_name == 'filter.v.availability' -%}{%- continue -%}{%- endif -%}
         {%- liquid
@@ -223,6 +225,9 @@
             assign kind = 'color'
           elsif fl contains 'talle' or fl contains 'size' or fl contains 'tamaño'
             assign kind = 'size'
+          endif
+          if kind != want
+            continue
           endif
         -%}
         <fieldset class="mm-shop__fgroup mm-shop__fgroup--{{ kind }}">
@@ -241,8 +246,30 @@
               </div>
             {%- when 'size' -%}
               <p class="mm-shop__fhint">Te mostramos solo las prendas con tu talle disponible.</p>
+              {%- liquid
+                assign size_order = 'XXS,XS,S,M,L,XL,XXL,XXXL,1,2,3,4,5,U,ÚNICO,UNICO' | split: ','
+                assign ordered = ''
+                for so in size_order
+                  for v in f.values
+                    assign vl = v.label | upcase | strip
+                    if vl == so
+                      assign ordered = ordered | append: v.value | append: '§'
+                    endif
+                  endfor
+                endfor
+                for v in f.values
+                  assign vv = '§' | append: v.value | append: '§'
+                  assign ord_check = '§' | append: ordered
+                  unless ord_check contains vv
+                    assign ordered = ordered | append: v.value | append: '§'
+                  endunless
+                endfor
+                assign ordered = ordered | split: '§'
+              -%}
               <div class="mm-shop__sizes">
-                {%- for v in f.values -%}
+                {%- for ov in ordered -%}
+                  {%- assign v = f.values | where: 'value', ov | first -%}
+                  {%- if v == blank -%}{%- continue -%}{%- endif -%}
                   <label class="mm-shop__size{% if v.count == 0 and v.active == false %} is-disabled{% endif %}">
                     <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}" data-mm-needs-stock{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
                     <span>{{ v.label | escape }}</span>
@@ -269,6 +296,12 @@
                         endif
                       endfor
                     endif
+                    if bg == blank and kind == 'color'
+                      assign vl = v.label | downcase
+                      if vl contains 'multi' or vl contains 'raya'
+                        assign bg = 'conic-gradient(#1a1a1a 0 25%, #f1eadc 0 50%, #1a1a1a 0 75%, #f1eadc 0)'
+                      endif
+                    endif
                   -%}
                   <label class="mm-shop__opt{% if v.count == 0 and v.active == false %} is-disabled{% endif %}">
                     <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if kind == 'color' %} data-mm-needs-stock{% endif %}{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
@@ -279,6 +312,7 @@
               </div>
           {%- endcase -%}
         </fieldset>
+      {%- endfor -%}
       {%- endfor -%}
 
       <div class="mm-shop__factions">
