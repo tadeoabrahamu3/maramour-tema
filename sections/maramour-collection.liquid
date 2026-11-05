@@ -73,10 +73,14 @@
         Filtrar{% if active_filters > 0 %} <span class="mm-shop__filter-count">({{ active_filters }})</span>{% endif %}
       </button>
 
-      <p class="mm-shop__count">{{ collection.products_count }} {% if collection.products_count == 1 %}prenda{% else %}prendas{% endif %}</p>
+      {%- liquid
+        assign gift_count = collection.products | where: 'gift_card?' | size
+        assign total = collection.products_count | minus: gift_count
+      -%}
+      <p class="mm-shop__count">{{ total }} {% if total == 1 %}prenda{% else %}prendas{% endif %}</p>
 
       <label class="mm-shop__sort">
-        <span class="visually-hidden">Ordenar por</span>
+        <span class="mm-shop__sort-label">Ordenar</span>
         <select data-mm-shop-sort>
           {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
           {%- for option in collection.sort_options -%}
@@ -368,9 +372,6 @@
 
   /* Barra Filtrar / cantidad / Ordenar */
   .mm-shop__bar {
-    position: sticky;
-    top: var(--header-height, 0px);
-    z-index: 3;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
@@ -418,17 +419,18 @@
     align-items: center;
   }
 
-  .mm-shop__sort select {
-    max-width: 150px;
+  .mm-shop__sort-label {
     padding: 6px 20px 6px 0;
-    font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: inherit;
-    text-align: end;
-    background: none;
-    border: 0;
-    appearance: none;
+  }
+
+  .mm-shop__sort select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    font-size: 16px;
+    opacity: 0;
     cursor: pointer;
   }
 
@@ -577,10 +579,16 @@
 
   .mm-pc__info {
     display: flex;
+    flex-direction: column-reverse;
     gap: 8px;
+    padding: 10px 8px 0;
+  }
+
+  .mm-pc--featured .mm-pc__info {
+    flex-direction: row;
     align-items: flex-start;
     justify-content: space-between;
-    padding: 10px 8px 0;
+    gap: 16px;
   }
 
   .mm-pc__text {
@@ -622,11 +630,10 @@
   .mm-pc__colors {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 6px;
-    max-width: 64px;
-    margin: 2px 0 0;
-    padding: 0;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0 0 0 2px;
   }
 
   .mm-pc__color {
@@ -676,7 +683,10 @@
   }
 
   .mm-pc--featured .mm-pc__colors {
-    max-width: none;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    max-width: 120px;
+    padding-top: 3px;
   }
 
   .mm-pc--featured .mm-pc__color {
