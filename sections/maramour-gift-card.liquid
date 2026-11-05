@@ -3,7 +3,7 @@
   Tarjeta visual con el monto elegido, montos en botones, «Para mí / Para regalar» con el formulario
   de destinatario de Shopify (mail, nombre, mensaje, fecha de envío), «Cómo funciona» y preguntas
   frecuentes (bloques; una pregunta sin respuesta no se muestra).
-  Sin cuotas de transferencia: en una gift card el 10 % sería regalar plata sin vender más.
+  Muestra el precio con descuento por transferencia (ajustable en la sección; 0 = no se muestra).
   Agrega al carrito sin recargar y abre el carrito lateral (mismo evento que usa el tema).
 {%- enddoc -%}
 
@@ -16,6 +16,9 @@
   endif
   assign logo = s.logo | default: settings.logo
   assign cuota = current.price | divided_by: n | divided_by: 100 | times: 100
+  assign pct = s.transfer_discount
+  assign keep = 100 | minus: pct
+  assign transfer = current.price | times: keep | divided_by: 10000 | times: 100
   assign min_price = product.price_min | money_without_trailing_zeros
   assign max_price = product.price_max | money_without_trailing_zeros
 -%}
@@ -52,6 +55,9 @@
         {%- if n > 1 -%}
           <p class="mm-gc__price-cuotas">{{ n }} cuotas sin interés de <strong data-mm-gc-cuota>{{ cuota | money_without_trailing_zeros }}</strong></p>
         {%- endif -%}
+        {%- if pct > 0 -%}
+          <p class="mm-gc__price-transfer"><strong data-mm-gc-transfer>{{ transfer | money_without_trailing_zeros }}</strong> con transferencia <span class="mm-gc__badge">{{ pct }}% OFF</span></p>
+        {%- endif -%}
       </div>
 
       <form class="mm-gc__form" action="{{ routes.cart_add_url }}" method="post" data-mm-gc-form novalidate>
@@ -63,6 +69,7 @@
           <div class="mm-gc__amounts">
             {%- for v in product.variants -%}
               {%- assign vc = v.price | divided_by: n | divided_by: 100 | times: 100 -%}
+              {%- assign vt = v.price | times: keep | divided_by: 10000 | times: 100 -%}
               <label class="mm-gc__pill">
                 <input
                   type="radio"
@@ -70,6 +77,7 @@
                   value="{{ v.id }}"
                   data-price="{{ v.price | money_without_trailing_zeros | escape }}"
                   data-cuota="{{ vc | money_without_trailing_zeros | escape }}"
+                  data-transfer="{{ vt | money_without_trailing_zeros | escape }}"
                   {% if v.id == current.id %}checked{% endif %}
                   {% unless v.available %}disabled{% endunless %}
                 >
@@ -198,6 +206,8 @@
         root.querySelectorAll('[data-mm-gc-amount], [data-mm-gc-price]').forEach((el) => (el.textContent = r.dataset.price));
         const c = root.querySelector('[data-mm-gc-cuota]');
         if (c) c.textContent = r.dataset.cuota;
+        const t = root.querySelector('[data-mm-gc-transfer]');
+        if (t) t.textContent = r.dataset.transfer;
         const url = new URL(location.href);
         url.searchParams.set('variant', r.value);
         history.replaceState(null, '', url);
@@ -402,8 +412,26 @@
     font-weight: 700;
   }
 
-  .mm-gc__price-cuotas {
+  .mm-gc__price-cuotas,
+  .mm-gc__price-transfer {
     font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+
+  .mm-gc__price-transfer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mm-gc__badge {
+    padding: 2px 7px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #8f2f50;
+    background: #f9e3e8;
+    border-radius: 3px;
   }
 
   .mm-gc__form {
@@ -816,7 +844,8 @@
   "settings": [
     { "type": "richtext", "id": "intro", "label": "Texto debajo del título", "default": "<p>El regalo que siempre acierta: llega por mail con un código para usar en la tienda online.</p>" },
     { "type": "image_picker", "id": "logo", "label": "Logo de la tarjeta", "info": "Vacío = el logo del encabezado (se muestra en blanco)." },
-    { "type": "range", "id": "installments", "label": "Cuotas sin interés", "min": 1, "max": 12, "step": 1, "default": 3 }
+    { "type": "range", "id": "installments", "label": "Cuotas sin interés", "min": 1, "max": 12, "step": 1, "default": 3 },
+    { "type": "range", "id": "transfer_discount", "label": "Descuento por transferencia", "min": 0, "max": 30, "step": 1, "unit": "%", "default": 10 }
   ],
   "blocks": [
     {
