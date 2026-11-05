@@ -1,0 +1,171 @@
+{%- doc -%}
+  MARAMOUR — Tarjeta de producto de la tienda (colecciones).
+  Foto 2:3 (la 2.ª foto al pasar el mouse en compu), nombre, precio, cuotas, precio con transferencia
+  y colores. Tocar un color cambia la foto por la de ese color (texto alternativo que empieza con el
+  nombre del color, igual que en la página de producto) y el enlace abre la prenda en ese color.
+
+  @param {object} product - Producto
+  @param {boolean} [featured] - Tarjeta grande (primera de la grilla)
+  @param {string} [loading] - 'lazy' (por defecto) o 'eager'
+  @param {number} [installments] - Cuotas sin interés (por defecto 3)
+  @param {number} [transfer_discount] - % de descuento por transferencia (por defecto 10)
+{%- enddoc -%}
+
+{%- liquid
+  assign n = installments | default: 3
+  assign pct = transfer_discount | default: 10
+  assign keep = 100 | minus: pct
+  assign price = product.price
+  assign cuota = price | divided_by: n | divided_by: 100 | times: 100
+  assign transfer = price | times: keep | divided_by: 10000 | times: 100
+  assign img_loading = loading | default: 'lazy'
+  assign fp = 'auto'
+  if img_loading == 'eager'
+    assign fp = 'high'
+  endif
+  if featured
+    assign sizes = '(min-width: 990px) 50vw, 100vw'
+  else
+    assign sizes = '(min-width: 990px) 25vw, 50vw'
+  endif
+
+  assign first = product.featured_media
+  assign second = product.media[1]
+
+  assign color_opt = product.options_with_values | where: 'name', 'Color' | first
+  assign color_index = -1
+  if color_opt
+    assign color_index = color_opt.position | minus: 1
+  endif
+
+  assign names = ''
+  assign hexes = ''
+  for entry in product.metafields.shopify['color-pattern'].value
+    assign sw = entry.color.value | default: '#ddd'
+    if entry.image.value != blank
+      assign sw = entry.image.value | image_url: width: 60
+      assign sw = 'url(' | append: sw | append: ') center / cover no-repeat'
+    endif
+    assign names = names | append: entry.label.value | downcase | append: '|'
+    assign hexes = hexes | append: sw | append: '|'
+  endfor
+  assign names = names | split: '|'
+  assign hexes = hexes | split: '|'
+
+  assign on_sale = false
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+-%}
+
+<article class="mm-pc{% if featured %} mm-pc--featured{% endif %}" data-mm-pc>
+  <a class="mm-pc__media" href="{{ product.url }}" data-mm-pc-link aria-label="{{ product.title | escape }}">
+    {%- if first -%}
+      {{
+        first.preview_image
+        | image_url: width: 1200
+        | image_tag:
+          loading: img_loading,
+          fetchpriority: fp,
+          widths: '300, 450, 600, 750, 900, 1200',
+          sizes: sizes,
+          class: 'mm-pc__img',
+          alt: product.title,
+          data-mm-pc-img: ''
+      }}
+      {%- if second -%}
+        {{
+          second.preview_image
+          | image_url: width: 900
+          | image_tag: loading: 'lazy', widths: '300, 450, 600, 900', sizes: sizes, class: 'mm-pc__img mm-pc__img--second', alt: '', data-mm-pc-img2: ''
+        }}
+      {%- endif -%}
+    {%- else -%}
+      {{ 'product-apparel-1' | placeholder_svg_tag: 'mm-pc__img' }}
+    {%- endif -%}
+    {%- if product.available == false -%}
+      <span class="mm-pc__badge mm-pc__badge--out">Agotado</span>
+    {%- elsif on_sale -%}
+      <span class="mm-pc__badge">Sale</span>
+    {%- endif -%}
+  </a>
+
+  <div class="mm-pc__info">
+    <div class="mm-pc__text">
+      <a class="mm-pc__name" href="{{ product.url }}" data-mm-pc-link>{{ product.title | escape }}</a>
+      <p class="mm-pc__price">
+        {{ price | money_without_trailing_zeros }}
+        {%- if on_sale -%}<s>{{ product.compare_at_price | money_without_trailing_zeros }}</s>{%- endif -%}
+      </p>
+      {%- if n > 1 -%}
+        <p class="mm-pc__line">{{ n }} cuotas sin interés de <strong>{{ cuota | money_without_trailing_zeros }}</strong></p>
+      {%- endif -%}
+      {%- if pct > 0 -%}
+        <p class="mm-pc__line mm-pc__line--transfer"><strong>{{ transfer | money_without_trailing_zeros }}</strong> con transferencia</p>
+      {%- endif -%}
+    </div>
+
+    {%- if color_opt and color_opt.values.size > 0 -%}
+      <ul class="mm-pc__colors list-unstyled" role="list" aria-label="Colores">
+        {%- for value in color_opt.values limit: 5 -%}
+          {%- liquid
+            assign key = value | downcase | strip
+            assign bg = ''
+            if value.swatch.image
+              assign bg = value.swatch.image | image_url: width: 60
+              assign bg = 'url(' | append: bg | append: ') center / cover no-repeat'
+            elsif value.swatch.color
+              assign bg = value.swatch.color
+            endif
+            if bg == blank
+              for nm in names
+                if nm == key
+                  assign bg = hexes[forloop.index0]
+                  break
+                endif
+              endfor
+            endif
+
+            # Primera foto del color (texto alternativo que empieza con el nombre del color)
+            assign color_img = ''
+            for media in product.media
+              assign alt = media.alt | downcase | strip
+              assign prefix = alt | slice: 0, key.size
+              if prefix == key
+                assign color_img = media.preview_image | image_url: width: 900
+                break
+              endif
+            endfor
+
+            # Primera variante disponible de ese color
+            assign color_variant = ''
+            for v in product.variants
+              if v.options[color_index] == value
+                if color_variant == blank or v.available
+                  assign color_variant = v
+                endif
+                if v.available
+                  break
+                endif
+              endif
+            endfor
+          -%}
+          <li>
+            <button
+              type="button"
+              class="mm-pc__color{% if forloop.first %} is-active{% endif %}"
+              style="--mm-sw: {{ bg | default: '#ddd' }};"
+              title="{{ value | escape }}"
+              aria-label="{{ value | escape }}"
+              {% if color_img != blank %}data-mm-pc-src="{{ color_img }}"{% endif %}
+              {% if color_variant != blank %}data-mm-pc-url="{{ color_variant.url }}"{% endif %}
+            ></button>
+          </li>
+        {%- endfor -%}
+        {%- if color_opt.values.size > 5 -%}
+          <li class="mm-pc__more">+{{ color_opt.values.size | minus: 5 }}</li>
+        {%- endif -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</article>

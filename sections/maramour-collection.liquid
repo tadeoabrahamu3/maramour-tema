@@ -1,0 +1,859 @@
+{%- doc -%}
+  MARAMOUR — Página de tienda / categoría (plantilla de colecciones).
+  1) Título («Tienda» en /collections/all, si no el nombre de la categoría).
+  2) Tarjetas de categorías en carrusel (bloques «Categoría»), la actual marcada.
+  3) Barra: Filtrar (panel lateral con los filtros de Shopify Search & Discovery), cantidad y Ordenar.
+  4) Grilla: la primera prenda grande (opcional) y el resto de a 2 (celular) / 4 (compu).
+     Paginación con «Ver más prendas» (agrega la página siguiente sin recargar).
+  Sin apps ni librerías: todo en Liquid + un script chico.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  if collection.handle == 'all' or collection.handle == blank
+    assign page_title = s.all_title
+  else
+    assign page_title = collection.title
+  endif
+  assign per_page = s.per_page
+  assign active_filters = 0
+  for f in collection.filters
+    assign active_filters = active_filters | plus: f.active_values.size
+    if f.type == 'price_range'
+      if f.min_value.value != nil or f.max_value.value != nil
+        assign active_filters = active_filters | plus: 1
+      endif
+    endif
+  endfor
+-%}
+
+<div class="mm-shop" data-mm-shop>
+  <header class="mm-shop__head">
+    <h1 class="mm-shop__title">{{ page_title | escape }}</h1>
+  </header>
+
+  {%- if section.blocks.size > 0 -%}
+    <nav class="mm-shop__cats" aria-label="Categorías">
+      <ul class="mm-shop__cats-track list-unstyled" role="list">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign c = block.settings.collection
+            if c == blank
+              assign c = collections.all
+            endif
+            assign label = block.settings.label | default: c.title
+            assign img = block.settings.image | default: c.featured_image
+            if img == blank
+              assign img = c.products.first.featured_media.preview_image
+            endif
+            assign is_current = false
+            if c.handle == collection.handle
+              assign is_current = true
+            endif
+          -%}
+          <li class="mm-shop__cat" {{ block.shopify_attributes }}>
+            <a href="{{ c.url }}" class="mm-shop__cat-link{% if is_current %} is-current{% endif %}"{% if is_current %} aria-current="page"{% endif %}>
+              <span class="mm-shop__cat-media">
+                {%- if img -%}
+                  {{ img | image_url: width: 400 | image_tag: loading: 'eager', widths: '160, 240, 320, 400', sizes: '(min-width: 990px) 180px, 28vw', alt: '', class: 'mm-shop__cat-img' }}
+                {%- endif -%}
+              </span>
+              <span class="mm-shop__cat-label">{{ label | escape }}</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+  {%- endif -%}
+
+  {%- paginate collection.products by per_page -%}
+    <div class="mm-shop__bar">
+      <button type="button" class="mm-shop__filter-btn" data-mm-shop-open="mm-shop-filters" aria-haspopup="dialog">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 6h14M6 10h8M8.5 14h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Filtrar{% if active_filters > 0 %} <span class="mm-shop__filter-count">({{ active_filters }})</span>{% endif %}
+      </button>
+
+      <p class="mm-shop__count">{{ collection.products_count }} {% if collection.products_count == 1 %}prenda{% else %}prendas{% endif %}</p>
+
+      <label class="mm-shop__sort">
+        <span class="visually-hidden">Ordenar por</span>
+        <select data-mm-shop-sort>
+          {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+          {%- for option in collection.sort_options -%}
+            <option value="{{ option.value }}"{% if option.value == current_sort %} selected{% endif %}>{{ option.name | escape }}</option>
+          {%- endfor -%}
+        </select>
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 8 4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </label>
+    </div>
+
+    {%- if active_filters > 0 -%}
+      <div class="mm-shop__chips">
+        {%- for f in collection.filters -%}
+          {%- for v in f.active_values -%}
+            <a class="mm-shop__chip" href="{{ v.url_to_remove }}">{{ v.label | escape }} <span aria-hidden="true">×</span><span class="visually-hidden">Quitar filtro</span></a>
+          {%- endfor -%}
+          {%- if f.type == 'price_range' -%}
+            {%- if f.min_value.value != nil or f.max_value.value != nil -%}
+              <a class="mm-shop__chip" href="{{ f.url_to_remove }}">
+                {{ f.min_value.value | default: 0 | money_without_trailing_zeros }} – {{ f.max_value.value | default: f.range_max | money_without_trailing_zeros }}
+                <span aria-hidden="true">×</span>
+              </a>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+        <a class="mm-shop__chip mm-shop__chip--clear" href="{{ collection.url }}?sort_by={{ collection.sort_by }}">Limpiar todo</a>
+      </div>
+    {%- endif -%}
+
+    {%- liquid
+      assign shown = 0
+    -%}
+    <ul class="mm-shop__grid list-unstyled" role="list" data-mm-shop-grid>
+      {%- for product in collection.products -%}
+        {%- if product.gift_card? and collection.handle == 'all' -%}{%- continue -%}{%- endif -%}
+        {%- liquid
+          assign shown = shown | plus: 1
+          assign featured = false
+          if s.featured_first and paginate.current_page == 1 and shown == 1 and collection.products_count > 2
+            assign featured = true
+          endif
+          assign loading = 'lazy'
+          if paginate.current_page == 1 and shown <= 2
+            assign loading = 'eager'
+          endif
+        -%}
+        <li class="mm-shop__item{% if featured %} mm-shop__item--featured{% endif %}">
+          {%- render 'maramour-collection-card',
+            product: product,
+            featured: featured,
+            loading: loading,
+            installments: s.installments,
+            transfer_discount: s.transfer_discount
+          -%}
+        </li>
+      {%- else -%}
+        <li class="mm-shop__empty">
+          <p>No encontramos prendas con esos filtros.</p>
+          <a href="{{ collection.url }}">Ver todas</a>
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    {%- if paginate.next -%}
+      <div class="mm-shop__more">
+        <p class="mm-shop__more-text">Viste {{ paginate.current_offset | plus: paginate.page_size | at_most: paginate.items }} de {{ paginate.items }} prendas</p>
+        <a class="mm-shop__more-btn" href="{{ paginate.next.url }}" data-mm-shop-more>Ver más prendas</a>
+      </div>
+    {%- endif -%}
+  {%- endpaginate -%}
+
+  {%- comment -%} Panel de filtros (mismo panel lateral que «Tabla de talles») {%- endcomment -%}
+  <dialog class="mm-sheet mm-shop__sheet" id="mm-shop-filters" aria-labelledby="mm-shop-filters-title">
+    <form class="mm-sheet__panel mm-shop__filters" action="{{ collection.url }}" method="get">
+      <button type="button" class="mm-sheet__close" data-mm-shop-close aria-label="Cerrar">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 4l12 12M16 4 4 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+      </button>
+      <h2 class="mm-sheet__title" id="mm-shop-filters-title">Filtrar</h2>
+      {%- if collection.sort_by != blank -%}<input type="hidden" name="sort_by" value="{{ collection.sort_by }}">{%- endif -%}
+
+      {%- for f in collection.filters -%}
+        <fieldset class="mm-shop__fgroup">
+          <legend class="mm-shop__flabel">{{ f.label | escape }}</legend>
+          {%- case f.type -%}
+            {%- when 'price_range' -%}
+              <div class="mm-shop__price">
+                <label>
+                  <span>Desde</span>
+                  <input type="number" inputmode="numeric" name="{{ f.min_value.param_name }}" value="{% if f.min_value.value != nil %}{{ f.min_value.value | divided_by: 100 }}{% endif %}" placeholder="0" min="0">
+                </label>
+                <label>
+                  <span>Hasta</span>
+                  <input type="number" inputmode="numeric" name="{{ f.max_value.param_name }}" value="{% if f.max_value.value != nil %}{{ f.max_value.value | divided_by: 100 }}{% endif %}" placeholder="{{ f.range_max | divided_by: 100 }}" min="0">
+                </label>
+              </div>
+            {%- when 'boolean' -%}
+              {%- for v in f.values -%}
+                <label class="mm-shop__opt">
+                  <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
+                  <span>{{ v.label | escape }}</span>
+                </label>
+              {%- endfor -%}
+            {%- else -%}
+              <div class="mm-shop__opts{% if f.presentation == 'swatch' %} mm-shop__opts--swatch{% endif %}">
+                {%- for v in f.values -%}
+                  {%- liquid
+                    assign bg = ''
+                    if v.swatch.image
+                      assign bg = v.swatch.image | image_url: width: 60
+                      assign bg = 'url(' | append: bg | append: ') center / cover no-repeat'
+                    elsif v.swatch.color
+                      assign bg = v.swatch.color
+                    endif
+                  -%}
+                  <label class="mm-shop__opt{% if v.count == 0 and v.active == false %} is-disabled{% endif %}">
+                    <input type="checkbox" name="{{ v.param_name }}" value="{{ v.value }}"{% if v.active %} checked{% endif %}{% if v.count == 0 and v.active == false %} disabled{% endif %}>
+                    {%- if bg != blank -%}<span class="mm-shop__sw" style="--mm-sw: {{ bg }};"></span>{%- endif -%}
+                    <span>{{ v.label | escape }}</span>
+                    <span class="mm-shop__opt-count">{{ v.count }}</span>
+                  </label>
+                {%- endfor -%}
+              </div>
+          {%- endcase -%}
+        </fieldset>
+      {%- endfor -%}
+
+      <div class="mm-shop__factions">
+        <a class="mm-sheet__btn mm-sheet__btn--outline" href="{{ collection.url }}{% if collection.sort_by != blank %}?sort_by={{ collection.sort_by }}{% endif %}">Limpiar</a>
+        <button type="submit" class="mm-sheet__btn">Ver prendas</button>
+      </div>
+    </form>
+  </dialog>
+</div>
+
+<script>
+  (() => {
+    const root = document.currentScript.previousElementSibling;
+    if (!root || !root.matches('[data-mm-shop]') || root.dataset.ready) return;
+    root.dataset.ready = '1';
+
+    /* Ordenar: cambia el orden manteniendo los filtros */
+    root.querySelector('[data-mm-shop-sort]')?.addEventListener('change', (e) => {
+      const url = new URL(location.href);
+      url.searchParams.set('sort_by', e.target.value);
+      url.searchParams.delete('page');
+      location.href = url.toString();
+    });
+
+    /* Panel de filtros */
+    const sheet = root.querySelector('#mm-shop-filters');
+    const lock = (on) => document.documentElement.classList.toggle('mm-sheet-lock', on);
+    root.querySelector('[data-mm-shop-open]')?.addEventListener('click', () => {
+      sheet.showModal();
+      lock(true);
+    });
+    sheet?.addEventListener('close', () => lock(false));
+    sheet?.addEventListener('click', (e) => {
+      if (e.target === sheet || e.target.closest('[data-mm-shop-close]')) sheet.close();
+    });
+    /* No mandar campos de precio vacíos (Shopify los tomaría como 0) */
+    sheet?.querySelector('form')?.addEventListener('submit', (e) => {
+      e.currentTarget.querySelectorAll('input[type="number"]').forEach((i) => {
+        if (i.value === '') i.disabled = true;
+      });
+    });
+
+    /* Ver más prendas: agrega la página siguiente sin recargar */
+    root.addEventListener('click', async (e) => {
+      const more = e.target.closest('[data-mm-shop-more]');
+      if (!more) return;
+      e.preventDefault();
+      more.setAttribute('aria-busy', 'true');
+      try {
+        const url = new URL(more.href, location.origin);
+        url.searchParams.set('section_id', '{{ section.id }}');
+        const html = new DOMParser().parseFromString(await fetch(url).then((r) => r.text()), 'text/html');
+        const grid = root.querySelector('[data-mm-shop-grid]');
+        html.querySelectorAll('[data-mm-shop-grid] > li').forEach((li) => grid.appendChild(document.importNode(li, true)));
+        const next = html.querySelector('.mm-shop__more');
+        const current = root.querySelector('.mm-shop__more');
+        if (next) current.replaceWith(document.importNode(next, true));
+        else current.remove();
+        history.replaceState(null, '', more.href);
+      } catch {
+        location.href = more.href;
+      }
+    });
+
+    /* Colores de la tarjeta: cambian la foto y el enlace a ese color */
+    root.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mm-pc__color');
+      if (!btn) return;
+      const card = btn.closest('[data-mm-pc]');
+      card.querySelectorAll('.mm-pc__color').forEach((b) => b.classList.toggle('is-active', b === btn));
+      const img = card.querySelector('[data-mm-pc-img]');
+      if (img && btn.dataset.mmPcSrc) {
+        img.removeAttribute('srcset');
+        img.src = btn.dataset.mmPcSrc;
+        card.classList.add('is-color-picked');
+      }
+      if (btn.dataset.mmPcUrl) card.querySelectorAll('[data-mm-pc-link]').forEach((a) => (a.href = btn.dataset.mmPcUrl));
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-shop {
+    --mm-shop-gap: 4px;
+    --mm-shop-pad: var(--page-margin, 16px);
+
+    padding-bottom: 48px;
+  }
+
+  /* Título */
+  .mm-shop__head {
+    padding: 20px var(--mm-shop-pad) 14px;
+    text-align: center;
+  }
+
+  .mm-shop__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* Categorías */
+  .mm-shop__cats-track {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0 var(--mm-shop-pad) 4px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--mm-shop-pad);
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .mm-shop__cats-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mm-shop__cat {
+    flex: 0 0 28%;
+    max-width: 180px;
+    scroll-snap-align: start;
+  }
+
+  .mm-shop__cat-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .mm-shop__cat-media {
+    display: block;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: #f2f2f2;
+  }
+
+  .mm-shop__cat-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .mm-shop__cat-link:hover .mm-shop__cat-img {
+    transform: scale(1.03);
+  }
+
+  .mm-shop__cat-label {
+    display: block;
+    padding-top: 8px;
+    font-size: 0.75rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  .mm-shop__cat-link.is-current .mm-shop__cat-label {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  /* Barra Filtrar / cantidad / Ordenar */
+  .mm-shop__bar {
+    position: sticky;
+    top: var(--header-height, 0px);
+    z-index: 3;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    padding: 10px var(--mm-shop-pad);
+    background: var(--color-background, #fff);
+    border-block: 1px solid rgb(var(--color-foreground-rgb) / 0.08);
+  }
+
+  .mm-shop__filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 6px;
+    padding: 6px 0;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mm-shop__filter-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .mm-shop__filter-count {
+    color: #c2416c;
+  }
+
+  .mm-shop__count {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .mm-shop__sort {
+    position: relative;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .mm-shop__sort select {
+    max-width: 150px;
+    padding: 6px 20px 6px 0;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: inherit;
+    text-align: end;
+    background: none;
+    border: 0;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .mm-shop__sort svg {
+    position: absolute;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+
+  /* Filtros activos */
+  .mm-shop__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px var(--mm-shop-pad) 0;
+  }
+
+  .mm-shop__chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    color: inherit;
+    text-decoration: none;
+    background: #f7f7f7;
+    border-radius: 999px;
+  }
+
+  .mm-shop__chip--clear {
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Grilla */
+  .mm-shop__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px var(--mm-shop-gap);
+    margin: 14px 0 0;
+    padding: 0;
+  }
+
+  .mm-shop__item--featured {
+    grid-column: 1 / -1;
+  }
+
+  .mm-shop__empty {
+    grid-column: 1 / -1;
+    padding: 48px var(--mm-shop-pad);
+    text-align: center;
+  }
+
+  .mm-shop__empty a {
+    color: inherit;
+    font-weight: 600;
+  }
+
+  /* Ver más */
+  .mm-shop__more {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    margin-top: 32px;
+    padding-inline: var(--mm-shop-pad);
+  }
+
+  .mm-shop__more-text {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .mm-shop__more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+    min-height: 48px;
+    padding: 0 24px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border: 1px solid var(--color-foreground);
+    border-radius: 4px;
+  }
+
+  .mm-shop__more-btn[aria-busy='true'] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Tarjeta */
+  .mm-pc__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: #f2f2f2;
+  }
+
+  .mm-pc__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mm-pc__img--second {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  @media (hover: hover) {
+    .mm-pc:not(.is-color-picked) .mm-pc__media:hover .mm-pc__img--second {
+      opacity: 1;
+    }
+  }
+
+  .mm-pc__badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 3px 8px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8f2f50;
+    background: #f9e3e8;
+    border-radius: 3px;
+  }
+
+  .mm-pc__badge--out {
+    color: var(--color-foreground);
+    background: #fff;
+  }
+
+  .mm-pc__info {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px 8px 0;
+  }
+
+  .mm-pc__text {
+    min-width: 0;
+  }
+
+  .mm-pc__name {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .mm-pc__price {
+    display: flex;
+    gap: 6px;
+    margin: 0 0 4px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+
+  .mm-pc__price s {
+    font-weight: 400;
+    color: rgb(var(--color-foreground-rgb) / 0.5);
+  }
+
+  .mm-pc__line {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+  }
+
+  .mm-pc__line--transfer {
+    color: #c2416c;
+  }
+
+  .mm-pc__colors {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    max-width: 64px;
+    margin: 2px 0 0;
+    padding: 0;
+  }
+
+  .mm-pc__color {
+    position: relative;
+    display: block;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    background: var(--mm-sw, #ddd);
+    border: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+    cursor: pointer;
+  }
+
+  .mm-pc__color::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+
+  .mm-pc__color.is-active {
+    box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px var(--color-foreground);
+  }
+
+  .mm-pc__more {
+    font-size: 0.6875rem;
+    line-height: 14px;
+  }
+
+  /* Tarjeta grande: más aire en el texto */
+  .mm-pc--featured .mm-pc__media {
+    aspect-ratio: 4 / 5;
+  }
+
+  .mm-pc--featured .mm-pc__info {
+    padding: 12px var(--mm-shop-pad) 0;
+  }
+
+  .mm-pc--featured .mm-pc__name,
+  .mm-pc--featured .mm-pc__price {
+    font-size: 0.9375rem;
+  }
+
+  .mm-pc--featured .mm-pc__line {
+    font-size: 0.75rem;
+  }
+
+  .mm-pc--featured .mm-pc__colors {
+    max-width: none;
+  }
+
+  .mm-pc--featured .mm-pc__color {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Panel de filtros */
+  .mm-shop__fgroup {
+    margin: 0;
+    padding: 18px 0;
+    border: 0;
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / 0.08);
+  }
+
+  .mm-shop__flabel {
+    float: left;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .mm-shop__opts {
+    clear: both;
+    display: grid;
+    gap: 10px;
+  }
+
+  .mm-shop__opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+
+  .mm-shop__opt input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-foreground);
+  }
+
+  .mm-shop__opt.is-disabled {
+    opacity: 0.4;
+  }
+
+  .mm-shop__opt-count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.5);
+  }
+
+  .mm-shop__sw {
+    width: 18px;
+    height: 18px;
+    background: var(--mm-sw, #ddd);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+  }
+
+  .mm-shop__price {
+    clear: both;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mm-shop__price label {
+    display: grid;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  .mm-shop__price input {
+    height: 44px;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--color-foreground);
+    border: 1px solid #dcdcdc;
+    border-radius: 4px;
+  }
+
+  .mm-shop__factions {
+    position: sticky;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 0 calc(var(--page-margin, 20px) * -1);
+    padding: 14px var(--page-margin, 20px) calc(14px + env(safe-area-inset-bottom));
+    background: var(--color-background, #fff);
+  }
+
+  .mm-shop__factions .mm-sheet__btn {
+    margin-top: 0;
+    text-decoration: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .mm-shop {
+      --mm-shop-gap: 8px;
+    }
+
+    .mm-shop__head {
+      padding-top: 32px;
+    }
+
+    .mm-shop__title {
+      font-size: 1.5rem;
+    }
+
+    .mm-shop__cats-track {
+      justify-content: safe center;
+      gap: 14px;
+    }
+
+    .mm-shop__cat {
+      flex-basis: 160px;
+    }
+
+    .mm-shop__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 36px var(--mm-shop-gap);
+    }
+
+    .mm-shop__item--featured {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+
+    .mm-pc--featured {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .mm-pc--featured .mm-pc__media {
+      flex: 1;
+      aspect-ratio: auto;
+      min-height: 0;
+    }
+
+    .mm-pc--featured .mm-pc__info {
+      padding-inline: 8px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Tienda Maramour",
+  "tag": "section",
+  "class": "section-wrapper",
+  "enabled_on": { "templates": ["collection"] },
+  "settings": [
+    { "type": "text", "id": "all_title", "label": "Título en «Ver todo»", "default": "Tienda" },
+    { "type": "range", "id": "per_page", "label": "Prendas por página", "min": 8, "max": 48, "step": 4, "default": 24 },
+    { "type": "checkbox", "id": "featured_first", "label": "Primera prenda en grande", "default": true },
+    { "type": "range", "id": "installments", "label": "Cuotas sin interés", "min": 1, "max": 12, "step": 1, "default": 3 },
+    { "type": "range", "id": "transfer_discount", "label": "Descuento por transferencia", "min": 0, "max": 30, "step": 1, "unit": "%", "default": 10 }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Categoría",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Colección", "info": "Vacío = todos los productos («Ver todo»)." },
+        { "type": "text", "id": "label", "label": "Nombre (opcional)" },
+        { "type": "image_picker", "id": "image", "label": "Foto (opcional)", "info": "Si queda vacío, usa la foto de la colección." }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Tienda Maramour" }]
+}
+{% endschema %}
