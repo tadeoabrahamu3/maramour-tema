@@ -11,6 +11,17 @@
     display: none !important;
   }
 
+  /* Compu: menú y carrito a la misma distancia de los bordes (40 px) */
+  @media screen and (min-width: 990px) {
+    .header .header__column--left .header-menu {
+      margin-inline-start: 10px;
+    }
+
+    .header .header__column--right {
+      margin-inline-end: -10px;
+    }
+  }
+
   /* (El footer tiene sus estilos en sections/maramour-footer.liquid) */
 
   /* Sin el resaltado azul al tocar en el celular, en toda la web */
