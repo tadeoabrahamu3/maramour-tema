@@ -92,8 +92,25 @@
       endif
     %}
 
+    {%- liquid
+      # MARAMOUR: en compu se muestran solo los enlaces de «Enlaces en compu» (por nombre); el celular usa el menú completo
+      assign desktop_list = ''
+      if block_settings.desktop_links != blank
+        assign desktop_list = block_settings.desktop_links | downcase | split: ','
+        assign desktop_joined = ''
+        for t in desktop_list
+          assign tt = t | strip
+          assign desktop_joined = desktop_joined | append: ',' | append: tt
+        endfor
+        assign desktop_list = desktop_joined | append: ','
+      endif
+    -%}
     {% capture children %}
       {% for link in block_settings.menu.links %}
+        {%- if desktop_list != blank -%}
+          {%- assign mm_lt = link.title | downcase | strip | prepend: ',' | append: ',' -%}
+          {%- unless desktop_list contains mm_lt -%}{%- continue -%}{%- endunless -%}
+        {%- endif -%}
         <li
           class="menu-list__list-item"
           on:blur="/deactivate"
@@ -825,6 +842,12 @@
       "id": "menu",
       "label": "t:settings.menu",
       "default": "main-menu"
+    },
+    {
+      "type": "text",
+      "id": "desktop_links",
+      "label": "Enlaces en compu",
+      "info": "Nombres de los enlaces del menú que se ven en compu, separados por coma. Vacío = todos. El celular muestra el menú completo."
     },
     {
       "type": "header",
