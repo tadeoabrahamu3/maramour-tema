@@ -115,7 +115,7 @@
           "type": "question",
           "settings": {
             "question": "Condiciones para realizar un cambio",
-            "answer": "<p>Todos los productos comprados en la tienda pueden ser cambiados dentro de 10 días a partir de la fecha de entrega.<br><br>El producto debe estar en su estado original, sin uso y con todas las etiquetas originales.</p>"
+            "answer": "<p>Todos los productos comprados en la tienda pueden ser cambiados dentro de 30 días a partir de la fecha de entrega.<br><br>El producto debe estar en su estado original, sin uso y con todas las etiquetas originales.</p>"
           }
         },
         "q_16": {
@@ -149,7 +149,7 @@
           "type": "question",
           "settings": {
             "question": "Condiciones para realizar una devolución",
-            "answer": "<p>Todos los productos comprados en la tienda pueden ser devueltos dentro de 10 días a partir de la fecha de entrega.<br><br>El producto debe estar en su estado original, sin uso y con todas las etiquetas originales.</p>"
+            "answer": "<p>Todos los productos comprados en la tienda pueden ser devueltos dentro de 30 días a partir de la fecha de entrega.<br><br>El producto debe estar en su estado original, sin uso y con todas las etiquetas originales.</p>"
           }
         },
         "q_21": {
