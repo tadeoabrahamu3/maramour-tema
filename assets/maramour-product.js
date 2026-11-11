@@ -82,7 +82,7 @@ document.addEventListener('click', (event) => {
 
 /*
  * Talle agotado: tocarlo no lo elige (no se puede comprar); abre el popup «Avisame cuando vuelva»
- * con el color elegido y ese talle. El pedido se envía con el formulario de contacto nativo.
+ * con el color elegido y ese talle. Se envía con el formulario de cliente nativo + etiqueta aviso-…
  */
 document.addEventListener(
   'click',
@@ -97,8 +97,6 @@ document.addEventListener(
 
     const picker = label.closest('variant-picker');
     const color = picker?.querySelector('.mm-opt--color input:checked')?.value;
-    const variantTitle = [color, input.value].filter(Boolean).join(' / ');
-    const productTitle = picker?.dataset.productTitle || document.title;
 
     dialog.querySelector('[data-mm-notify-variant]').textContent = [color, `Talle ${input.value}`].filter(Boolean).join(' · ');
     const img = dialog.querySelector('[data-mm-notify-img]');
@@ -107,8 +105,18 @@ document.addEventListener(
       img.src = colorImg.currentSrc || colorImg.src;
       img.removeAttribute('srcset');
     }
-    dialog.querySelector('[data-mm-notify-field="variant"]').value = variantTitle;
-    dialog.querySelector('[data-mm-notify-field="body"]').value = `Avisar cuando vuelva a entrar en stock: ${productTitle} — ${variantTitle}`;
+    // Variante pedida: las opciones elegidas en cada grupo, con el talle tocado en el suyo
+    const chosen = [...(picker?.querySelectorAll('fieldset') || [])].map((fs) => {
+      if (fs.contains(input)) return input.value;
+      return fs.querySelector('input:checked')?.value ?? fs.querySelector('select')?.value;
+    });
+    let variants = [];
+    try {
+      variants = JSON.parse(dialog.querySelector('[data-mm-notify-variants]')?.textContent || '[]');
+    } catch {}
+    const match = variants.find((v) => v.options.length === chosen.length && v.options.every((o, i) => o === chosen[i]));
+    const tagField = dialog.querySelector('[data-mm-notify-field="tags"]');
+    if (tagField) tagField.value = match ? `aviso-${match.id}-${dialog.dataset.mmHandle}` : '';
     dialog.querySelector('[data-mm-notify-body]').hidden = false;
     dialog.querySelector('[data-mm-notify-done]').hidden = true;
     dialog.querySelector('[data-mm-notify-error]').hidden = true;
@@ -132,6 +140,13 @@ document.addEventListener('submit', (event) => {
     form.reportValidity();
     return;
   }
+  // Sin variante identificada no se puede avisar: mejor mostrar el error que suscribir sin aviso
+  if (!form.querySelector('[data-mm-notify-field="tags"]')?.value) {
+    event.preventDefault();
+    const error = form.querySelector('[data-mm-notify-error]');
+    if (error) error.hidden = false;
+    return;
+  }
   try {
     sessionStorage.setItem('mm-notify', '1');
   } catch {}
@@ -145,7 +160,7 @@ const showNotifyDone = () => {
     pending = sessionStorage.getItem('mm-notify') === '1';
     sessionStorage.removeItem('mm-notify');
   } catch {}
-  if (!pending || !(params.get('mm_notify') === 'ok' || params.get('contact_posted') === 'true')) return;
+  if (!pending || !(params.get('mm_notify') === 'ok' || params.get('contact_posted') === 'true' || params.get('customer_posted') === 'true')) return;
   const dialog = document.getElementById('mm-notify');
   if (!(dialog instanceof HTMLDialogElement)) return;
   dialog.querySelector('[data-mm-notify-body]').hidden = true;
@@ -153,6 +168,7 @@ const showNotifyDone = () => {
   dialog.showModal();
   params.delete('mm_notify');
   params.delete('contact_posted');
+  params.delete('customer_posted');
   const query = params.toString();
   history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
 };

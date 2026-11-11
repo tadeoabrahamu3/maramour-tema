@@ -2,8 +2,8 @@
   MARAMOUR — Debajo del botón de compra:
   - Con stock: «En stock» o, si quedan pocas, «¡Últimas N unidades!» + envío gratis.
   - Sin stock (talle/color agotado): formulario «Avisame cuando vuelva». Usa el formulario de
-    contacto nativo de Shopify: el pedido llega al mail de la tienda con el producto y la variante
-    (sin apps ni scripts externos).
+    cliente nativo (newsletter) con la etiqueta aviso-<id variante>-<handle>. Cuando la variante
+    vuelve a tener stock, Shopify Flow le manda el mail «¡Volvió tu talle!» y borra la etiqueta.
   Se actualiza al cambiar de variante (mm-variant-sync).
 {%- enddoc -%}
 
@@ -46,7 +46,7 @@
     </div>
   {%- else -%}
     <div class="mm-stock__notify">
-      {%- form 'contact', return_to: return_url, class: 'mm-stock__form', data-mm-notify-form: '' -%}
+      {%- form 'customer', return_to: return_url, class: 'mm-stock__form', data-mm-notify-form: '' -%}
         {%- if form.posted_successfully? -%}
           <p class="mm-stock__done" role="status">
             ¡Listo! Te avisamos por mail apenas vuelva a entrar en stock.
@@ -54,10 +54,7 @@
         {%- else -%}
           <p class="mm-stock__title">{{ bs.notify_title | escape }}</p>
           <p class="mm-stock__hint">{{ bs.notify_text | escape }}</p>
-          <input type="hidden" name="contact[Motivo]" value="Aviso de stock">
-          <input type="hidden" name="contact[Producto]" value="{{ product.title | escape }}">
-          <input type="hidden" name="contact[Variante]" value="{{ variant.title | escape }}{% if variant.sku != blank %} (SKU {{ variant.sku | escape }}){% endif %}">
-          <input type="hidden" name="contact[body]" value="Avisar cuando vuelva a entrar en stock: {{ product.title | escape }} — {{ variant.title | escape }}">
+          <input type="hidden" name="contact[tags]" value="aviso-{{ variant.id }}-{{ product.handle }}">
           <div class="mm-stock__field">
             <label class="visually-hidden" for="mm-stock-email-{{ block.id }}">Tu email</label>
             <input
@@ -71,6 +68,7 @@
             <button type="submit">Avisame</button>
           </div>
           <p class="mm-stock__error" role="alert"{% unless form.errors %} hidden{% endunless %}>Revisá el email e intentá de nuevo.</p>
+          <p class="mm-stock__legal">Al pedir el aviso te sumás a las novedades de Maramour. Te podés dar de baja cuando quieras.</p>
         {%- endif -%}
       {%- endform -%}
     </div>
@@ -78,7 +76,7 @@
 </mm-variant-sync>
 
 {%- comment -%} Popup al tocar un talle agotado (lo abre assets/maramour-product.js) {%- endcomment -%}
-<dialog class="mm-sheet mm-sheet--notify" id="mm-notify" aria-labelledby="mm-notify-title">
+<dialog class="mm-sheet mm-sheet--notify" id="mm-notify" aria-labelledby="mm-notify-title" data-mm-handle="{{ product.handle }}">
   <div class="mm-sheet__panel">
     <button type="button" class="mm-sheet__close" data-mm-close aria-label="Cerrar">
       <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 4l12 12M16 4 4 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
@@ -98,17 +96,22 @@
         </div>
       </div>
 
+      {%- comment -%}
+        Formulario de cliente (newsletter) con la etiqueta aviso-<id variante>-<handle>.
+        Shopify Flow (workflow «Aviso de stock») busca esa etiqueta cuando la variante vuelve
+        a tener stock, manda el mail y después la borra.
+      {%- endcomment -%}
+      <script type="application/json" data-mm-notify-variants>
+        [{%- for v in product.variants -%}{"id":{{ v.id }},"options":{{ v.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]
+      </script>
       {%- assign notify_return = product.url | append: '?mm_notify=ok' -%}
-      {%- form 'contact', id: 'mm-notify-form', class: 'mm-notify__form', return_to: notify_return, data-mm-notify-form: '' -%}
-        <input type="hidden" name="contact[Motivo]" value="Aviso de stock">
-        <input type="hidden" name="contact[Producto]" value="{{ product.title | escape }}">
-        <input type="hidden" name="contact[Variante]" value="" data-mm-notify-field="variant">
-        <input type="hidden" name="contact[body]" value="" data-mm-notify-field="body">
+      {%- form 'customer', id: 'mm-notify-form', class: 'mm-notify__form', return_to: notify_return, data-mm-notify-form: '' -%}
+        <input type="hidden" name="contact[tags]" value="" data-mm-notify-field="tags">
         <label class="mm-notify__label" for="mm-notify-email">Tu email</label>
         <input class="mm-notify__input" id="mm-notify-email" type="email" name="contact[email]" placeholder="nombre@email.com" autocomplete="email" required>
         <p class="mm-stock__error" data-mm-notify-error hidden>Revisá el email e intentá de nuevo.</p>
         <button type="submit" class="mm-sheet__btn">Avisame</button>
-        <p class="mm-notify__note">Solo te escribimos por este aviso. Nada de spam.</p>
+        <p class="mm-notify__note">Al pedir el aviso te sumás a las novedades de Maramour. Te podés dar de baja cuando quieras.</p>
       {%- endform -%}
     </div>
     <div class="mm-notify__done" data-mm-notify-done hidden role="status">
@@ -212,6 +215,13 @@
     background: #fff;
     border: 1px solid rgb(var(--color-foreground-rgb) / 0.2);
     border-radius: 6px;
+  }
+
+  .mm-stock__legal {
+    margin: 8px 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
   }
 
   .mm-stock__field button {
