@@ -87,14 +87,6 @@
     const load = () =>
       Promise.all(previous.map(fetchCard)).then((items) => {
         const found = items.filter(Boolean);
-        // Saca de la lista las prendas que ya no existen
-        if (found.length < previous.length) {
-          const ok = new Set(found.map((li) => li.dataset.handle));
-          try {
-            const list = JSON.parse(localStorage.getItem(KEY) || '[]');
-            localStorage.setItem(KEY, JSON.stringify(list.filter((h) => h === current || ok.has(h) || !previous.includes(h))));
-          } catch (e) {}
-        }
         if (!found.length) return root.remove();
         track.replaceChildren(...found.map((li) => document.importNode(li, true)));
         root.hidden = false;
