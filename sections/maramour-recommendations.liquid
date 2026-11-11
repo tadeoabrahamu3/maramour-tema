@@ -43,7 +43,10 @@
     <div class="mm-feat__head">
       <h2 class="mm-feat__title">{{ s.heading | escape }}</h2>
     </div>
-    <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track></ul>
+    <div class="mm-feat__panel" data-mm-arrows>
+      <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track data-mm-arrows-track></ul>
+      {%- render 'maramour-carousel-arrows' -%}
+    </div>
     <div class="mm-feat__progress" aria-hidden="true">
       <span class="mm-feat__progress-thumb" data-mm-feat-thumb></span>
     </div>
@@ -70,6 +73,7 @@
       track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
       window.addEventListener('resize', update, { passive: true });
       update();
+      track.dispatchEvent(new Event('scroll'));
     };
 
     const load = () =>

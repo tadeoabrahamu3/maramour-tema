@@ -3,14 +3,13 @@
   «Tabla de talles» abre el popup con la tabla, la guía para medirse y la ayuda.
   «¿Qué talle soy?» abre el recomendador de talle.
   La tabla sale del metacampo del producto «Tabla de talles» o, si está vacío, de la tabla general
-  de este bloque. La referencia de la modelo, del metacampo «Modelo» o del texto general.
+  de este bloque. (La referencia de la modelo ya no se muestra en los popups: 11/11.)
 {%- enddoc -%}
 
 {%- liquid
   assign bs = block.settings
   assign product = closest.product
   assign table_src = product.metafields.custom.tabla_de_talles.value | default: bs.size_table
-  assign model_text = product.metafields.custom.modelo.value | default: bs.model_text
 -%}
 
 <script src="{{ 'maramour-product.js' | asset_url }}" type="module"></script>
@@ -23,7 +22,6 @@
 
 {%- render 'maramour-size-dialogs',
   table_src: table_src,
-  model_text: model_text,
   whatsapp_url: bs.whatsapp_url,
   whatsapp_label: bs.whatsapp_label,
   hours: bs.hours,

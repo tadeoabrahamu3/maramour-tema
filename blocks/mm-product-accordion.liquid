@@ -52,10 +52,28 @@
         <p class="mm-acc__model">{{ model_info | escape }}</p>
       {%- endif -%}
       {{ bs.size_text }}
-      <p class="mm-acc__actions">
-        <button type="button" data-mm-dialog="mm-size-finder">Calcular mi talle</button>
-        <button type="button" data-mm-dialog="mm-size-table">Ver tabla de talles</button>
-      </p>
+      <div class="mm-acc__tools">
+        <button type="button" class="mm-acc__tool" data-mm-dialog="mm-size-finder">
+          <span class="mm-acc__tool-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 16.5 16.5 4l3.5 3.5L7.5 20 4 16.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m8 12.5 1.5 1.5M10.5 10l2 2M13 7.5l1.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          <span class="mm-acc__tool-text">
+            <span class="mm-acc__tool-title">Calcular mi talle</span>
+            <span class="mm-acc__tool-sub">Con tu altura y peso, en segundos</span>
+          </span>
+          <svg class="mm-acc__tool-chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m8 5 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="mm-acc__tool" data-mm-dialog="mm-size-table">
+          <span class="mm-acc__tool-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="3.75" y="4.75" width="16.5" height="14.5" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3.75 9.5h16.5M3.75 14.25h16.5M9.25 4.75v14.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </span>
+          <span class="mm-acc__tool-text">
+            <span class="mm-acc__tool-title">Ver tabla de talles</span>
+            <span class="mm-acc__tool-sub">Medidas de pecho, cintura y cadera</span>
+          </span>
+          <svg class="mm-acc__tool-chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m8 5 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
     </div>
   </details>
 
@@ -218,27 +236,85 @@
     color: var(--color-foreground);
   }
 
-  .mm-acc__actions {
-    display: flex;
-    flex-wrap: wrap;
+  /* «¿Qué talle soy?»: dos accesos tipo tarjeta a los popups */
+  .mm-acc__tools {
+    display: grid;
     gap: 8px;
+    margin-top: 14px;
   }
 
-  .mm-acc__actions button {
-    padding: 10px 16px;
+  .mm-acc__tool {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
     font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--color-foreground);
-    background: none;
-    border: 1px solid var(--color-foreground);
-    border-radius: 999px;
+    color: #141414;
+    text-align: start;
+    background: #fff;
+    border: 1px solid rgb(20 20 20 / 0.14);
+    border-radius: 10px;
     cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
   }
 
-  .mm-acc__actions button:first-child {
-    color: #fff;
-    background: #111;
+  .mm-acc__tool:hover {
+    border-color: #141414;
+  }
+
+  .mm-acc__tool:focus-visible {
+    outline: 2px solid #c2416c;
+    outline-offset: 2px;
+  }
+
+  .mm-acc__tool-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    color: #c2416c;
+    background: #f9e3e8;
+    border-radius: 50%;
+  }
+
+  .mm-acc__tool-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mm-acc__tool-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .mm-acc__tool-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .mm-acc__tool-sub {
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: rgb(20 20 20 / 0.62);
+  }
+
+  .mm-acc__tool-chev {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    opacity: 0.55;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .mm-acc__tool:hover .mm-acc__tool-chev {
+    opacity: 1;
+    transform: translateX(2px);
   }
 
   .mm-acc__note {

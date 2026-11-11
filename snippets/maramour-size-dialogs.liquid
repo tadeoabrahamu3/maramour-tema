@@ -8,7 +8,6 @@
   Se abren con cualquier elemento [data-mm-dialog="id"].
 
   @param {string} table_src - Texto de la tabla
-  @param {string} model_text - Referencia de la modelo
   @param {string} whatsapp_url - Enlace de WhatsApp
   @param {string} whatsapp_label - Número visible
   @param {string} hours - Horario de atención
@@ -52,21 +51,16 @@
       </table>
     </div>
 
-    {%- if model_text != blank -%}
-      <p class="mm-sheet__model">{{ model_text | escape }}</p>
-    {%- endif -%}
 
     <h3 class="mm-sheet__h">Guía de talles</h3>
-    <svg class="mm-guide__figure" viewBox="0 0 160 220" fill="none" aria-hidden="true">
-      <path d="M66 6h28v16H66z" stroke="currentColor" stroke-width="1.3"/>
-      <ellipse cx="80" cy="6" rx="14" ry="3" stroke="currentColor" stroke-width="1.3"/>
-      <path d="M66 22c-2 8-12 12-24 15-12 4-17 14-15 32 2 20 9 31 15 41 4 8 2 16-3 30-6 20-8 40-4 70h90c4-30 2-50-4-70-5-14-7-22-3-30 6-10 13-21 15-41 2-18-3-28-15-32-12-3-22-7-24-15" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
-      <ellipse cx="80" cy="70" rx="60" ry="7" stroke="currentColor" stroke-width="1.3"/>
-      <ellipse cx="80" cy="120" rx="46" ry="6" stroke="currentColor" stroke-width="1.3"/>
-      <ellipse cx="80" cy="166" rx="56" ry="7" stroke="currentColor" stroke-width="1.3"/>
-      <g fill="currentColor"><circle cx="80" cy="77" r="6"/><circle cx="80" cy="126" r="6"/><circle cx="80" cy="173" r="6"/></g>
-      <g fill="#fff" font-size="8" font-weight="700" text-anchor="middle" font-family="sans-serif"><text x="80" y="80">1</text><text x="80" y="129">2</text><text x="80" y="176">3</text></g>
-    </svg>
+    <img
+      class="mm-guide__figure"
+      src="{{ 'mm-guia-talles.svg' | asset_url }}"
+      width="133"
+      height="248"
+      alt="Dónde medir: 1 pecho, 2 cintura, 3 cadera"
+      loading="lazy"
+    >
 
     <ol class="mm-guide__steps">
       <li><strong>Pecho</strong>Rodeá la espalda con el centímetro, pasándolo por debajo de los brazos y por la parte más ancha del pecho.</li>
@@ -132,9 +126,6 @@
       <button type="button" class="mm-finder__link" data-mm-again>Volver a calcular</button>
     </div>
 
-    {%- if model_text != blank -%}
-      <p class="mm-sheet__model">{{ model_text | escape }}</p>
-    {%- endif -%}
   </div>
 </dialog>
 
