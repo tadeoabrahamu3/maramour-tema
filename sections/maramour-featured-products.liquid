@@ -3,13 +3,21 @@
   Título + «Ver todo», pestañas (Destacados y categorías) y un carrusel que se desliza con el dedo,
   con una barra de progreso debajo. Sin librerías: desplazamiento nativo con «scroll-snap» y unas
   líneas de JS para pestañas y barra. Las imágenes de las pestañas ocultas no se descargan hasta
-  que se abren (carga diferida). Colecciones vacías → tarjetas de ejemplo.
+  que se abren (carga diferida). Sin productos: no se muestra (en el editor, tarjetas de ejemplo).
+  También se usa para «Sale» (colección automática: precio de comparación no vacío).
 {%- enddoc -%}
 
 {%- liquid
   assign s = section.settings
   assign limit = s.limit
   assign sid = section.id
+  assign collection = s.collection
+  assign feat_products = blank
+  if s.products != blank and s.products.count > 0
+    assign feat_products = s.products
+  elsif collection != blank and collection.products_count > 0
+    assign feat_products = collection.products
+  endif
 -%}
 
 {%- capture placeholder_cards -%}
@@ -27,6 +35,8 @@
   {%- endfor -%}
 {%- endcapture -%}
 
+{%- comment -%} Sin productos (p. ej. «Sale» sin prendas rebajadas): en la tienda no se muestra nada; en el editor, tarjetas de ejemplo {%- endcomment -%}
+{%- if feat_products != blank or request.design_mode -%}
 <div class="mm-feat" data-mm-feat style="--mm-feat-ratio: {{ s.image_ratio }}; --mm-card-ratio: {{ s.image_ratio }};">
   <div class="mm-feat__head">
     {%- if s.heading != blank -%}
@@ -57,15 +67,6 @@
     </nav>
   {%- endif -%}
 
-  {%- liquid
-    assign collection = s.collection
-    assign feat_products = blank
-    if s.products != blank and s.products.count > 0
-      assign feat_products = s.products
-    elsif collection != blank and collection.products_count > 0
-      assign feat_products = collection.products
-    endif
-  -%}
   <div class="mm-feat__panel" data-mm-arrows>
       <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track data-mm-arrows-track>
         {%- if feat_products != blank -%}
@@ -116,8 +117,16 @@
     update();
   })();
 </script>
+{%- else -%}
+  <div class="mm-feat-empty" hidden></div>
+{%- endif -%}
 
 {% stylesheet %}
+  .shopify-section:has(> .section-wrapper > .mm-feat-empty),
+  .shopify-section:has(> .mm-feat-empty) {
+    display: none;
+  }
+
   .mm-feat {
     --mm-feat-gap: 8px;
 

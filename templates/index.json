@@ -215,12 +215,30 @@
         "image": "shopify://shop_images/sweater-mujer-flecos-crema-frente-2.jpg",
         "focal_y": 40
       }
+    },
+    "sale": {
+      "type": "maramour-featured-products",
+      "settings": {
+        "heading": "SALE",
+        "products": [],
+        "collection": "sale",
+        "main_tab_label": "",
+        "link_label": "Ver todo",
+        "link_url": "shopify://collections/sale",
+        "limit": 10,
+        "image_ratio": "2 / 3",
+        "show_second_image": true,
+        "show_sale_badge": true,
+        "installments": 3,
+        "transfer_discount": 10
+      }
     }
   },
   "order": [
     "hero_video",
     "featured",
     "categories",
+    "sale",
     "lookbook",
     "custom_promo"
   ]
