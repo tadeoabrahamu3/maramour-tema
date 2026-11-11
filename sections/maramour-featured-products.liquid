@@ -75,6 +75,8 @@
                 product: product,
                 show_second_image: s.show_second_image,
                 show_sale_badge: s.show_sale_badge,
+                installments: s.installments,
+                transfer_discount: s.transfer_discount,
                 sizes: '(min-width: 990px) 22vw, 60vw'
               -%}
             </li>
@@ -291,7 +293,9 @@
       "default": "3 / 4"
     },
     { "type": "checkbox", "id": "show_second_image", "label": "Mostrar segunda foto al pasar el mouse (computadora)", "default": true },
-    { "type": "checkbox", "id": "show_sale_badge", "label": "Etiqueta «Sale» en productos rebajados", "default": true }
+    { "type": "checkbox", "id": "show_sale_badge", "label": "Etiqueta «Sale» en productos rebajados", "default": true },
+    { "type": "range", "id": "installments", "label": "Cuotas sin interés (1 = no mostrar)", "min": 1, "max": 12, "step": 1, "default": 3 },
+    { "type": "range", "id": "transfer_discount", "label": "Descuento por transferencia (0 = no mostrar)", "min": 0, "max": 30, "step": 1, "unit": "%", "default": 10 }
   ],
   "blocks": [
     {

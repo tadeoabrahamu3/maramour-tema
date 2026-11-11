@@ -1,7 +1,8 @@
 {%- doc -%}
   MARAMOUR — Tarjeta de producto (Home, recomendaciones y tienda).
   Foto principal + segunda foto al pasar el mouse (del mismo color: la 2ª foto del producto),
-  etiqueta Sale, nombre en mayúsculas y precio sin decimales.
+  etiqueta Sale, nombre en mayúsculas, precio sin decimales con las estrellas de Judge.me a la derecha,
+  cuotas sin interés y precio con transferencia (en rosa).
   La proporción la define el contenedor con --mm-card-ratio (por defecto 2:3).
 
   @param {object} product - Producto
@@ -9,6 +10,8 @@
   @param {boolean} [show_sale_badge] - Etiqueta «Sale»
   @param {string} [sizes] - Atributo sizes de la imagen
   @param {string} [loading] - 'lazy' (por defecto) o 'eager'
+  @param {number} [installments] - Cuotas sin interés (por defecto 3; 1 = no mostrar)
+  @param {number} [transfer_discount] - % de descuento por transferencia (por defecto 10; 0 = no mostrar)
 {%- enddoc -%}
 
 {%- liquid
@@ -19,6 +22,26 @@
   assign on_sale = false
   if product.compare_at_price > product.price
     assign on_sale = true
+  endif
+
+  assign n = installments | default: 3
+  assign pct = transfer_discount | default: 10
+  assign keep = 100 | minus: pct
+  assign price = product.price
+  assign cuota = price | divided_by: n | divided_by: 100 | times: 100
+  assign transfer = price | times: keep | divided_by: 10000 | times: 100
+
+  # Reseñas (metacampos estándar que completa Judge.me): sin JavaScript ni pedidos extra
+  assign r_count = product.metafields.reviews.rating_count.value | default: 0
+  assign r_data = product.metafields.reviews.rating.value
+  assign r_value = r_data.rating | default: 0
+  assign r_max = r_data.scale_max | default: 5 | round
+  assign r_pct = r_value | times: 100.0 | divided_by: r_max
+  assign r1 = r_value | round: 1
+  assign r0 = r_value | round
+  assign r_text = r1
+  if r1 == r0
+    assign r_text = r0
   endif
 -%}
 
@@ -55,12 +78,26 @@
     {%- endif -%}
   </div>
   <p class="mm-card__name">{{ product.title | escape }}</p>
-  <p class="mm-card__price">
-    {%- if on_sale -%}
-      <s class="mm-card__compare">{{ product.compare_at_price | money_without_trailing_zeros }}</s>
+  <div class="mm-card__row">
+    <p class="mm-card__price">
+      {%- if on_sale -%}
+        <s class="mm-card__compare">{{ product.compare_at_price | money_without_trailing_zeros }}</s>
+      {%- endif -%}
+      <span>{% if product.price_varies %}Desde {% endif %}{{ product.price | money_without_trailing_zeros }}</span>
+    </p>
+    {%- if r_count > 0 -%}
+      <span class="mm-card__rating" role="img" aria-label="{{ r_text }} de {{ r_max }} estrellas, {{ r_count }} {% if r_count == 1 %}reseña{% else %}reseñas{% endif %}">
+        <span class="mm-card__stars" style="--mm-rating: {{ r_pct }}%;" aria-hidden="true"></span>
+        <span class="mm-card__count" aria-hidden="true">({{ r_count }})</span>
+      </span>
     {%- endif -%}
-    <span>{% if product.price_varies %}Desde {% endif %}{{ product.price | money_without_trailing_zeros }}</span>
-  </p>
+  </div>
+  {%- if n > 1 -%}
+    <p class="mm-card__line">{{ n }} cuotas sin interés de <strong>{{ cuota | money_without_trailing_zeros }}</strong></p>
+  {%- endif -%}
+  {%- if pct > 0 -%}
+    <p class="mm-card__line mm-card__line--transfer"><strong>{{ transfer | money_without_trailing_zeros }}</strong> con transferencia</p>
+  {%- endif -%}
 </a>
 
 {% stylesheet %}
@@ -127,12 +164,53 @@
     overflow: hidden;
   }
 
+  .mm-card__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
   .mm-card__price {
     display: flex;
     gap: 8px;
     margin: 0;
     font-size: 0.8125rem;
     font-weight: 500;
+  }
+
+  /* Estrellas: 5 enteras, se pintan según el promedio (igual que en la tienda) */
+  .mm-card__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .mm-card__stars {
+    --mm-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1.5l2.6 5.5 6 .7-4.4 4.1 1.1 6L10 14.9 4.7 17.8l1.1-6L1.4 7.7l6-.7z'/%3E%3C/svg%3E");
+
+    width: 60px;
+    height: 11px;
+    background: linear-gradient(90deg, #c2416c var(--mm-rating, 0%), rgb(0 0 0 / 0.18) var(--mm-rating, 0%));
+    -webkit-mask: var(--mm-star) left center / 12px 11px repeat-x;
+    mask: var(--mm-star) left center / 12px 11px repeat-x;
+  }
+
+  .mm-card__count {
+    font-size: 0.6875rem;
+    color: rgb(0 0 0 / 0.6);
+  }
+
+  .mm-card__line {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+  }
+
+  .mm-card__line--transfer {
+    color: #c2416c;
   }
 
   .mm-card__compare {
