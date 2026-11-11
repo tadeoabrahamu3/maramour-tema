@@ -114,9 +114,6 @@ class StickyAddToCartComponent extends Component {
     const buyButtonsBlock = productForm.closest('.buy-buttons-block');
     if (!buyButtonsBlock) return;
 
-    // In themes migrated from 2.0, the footer element doesn't exist
-    const footer = document.querySelector('footer') ?? document.querySelector('[class*="footer-group"]');
-    if (!footer) return;
 
     // Observer for buy buttons visibility
     this.#buyButtonsIntersectionObserver = new IntersectionObserver((entries) => {
@@ -165,7 +162,9 @@ class StickyAddToCartComponent extends Component {
     );
 
     this.#buyButtonsIntersectionObserver.observe(buyButtonsBlock);
-    this.#mainBottomObserver.observe(footer);
+    // MARAMOUR: la barra queda fija hasta el final de la página (no se esconde al llegar al footer,
+    // porque aparecer y desaparecer molesta). Por eso no se observa el footer.
+    void this.#mainBottomObserver;
     this.#targetAddToCartButton = productForm.querySelector('[ref="addToCartButton"]');
   }
 
@@ -278,7 +277,7 @@ class StickyAddToCartComponent extends Component {
     const selectedOptions = Array.from(variantPicker.querySelectorAll('input:checked'))
       .map((option) => /** @type {HTMLInputElement} */ (option).value)
       .filter((value) => value !== '')
-      .join(' / ');
+      .join(' · ');
     if (!selectedOptions) return;
     variantTitleElement.textContent = selectedOptions;
   };

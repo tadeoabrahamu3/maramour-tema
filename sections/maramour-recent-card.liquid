@@ -1,0 +1,27 @@
+{%- doc -%}
+  MARAMOUR — Tarjeta de un producto para «Visto recientemente» (solo para pedir por JavaScript).
+  No se agrega a ninguna página: la sección «Visto recientemente» la pide así:
+  /products/HANDLE?section_id=maramour-recent-card
+  Devuelve la misma tarjeta de la Home para ese producto.
+{%- enddoc -%}
+
+{%- if product -%}
+  <ul class="list-unstyled" data-mm-recent-feed>
+    <li class="mm-feat__item" data-handle="{{ product.handle | escape }}">
+      {%- render 'maramour-product-card',
+        product: product,
+        show_second_image: true,
+        show_sale_badge: true,
+        sizes: '(min-width: 990px) 22vw, 60vw'
+      -%}
+    </li>
+  </ul>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Visto recientemente (datos)",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

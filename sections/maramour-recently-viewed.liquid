@@ -1,0 +1,147 @@
+{%- doc -%}
+  MARAMOUR — «Visto recientemente» en la página de producto.
+  Guarda en el navegador de la clienta las prendas que va mirando (solo en su dispositivo) y, si antes
+  vio otras, las muestra con la misma tarjeta y carrusel de la Home (sin la prenda actual).
+  Si es la primera prenda que mira, la sección no aparece.
+  Rendimiento: las tarjetas se piden recién cuando la clienta se acerca a esta parte de la página.
+{%- enddoc -%}
+
+{%- liquid
+  assign s = section.settings
+  assign current = product | default: closest.product
+-%}
+
+<div
+  class="mm-feat mm-recent"
+  data-mm-recent
+  data-handle="{{ current.handle | escape }}"
+  data-limit="{{ s.limit }}"
+  style="--mm-feat-ratio: {{ s.image_ratio }}; --mm-card-ratio: {{ s.image_ratio }};"
+  hidden
+>
+  <div class="mm-feat__head">
+    <h2 class="mm-feat__title">{{ s.heading | escape }}</h2>
+  </div>
+  <ul class="mm-feat__track list-unstyled" role="list" data-mm-feat-track></ul>
+  <div class="mm-feat__progress" aria-hidden="true">
+    <span class="mm-feat__progress-thumb" data-mm-feat-thumb></span>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const root = document.currentScript.previousElementSibling;
+    if (!root || !root.matches('[data-mm-recent]')) return;
+    const KEY = 'mm_recent';
+    const MAX_SAVED = 12;
+    const current = root.dataset.handle;
+    const limit = Number(root.dataset.limit) || 8;
+
+    let saved = [];
+    try {
+      saved = JSON.parse(localStorage.getItem(KEY) || '[]');
+      if (!Array.isArray(saved)) saved = [];
+    } catch (e) {
+      saved = [];
+    }
+    saved = saved.filter((h) => typeof h === 'string' && h);
+
+    // Lo que vio antes (sin la prenda actual), del más reciente al más viejo
+    const previous = saved.filter((h) => h !== current).slice(0, limit);
+
+    // Guarda la prenda actual primero
+    try {
+      localStorage.setItem(KEY, JSON.stringify([current, ...saved.filter((h) => h !== current)].slice(0, MAX_SAVED)));
+    } catch (e) {}
+
+    if (!previous.length) return root.remove();
+
+    const track = root.querySelector('[data-mm-feat-track]');
+    const thumb = root.querySelector('[data-mm-feat-thumb]');
+
+    const initBar = () => {
+      const update = () => {
+        const { scrollLeft, scrollWidth, clientWidth } = track;
+        const visible = Math.min(1, clientWidth / scrollWidth);
+        const max = scrollWidth - clientWidth;
+        const progress = max > 0 ? scrollLeft / max : 0;
+        thumb.style.width = `${visible * 100}%`;
+        thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
+      };
+      track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      update();
+    };
+
+    const base = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) || '/';
+    const fetchCard = (handle) =>
+      fetch(`${base}products/${encodeURIComponent(handle)}?section_id=maramour-recent-card`)
+        .then((r) => (r.ok ? r.text() : null))
+        .then((text) => {
+          if (!text) return null;
+          const html = new DOMParser().parseFromString(text, 'text/html');
+          return html.querySelector('[data-mm-recent-feed] > li');
+        })
+        .catch(() => null);
+
+    const load = () =>
+      Promise.all(previous.map(fetchCard)).then((items) => {
+        const found = items.filter(Boolean);
+        // Saca de la lista las prendas que ya no existen
+        if (found.length < previous.length) {
+          const ok = new Set(found.map((li) => li.dataset.handle));
+          try {
+            const list = JSON.parse(localStorage.getItem(KEY) || '[]');
+            localStorage.setItem(KEY, JSON.stringify(list.filter((h) => h === current || ok.has(h) || !previous.includes(h))));
+          } catch (e) {}
+        }
+        if (!found.length) return root.remove();
+        track.replaceChildren(...found.map((li) => document.importNode(li, true)));
+        root.hidden = false;
+        initBar();
+      });
+
+    if (!('IntersectionObserver' in window)) return load();
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          load();
+        }
+      },
+      { rootMargin: '600px 0px' }
+    );
+    io.observe(root.parentElement || root);
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-recent[hidden] {
+    display: none;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Visto recientemente",
+  "tag": "section",
+  "class": "section-wrapper",
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título", "default": "Visto recientemente" },
+    { "type": "range", "id": "limit", "label": "Cantidad máxima de productos", "min": 2, "max": 12, "step": 1, "default": 8 },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Proporción de la foto",
+      "options": [
+        { "value": "2 / 3", "label": "2:3" },
+        { "value": "3 / 4", "label": "3:4" },
+        { "value": "4 / 5", "label": "4:5" }
+      ],
+      "default": "2 / 3"
+    }
+  ],
+  "presets": [{ "name": "Visto recientemente" }]
+}
+{% endschema %}

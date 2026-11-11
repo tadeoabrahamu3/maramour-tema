@@ -98,27 +98,26 @@
         >
           {{ product.title | escape }}
         </p>
-        <div
-          class="sticky-add-to-cart__variant"
-          data-testid="sticky-variant-title"
-          {% if product.has_only_default_variant %}
-            style="display: none;"
-          {% endif %}
-        >
-          {% unless product.has_only_default_variant %}
-            {% if current_variant != blank %}
-              {% assign variant_title = current_variant.title | escape %}
-            {% endif %}
-            {{ variant_title }}
-          {% endunless %}
-        </div>
-      </div>
-
-      <div
-        class="sticky-add-to-cart__price"
-        data-testid="sticky-price-display"
-      >
-        {% render 'price', product_resource: product, show_sale_price_first: true %}
+        <p class="sticky-add-to-cart__meta">
+          {%- unless product.has_only_default_variant -%}
+            <span
+              class="sticky-add-to-cart__variant"
+              data-testid="sticky-variant-title"
+            >
+              {%- if current_variant != blank -%}{{ current_variant.title | replace: ' / ', ' · ' | escape }}{%- endif -%}
+            </span>
+            <span aria-hidden="true"> · </span>
+          {%- endunless -%}
+          <span
+            class="sticky-add-to-cart__price"
+            data-testid="sticky-price-display"
+          >
+            {%- if current_variant.compare_at_price > current_variant.price -%}
+              <s>{{ current_variant.compare_at_price | money_without_trailing_zeros }}</s>
+            {% endif -%}
+            <strong>{{ current_variant.price | default: product.price | money_without_trailing_zeros }}</strong>
+          </span>
+        </p>
       </div>
 
       <button
@@ -133,15 +132,10 @@
         <span
           class="add-to-cart-text"
         >
-          {% if current_variant.available %}
-            <span class="svg-wrapper">
-              {{- 'icon-add-to-cart.svg' | inline_asset_content -}}
-            </span>
-          {% endif %}
           <span class="add-to-cart-text__content">
             <span>
               {%- if current_variant.available -%}
-                {{- 'products.product.add_to_cart' | t -}}
+                Agregar
               {%- elsif current_variant == blank -%}
                 {{- 'products.product.unavailable' | t -}}
               {%- else -%}
@@ -184,78 +178,57 @@
 %}
 
 {% stylesheet %}
+  /* MARAMOUR — Barra fija «Agregar» (aparece al pasar los botones de compra y queda fija hasta el final) */
   .sticky-add-to-cart__bar {
     position: fixed;
-    bottom: max(20px, var(--safe-area-inset-bottom));
-    left: 50%; /* stylelint-disable-line csstools/use-logical -- centring pair with a physical translateX(-50%) */
-    opacity: 0;
-    transform: translateX(-50%) translateY(calc(100% + 40px));
+    inset-inline: 0;
+    bottom: 0;
     z-index: calc(var(--layer-sticky) - 1); /* Below sticky header */
-    display: block;
-    width: 600px;
-    border-radius: calc(
-      var(--style-border-radius-buttons-primary) + min(var(--padding-sm), var(--style-border-radius-buttons-primary))
-    );
-    box-shadow: var(--shadow-popover);
-    padding: var(--padding-sm);
-    /* Layout styling */
     display: flex;
     align-items: center;
-    gap: var(--gap-md);
-
-    @starting-style {
-      opacity: 0;
-      transform: translateX(-50%) translateY(calc(100% + 40px));
-    }
-
-    &::before {
-      --border: 2px;
-      content: '';
-      position: absolute;
-      inset: calc(var(--border) * -1);
-      background: linear-gradient(var(--color-background) 0 100%), linear-gradient(hsl(0 0% 0% / 0.15) 0 100%);
-      background-clip: content-box, border-box;
-      border: var(--border) solid #0000;
-      border-radius: inherit;
-      z-index: -1;
-      backdrop-filter: blur(20px) saturate(180%) brightness(1.5);
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .sticky-add-to-cart__bar {
-      transition-property: transform, opacity, display;
-      transition-duration: 0.3s;
-      transition-timing-function: var(--ease-out-quad);
-      transition-behavior: allow-discrete;
-    }
+    gap: 12px;
+    padding: 10px 16px calc(10px + var(--safe-area-inset-bottom, 0px));
+    background: #fff;
+    color: #141414;
+    border-top: 1px solid #ececec;
+    box-shadow: 0 -6px 18px rgb(0 0 0 / 0.04);
+    transform: translateY(105%);
+    visibility: hidden;
+    transition: transform 0.3s ease, visibility 0s linear 0.3s;
   }
 
   .sticky-add-to-cart__bar[data-stuck='true'] {
-    transform: translateX(-50%) translateY(0%);
-    opacity: 1;
+    transform: none;
+    visibility: visible;
+    transition: transform 0.3s ease, visibility 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sticky-add-to-cart__bar,
+    .sticky-add-to-cart__bar[data-stuck='true'] {
+      transition: none;
+    }
   }
 
   sticky-add-to-cart:not([data-variant-available='true']) .sticky-add-to-cart__bar {
-    opacity: 0;
-    transform: translateX(-50%) translateY(calc(100% + 40px));
     display: none;
   }
 
-  .sticky-add-to-cart__info[data-has-image='false'] {
-    padding-inline-start: var(--padding-lg);
+  /* Deja lugar abajo para que la barra no tape el final del footer */
+  body:has(.sticky-add-to-cart__bar[data-stuck='true']) {
+    padding-bottom: calc(74px + var(--safe-area-inset-bottom, 0px));
   }
 
   .sticky-add-to-cart__image {
     flex-shrink: 0;
-    aspect-ratio: 1;
-    height: var(--height-buy-buttons);
+    width: 40px;
+    aspect-ratio: 3 / 4;
     overflow: hidden;
-    border-radius: var(--style-border-radius-buttons-primary);
-    background: var(--color-background-secondary);
+    background: #f2f2f2;
   }
 
   .sticky-add-to-cart__image-img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -263,111 +236,87 @@
 
   .sticky-add-to-cart__info {
     flex: 1;
-    min-width: 0; /* Allow text truncation */
+    min-width: 0;
   }
 
   .sticky-add-to-cart__title {
-    font-size: var(--font-paragraph-medium--size);
-    font-weight: var(--font-weight-semibold);
-    line-height: var(--font-paragraph--line-height);
     margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .sticky-add-to-cart__meta {
+    margin: 3px 0 0;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: rgb(0 0 0 / 0.6);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .sticky-add-to-cart__variant {
-    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text));
-    font-size: var(--font-paragraph-small--size);
-    margin-top: var(--margin-3xs);
+  .sticky-add-to-cart__price strong {
+    font-weight: 600;
+    color: #141414;
   }
 
-  .sticky-add-to-cart__price {
-    font-weight: var(--font-weight-semibold);
+  .sticky-add-to-cart__price s {
+    margin-right: 4px;
   }
 
-  .sticky-add-to-cart__button {
-    height: var(--height-buy-buttons);
+  .sticky-add-to-cart__button.button {
     position: relative;
+    flex-shrink: 0;
+    width: auto;
+    height: 46px;
+    min-width: 0;
+    padding: 0 26px;
+    border: 0;
+    border-radius: var(--style-border-radius-buttons-primary, 0);
+    background: #141414;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
-  /* Mobile adjustments */
-  @media screen and (max-width: 749px) {
-    .sticky-add-to-cart__bar {
-      bottom: 0;
-      width: 100%;
-      max-width: none;
-      border-radius: 0;
-
-      /* Full-bleed bar touches the physical bottom edge (viewport-fit=cover); keep the
-         controls above the home indicator while the background fills the safe area */
-      padding-block-end: calc(var(--padding-sm) + var(--safe-area-inset-bottom));
-
-      &::before {
-        --border: 1px;
-      }
-    }
-
-    .sticky-add-to-cart__bar .add-to-cart-text__content {
-      display: none;
-    }
-
-    .sticky-add-to-cart__info[data-has-image='false'] {
-      padding-inline-start: 0;
-    }
-
-    .sticky-add-to-cart__title {
-      font-size: var(--font-paragraph--size);
-    }
-
-    .sticky-add-to-cart__button {
-      padding: var(--padding-lg);
-    }
-
-    .sticky-add-to-cart__price {
-      font-size: var(--font-paragraph-small--size);
-    }
-
-    .sticky-add-to-cart__button {
-      width: var(--height-buy-buttons);
-    }
-
-    sticky-add-to-cart:not([data-variant-available='true']) .add-to-cart-text__content {
-      display: initial;
-    }
-
-    sticky-add-to-cart:not([data-variant-available='true']) .sticky-add-to-cart__button {
-      width: auto;
-    }
+  .sticky-add-to-cart__button .add-to-cart-text__content {
+    display: inline;
   }
 
-  /* Small mobile - hide text content and compare price */
-  @media screen and (max-width: 389px) {
+  .sticky-add-to-cart__button[disabled] {
+    background: #d9d9d9;
+    color: #6b6b6b;
+  }
+
+  @media screen and (min-width: 750px) {
     .sticky-add-to-cart__bar {
-      .compare-at-price {
-        display: none;
-      }
+      gap: 16px;
+      padding: 12px max(24px, calc((100vw - 1200px) / 2));
     }
 
-    .sticky-add-to-cart__title {
-      display: none;
+    body:has(.sticky-add-to-cart__bar[data-stuck='true']) {
+      padding-bottom: 88px;
     }
 
-    /* For product with only default variant show title */
-    .sticky-add-to-cart__info[data-singleton='true'] .sticky-add-to-cart__title {
-      display: block;
+    .sticky-add-to-cart__image {
+      width: 48px;
     }
 
-    /* For single variant show title and variant, truncate both. variant should be identifiable with truncation */
-    .sticky-add-to-cart__info[data-single-option='true'] .sticky-add-to-cart__title {
-      display: block;
+    .sticky-add-to-cart__title,
+    .sticky-add-to-cart__meta {
+      font-size: 0.8125rem;
     }
 
-    .sticky-add-to-cart__info[data-single-option='true'] .sticky-add-to-cart__variant {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .sticky-add-to-cart__button.button {
+      height: 50px;
+      padding: 0 48px;
     }
   }
 {% endstylesheet %}

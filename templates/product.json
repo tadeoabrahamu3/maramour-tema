@@ -360,11 +360,20 @@
       "settings": {
         "heading": "Opiniones de clientas"
       }
+    },
+    "maramour_recent": {
+      "type": "maramour-recently-viewed",
+      "settings": {
+        "heading": "Visto recientemente",
+        "limit": 8,
+        "image_ratio": "2 / 3"
+      }
     }
   },
   "order": [
     "main",
     "maramour_reviews",
-    "maramour_recs"
+    "maramour_recs",
+    "maramour_recent"
   ]
 }
