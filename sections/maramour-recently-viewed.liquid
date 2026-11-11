@@ -65,6 +65,7 @@
         const visible = Math.min(1, clientWidth / scrollWidth);
         const max = scrollWidth - clientWidth;
         const progress = max > 0 ? scrollLeft / max : 0;
+        thumb.parentElement.style.visibility = max > 1 ? '' : 'hidden';
         thumb.style.width = `${visible * 100}%`;
         thumb.style.transform = `translateX(${(progress * (1 - visible) * 100) / visible}%)`;
       };
