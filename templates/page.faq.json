@@ -95,7 +95,7 @@
           "type": "question",
           "settings": {
             "question": "¿Cuánto tardará en llegar mi producto?",
-            "answer": "<p>El tiempo de envío varía dependiendo del destino de entre 1 a 6 días hábiles.</p>"
+            "answer": "<p>Depende de dónde estés y del tipo de envío:</p><ul><li><strong>Provincia de Buenos Aires y CABA:</strong> de 1 a 3 días hábiles a sucursal y de 2 a 4 días hábiles a domicilio.</li><li><strong>Resto del país:</strong> de 2 a 5 días hábiles, a sucursal o a domicilio.</li><li><strong>Mar del Plata:</strong> entrega por mensajería dentro de las 24 horas hábiles posteriores a la compra.</li></ul>"
           }
         },
         "q_13": {
