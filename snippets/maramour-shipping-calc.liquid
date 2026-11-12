@@ -1,0 +1,313 @@
+{%- doc -%}
+  MARAMOUR — Calculadora de envío por código postal (página de producto, acordeón «Envío…»).
+  Tarifas = las de Shopify → Envíos (si cambian allá, cambiarlas en el bloque Acordeón).
+  - 7600 (o B7600…): entrega por mensajería en Mar del Plata.
+  - CABA (1000–1499 o letra C) y provincia de Buenos Aires (letra B o búsqueda): tarifa «Buenos Aires y CABA».
+  - Resto del país: tarifa «Argentina».
+  La provincia de un CP de 4 números se busca en api.zippopotam.us solo al tocar «Calcular».
+  Envío gratis si la variante elegida llega al mínimo. El CP se recuerda en el navegador.
+
+  @param {object} bs - Ajustes del bloque acordeón
+{%- enddoc -%}
+
+{%- assign free_from = bs.calc_free_from | default: 100000 -%}
+
+<mm-ship-calc class="mm-calc">
+  <script type="application/json" data-mm-calc>
+    {
+      "rates": {
+        "local": {{ bs.calc_local_price | default: 0 }},
+        "baBranch": {{ bs.calc_ba_branch | default: 0 }},
+        "baHome": {{ bs.calc_ba_home | default: 0 }},
+        "restBranch": {{ bs.calc_rest_branch | default: 0 }},
+        "restHome": {{ bs.calc_rest_home | default: 0 }},
+        "freeFrom": {{ free_from }}
+      },
+      "days": {
+        "local": {{ bs.calc_local_days | json }},
+        "baBranch": {{ bs.calc_ba_branch_days | json }},
+        "baHome": {{ bs.calc_ba_home_days | json }},
+        "rest": {{ bs.calc_rest_days | json }}
+      },
+      "prices": { {%- for v in product.variants -%}"{{ v.id }}":{{ v.price | divided_by: 100 }}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%} }
+    }
+  </script>
+  <form class="mm-calc__form" novalidate>
+    <label class="mm-calc__label" for="mm-calc-cp-{{ section.id }}">Calculá tu envío</label>
+    <div class="mm-calc__field">
+      <input
+        id="mm-calc-cp-{{ section.id }}"
+        class="mm-calc__input"
+        type="text"
+        inputmode="text"
+        autocomplete="postal-code"
+        maxlength="8"
+        placeholder="Código postal (ej.: 7600)"
+        required
+      >
+      <button type="submit" class="mm-calc__btn">Calcular</button>
+    </div>
+    <a class="mm-calc__help" href="https://www.correoargentino.com.ar/formularios/cpa" target="_blank" rel="noopener">No sé mi código postal</a>
+  </form>
+  <div class="mm-calc__result" aria-live="polite"></div>
+</mm-ship-calc>
+
+<script>
+  (() => {
+    if (customElements.get('mm-ship-calc')) return;
+    const fmt = (n) => '$' + Math.round(n).toLocaleString('es-AR');
+    const LS = 'mm_cp';
+
+    class MmShipCalc extends HTMLElement {
+      connectedCallback() {
+        let data = {};
+        try { data = JSON.parse(this.querySelector('[data-mm-calc]').textContent); } catch {}
+        this.rates = data.rates || {};
+        this.days = data.days || {};
+        this.prices = data.prices || {};
+        this.input = this.querySelector('input');
+        this.out = this.querySelector('.mm-calc__result');
+        this.querySelector('form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.calc();
+        });
+        let saved = '';
+        try { saved = localStorage.getItem(LS) || ''; } catch {}
+        if (saved) {
+          this.input.value = saved;
+          this.calc(true);
+        }
+      }
+
+      price() {
+        const id = document.querySelector('form[action*="/cart/add"] [name="id"]')?.value;
+        const p = this.prices[id];
+        return typeof p === 'number' ? p : Math.min(...Object.values(this.prices));
+      }
+
+      async zone(cp) {
+        const letter = /^[A-Z]/.test(cp) ? cp[0] : '';
+        const digits = (cp.match(/\d{4}/) || [])[0];
+        if (!digits || (!letter && cp.length !== 4)) return { error: 'Ingresá los 4 números de tu código postal (ej.: 7600).' };
+        if (digits === '7600' && (!letter || letter === 'B')) return { zone: 'local' };
+        if (letter) {
+          if (letter === 'C') return { zone: 'ba', place: 'CABA' };
+          if (letter === 'B') return { zone: 'ba', place: 'Provincia de Buenos Aires' };
+          if ('ADEFGHJKLMNPQRSTUVWXYZ'.includes(letter)) return { zone: 'rest' };
+          return { error: 'Revisá el código postal.' };
+        }
+        const n = +digits;
+        if (n >= 1000 && n <= 1499) return { zone: 'ba', place: 'CABA' };
+        try {
+          const r = await fetch('https://api.zippopotam.us/AR/' + digits);
+          if (r.status === 404) return { error: 'No encontramos ese código postal. Revisalo e intentá de nuevo.' };
+          if (!r.ok) throw new Error();
+          const j = await r.json();
+          const count = {};
+          j.places.forEach((p) => {
+            const s = (p.state || '').trim();
+            if (/^[A-ZÁÉÍÓÚÑ ]+$/i.test(s)) count[s] = (count[s] || 0) + 1;
+          });
+          const top = Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+          const place = j.places[0]?.['place name'];
+          if (top === 'BUENOS AIRES') return { zone: 'ba', place: 'Provincia de Buenos Aires' };
+          return { zone: 'rest', place: top ? top.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()) : place };
+        } catch {
+          return { zone: 'unknown' };
+        }
+      }
+
+      row(name, days, cost, free) {
+        return `<li class="mm-calc__row"><span class="mm-calc__name">${name}<small>${days}</small></span><strong class="mm-calc__cost${free ? ' is-free' : ''}">${free ? 'Gratis' : fmt(cost)}</strong></li>`;
+      }
+
+      async calc(silent) {
+        const cp = this.input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!cp) {
+          if (!silent) this.out.innerHTML = '<p class="mm-calc__error">Ingresá tu código postal.</p>';
+          return;
+        }
+        this.out.innerHTML = '<p class="mm-calc__loading">Calculando…</p>';
+        const z = await this.zone(cp);
+        if (z.error) {
+          this.out.innerHTML = silent ? '' : `<p class="mm-calc__error">${z.error}</p>`;
+          return;
+        }
+        try { localStorage.setItem(LS, this.input.value.trim()); } catch {}
+        const R = this.rates;
+        const free = this.price() >= R.freeFrom;
+        let rows = '';
+        let title = '';
+        if (z.zone === 'local') {
+          title = 'Mar del Plata';
+          rows = this.row('Entrega por mensajería', this.days.local, R.local, free);
+        } else if (z.zone === 'ba') {
+          title = z.place;
+          rows = this.row('Sucursal de Correo Argentino', this.days.baBranch, R.baBranch, free) + this.row('A domicilio', this.days.baHome, R.baHome, free);
+        } else if (z.zone === 'rest') {
+          title = z.place || 'Resto del país';
+          rows = this.row('Sucursal de Correo Argentino', this.days.rest, R.restBranch, free) + this.row('A domicilio', this.days.rest, R.restHome, free);
+        } else {
+          title = 'No pudimos ubicar tu código postal';
+          rows = this.row('Buenos Aires y CABA', 'Sucursal o domicilio', R.baBranch, free).replace(fmt(R.baBranch), 'desde ' + fmt(R.baBranch)) +
+            this.row('Resto del país', 'Sucursal o domicilio', R.restBranch, free).replace(fmt(R.restBranch), 'desde ' + fmt(R.restBranch));
+        }
+        const note = free
+          ? '<p class="mm-calc__note is-free">Esta prenda ya tiene envío gratis.</p>'
+          : `<p class="mm-calc__note">Envío gratis en compras desde ${fmt(R.freeFrom)}.</p>`;
+        this.out.innerHTML = `<p class="mm-calc__title">${title} · ${cp}</p><ul class="mm-calc__list">${rows}</ul>${note}`;
+      }
+    }
+    customElements.define('mm-ship-calc', MmShipCalc);
+
+    // «Envío gratis desde…» junto al botón de compra: abre el acordeón con la calculadora
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-mm-open-calc]');
+      if (!t) return;
+      e.preventDefault();
+      const acc = document.getElementById('mm-acc-envios');
+      if (!acc) return;
+      acc.open = true;
+      acc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => acc.querySelector('.mm-calc__input')?.focus({ preventScroll: true }), 450);
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-calc {
+    display: block;
+    margin: 0 0 18px;
+    padding: 16px;
+    background: #f7f7f7;
+    border-radius: 12px;
+  }
+
+  .mm-calc__label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #141414;
+  }
+
+  .mm-calc__field {
+    display: flex;
+    gap: 8px;
+  }
+
+  .mm-calc__input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 16px;
+    color: #141414;
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    border-radius: 8px;
+  }
+
+  .mm-calc__input:focus {
+    outline: none;
+    border-color: #141414;
+  }
+
+  .mm-calc__btn {
+    flex: none;
+    height: 44px;
+    padding: 0 18px;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: #141414;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .mm-calc__help {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: rgb(20 20 20 / 0.62);
+    text-underline-offset: 3px;
+  }
+
+  .mm-calc__result:empty {
+    display: none;
+  }
+
+  .mm-calc__result {
+    margin-top: 14px;
+  }
+
+  .mm-calc__title {
+    margin: 0 0 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(20 20 20 / 0.62);
+  }
+
+  .mm-calc__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mm-calc .mm-calc__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 10px 0;
+    border-top: 1px solid #e6e6e6;
+  }
+
+  .mm-calc .mm-calc__row::before {
+    display: none;
+  }
+
+  .mm-calc__name {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.875rem;
+    color: #141414;
+  }
+
+  .mm-calc__name small {
+    font-size: 0.75rem;
+    color: rgb(20 20 20 / 0.6);
+  }
+
+  .mm-calc__cost {
+    flex: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #141414;
+  }
+
+  .mm-calc__cost.is-free,
+  .mm-calc__note.is-free {
+    color: #2e7d4f;
+  }
+
+  .mm-calc__note,
+  .mm-calc__error,
+  .mm-calc__loading {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    color: rgb(20 20 20 / 0.62);
+  }
+
+  .mm-calc__error {
+    color: #b3261e;
+  }
+{% endstylesheet %}

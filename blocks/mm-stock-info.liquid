@@ -39,9 +39,9 @@
         </p>
       {%- endif -%}
       {%- if bs.shipping_text != blank -%}
-        <p class="mm-stock__shipping">
-          {{ bs.shipping_text | escape }}
-        </p>
+        <a class="mm-stock__shipping" href="#mm-acc-envios" data-mm-open-calc>
+          {{ bs.shipping_text | escape }}<span class="mm-stock__calc">Calcular envío</span>
+        </a>
       {%- endif -%}
     </div>
   {%- else -%}
@@ -149,6 +149,20 @@
 
   .mm-stock__status {
     color: #2e7d4f;
+  }
+
+  /* «Envío gratis desde…» + «Calcular envío»: abre la calculadora del acordeón */
+  a.mm-stock__shipping {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .mm-stock__calc {
+    margin-left: 4px;
+    font-weight: 600;
+    color: #141414;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .mm-stock__status--low {

@@ -80,7 +80,10 @@
   {%- if bs.shipping_text != blank -%}
     <details class="mm-acc__item" name="mm-pdp-acc" id="mm-acc-envios">
       <summary class="mm-acc__q">Envío, devoluciones y cambios{% render 'maramour-acc-icon' %}</summary>
-      <div class="mm-acc__a rte">{{ bs.shipping_text }}</div>
+      <div class="mm-acc__a rte">
+        {%- if bs.calc_enable -%}{%- render 'maramour-shipping-calc', bs: bs -%}{%- endif -%}
+        {{ bs.shipping_text }}
+      </div>
     </details>
   {%- endif -%}
 </div>
@@ -336,7 +339,20 @@
     { "type": "text", "id": "model_text", "label": "Referencia de la modelo", "default": "La modelo mide 1,66 m y usa talle S." },
     { "type": "richtext", "id": "size_text", "label": "Cómo elegir el talle", "default": "<p>Nuestros talles son reales: elegí tu talle habitual. Si estás entre dos, te recomendamos el más grande. ¿Dudas? Escribinos por WhatsApp y te asesoramos.</p>" },
     { "type": "header", "content": "Envío, devoluciones y cambios" },
-    { "type": "richtext", "id": "shipping_text", "label": "Texto", "default": "<p>Envíos a todo el país en 1 a 5 días hábiles. Envío gratis desde $100.000.</p><p>Tenés 10 días desde que recibís tu compra para cambiarla o devolverla, sin uso y con etiqueta. <a href=\"/pages/politica-de-cambios\">Ver política de cambios</a>.</p>" }
+    { "type": "richtext", "id": "shipping_text", "label": "Texto", "default": "<p>Envíos a todo el país en 1 a 5 días hábiles. Envío gratis desde $100.000.</p><p>Tenés 10 días desde que recibís tu compra para cambiarla o devolverla, sin uso y con etiqueta. <a href=\"/pages/politica-de-cambios\">Ver política de cambios</a>.</p>" },
+    { "type": "header", "content": "Calculadora de envío" },
+    { "type": "paragraph", "content": "Va arriba del texto de envíos. Los precios tienen que ser los mismos que en Configuración → Envíos (sin puntos ni signo $)." },
+    { "type": "checkbox", "id": "calc_enable", "label": "Mostrar calculadora", "default": true },
+    { "type": "number", "id": "calc_free_from", "label": "Envío gratis desde", "default": 100000 },
+    { "type": "number", "id": "calc_local_price", "label": "Mar del Plata: mensajería", "default": 5000 },
+    { "type": "text", "id": "calc_local_days", "label": "Mar del Plata: plazo", "default": "Dentro de las 24 h hábiles" },
+    { "type": "number", "id": "calc_ba_branch", "label": "Buenos Aires y CABA: sucursal", "default": 8000 },
+    { "type": "text", "id": "calc_ba_branch_days", "label": "Buenos Aires y CABA: plazo a sucursal", "default": "1 a 3 días hábiles" },
+    { "type": "number", "id": "calc_ba_home", "label": "Buenos Aires y CABA: domicilio", "default": 11500 },
+    { "type": "text", "id": "calc_ba_home_days", "label": "Buenos Aires y CABA: plazo a domicilio", "default": "2 a 4 días hábiles" },
+    { "type": "number", "id": "calc_rest_branch", "label": "Resto del país: sucursal", "default": 11500 },
+    { "type": "number", "id": "calc_rest_home", "label": "Resto del país: domicilio", "default": 14500 },
+    { "type": "text", "id": "calc_rest_days", "label": "Resto del país: plazo", "default": "2 a 5 días hábiles" }
   ],
   "presets": [{ "name": "Acordeón de dudas" }]
 }
