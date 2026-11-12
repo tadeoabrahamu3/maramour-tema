@@ -57,6 +57,13 @@
     if (customElements.get('mm-ship-calc')) return;
     const fmt = (n) => '$' + Math.round(n).toLocaleString('es-AR');
     const LS = 'mm_cp';
+    const PROV = {
+      CATAMARCA: 'Catamarca', CHACO: 'Chaco', CHUBUT: 'Chubut', CORDOBA: 'Córdoba', CORRIENTES: 'Corrientes',
+      'ENTRE RIOS': 'Entre Ríos', FORMOSA: 'Formosa', JUJUY: 'Jujuy', 'LA PAMPA': 'La Pampa', 'LA RIOJA': 'La Rioja',
+      MENDOZA: 'Mendoza', MISIONES: 'Misiones', NEUQUEN: 'Neuquén', 'RIO NEGRO': 'Río Negro', SALTA: 'Salta',
+      'SAN JUAN': 'San Juan', 'SAN LUIS': 'San Luis', 'SANTA CRUZ': 'Santa Cruz', 'SANTA FE': 'Santa Fe',
+      'SANTIAGO DEL ESTERO': 'Santiago del Estero', 'TIERRA DEL FUEGO': 'Tierra del Fuego', TUCUMAN: 'Tucumán'
+    };
 
     class MmShipCalc extends HTMLElement {
       connectedCallback() {
@@ -111,7 +118,7 @@
           const top = Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
           const place = j.places[0]?.['place name'];
           if (top === 'BUENOS AIRES') return { zone: 'ba', place: 'Provincia de Buenos Aires' };
-          return { zone: 'rest', place: top ? top.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()) : place };
+          return { zone: 'rest', place: PROV[top] || place };
         } catch {
           return { zone: 'unknown' };
         }
