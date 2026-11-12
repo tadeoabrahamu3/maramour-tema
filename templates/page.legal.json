@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "main": {
+      "type": "maramour-legal",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

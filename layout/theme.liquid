@@ -157,7 +157,13 @@
         data-product-transition="{{ settings.transition_to_main_product }}"
         data-template="{{ template }}"
       >
-        {{ content_for_layout }}
+        {%- comment -%} Política de privacidad de Shopify con el diseño de las páginas legales {%- endcomment -%}
+        {%- if request.page_type == 'policy' and request.path contains 'privacy-policy' and shop.privacy_policy.body != blank -%}
+          {%- capture mm_policy_default -%}{{ content_for_layout }}{%- endcapture -%}
+          {%- render 'maramour-legal-layout', title: shop.privacy_policy.title, body: shop.privacy_policy.body -%}
+        {%- else -%}
+          {{ content_for_layout }}
+        {%- endif -%}
       </main>
 
       <footer>

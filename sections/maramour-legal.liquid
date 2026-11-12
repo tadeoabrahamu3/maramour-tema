@@ -1,0 +1,21 @@
+{%- doc -%}
+  MARAMOUR — Páginas legales (plantilla de página «legal»): Política de cambios y de cookies.
+  El texto se edita en Tienda online → Páginas; cada título de sección tiene que ser «Título 2».
+  El diseño está en snippets/maramour-legal-layout.liquid (lo comparte con la Política de privacidad).
+{%- enddoc -%}
+
+{%- render 'maramour-legal-layout', title: page.title, body: page.content -%}
+
+{% schema %}
+{
+  "name": "Página legal",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "El texto se edita en Tienda online → Páginas. Cada título de sección tiene que tener formato «Título 2» para que aparezca en el índice."
+    }
+  ]
+}
+{% endschema %}

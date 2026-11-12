@@ -1,0 +1,388 @@
+{%- doc -%}
+  MARAMOUR — Diseño de las páginas legales (políticas de privacidad, cambios y cookies).
+  Encabezado «Legales», enlaces entre políticas, índice «En esta página» armado con los títulos
+  <h2> del texto (en compu queda fijo al costado) y tarjeta de contacto al final.
+  Lo usan la plantilla de página «legal» y la Política de privacidad de Shopify (layout/theme.liquid).
+  Sin JS: el índice y los anclajes se arman en Liquid.
+
+  @param {string} title - Título de la página
+  @param {string} body - Contenido HTML (secciones con <h2>)
+{%- enddoc -%}
+
+{%- liquid
+  assign path = request.path
+  assign parts = body | split: '<h2>'
+-%}
+
+{%- capture mm_legal_links -%}
+  <a href="/policies/privacy-policy"{% if path contains 'privacy-policy' %} aria-current="page"{% endif %}>Privacidad</a>
+  <a href="/pages/politica-de-cambios"{% if path contains 'politica-de-cambios' %} aria-current="page"{% endif %}>Cambios</a>
+  <a href="/pages/politica-de-cookies"{% if path contains 'politica-de-cookies' %} aria-current="page"{% endif %}>Cookies</a>
+  <a href="/pages/boton-de-arrepentimiento"{% if path contains 'arrepentimiento' %} aria-current="page"{% endif %}>Arrepentimiento</a>
+{%- endcapture -%}
+
+{%- capture mm_legal_toc -%}
+  {%- for part in parts offset: 1 -%}
+    {%- assign h = part | split: '</h2>' | first | strip_html | strip -%}
+    <li><a href="#mm-legal-{{ forloop.index }}">{{ h }}</a></li>
+  {%- endfor -%}
+{%- endcapture -%}
+
+<div class="mm-legal">
+  <header class="mm-legal__head">
+    <p class="mm-legal__eyebrow">Legales</p>
+    <h1 class="mm-legal__title">{{ title | escape }}</h1>
+    <nav class="mm-legal__tabs" aria-label="Políticas">{{ mm_legal_links }}</nav>
+  </header>
+
+  <div class="mm-legal__grid">
+    {%- if parts.size > 2 -%}
+      <aside class="mm-legal__aside">
+        <details class="mm-legal__toc" open>
+          <summary>En esta página</summary>
+          <ol>{{ mm_legal_toc }}</ol>
+        </details>
+      </aside>
+    {%- endif -%}
+
+    <article class="mm-legal__body">
+      {{ parts.first }}
+      {%- for part in parts offset: 1 -%}
+        <h2 id="mm-legal-{{ forloop.index }}">{{ part }}
+      {%- endfor -%}
+
+      <section class="mm-legal__contact" aria-labelledby="mm-legal-contact">
+        <h2 id="mm-legal-contact">¿Tenés alguna duda?</h2>
+        <p>Si algo de esta política no te queda claro, escribinos y te respondemos a la brevedad.</p>
+        <div class="mm-legal__actions">
+          <a class="mm-legal__btn" href="https://wa.me/5492236685697" target="_blank" rel="noopener">Escribinos por WhatsApp</a>
+          <a class="mm-legal__btn mm-legal__btn--ghost" href="mailto:ayuda@maramour.com">ayuda@maramour.com</a>
+        </div>
+      </section>
+    </article>
+  </div>
+</div>
+
+<script>
+  (() => {
+    // En el celular el índice arranca cerrado (en compu queda abierto al costado)
+    const toc = document.querySelector('.mm-legal__toc');
+    if (toc && window.matchMedia('(max-width: 989px)').matches) toc.open = false;
+  })();
+</script>
+
+{% stylesheet %}
+  .mm-legal {
+    --mm-legal-ink: #141414;
+    --mm-legal-soft: #4a4a4a;
+    --mm-legal-line: #ececec;
+    --mm-legal-pink: #c2416c;
+    --mm-legal-blush: #f9e3e8;
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 32px 16px 72px;
+    color: var(--mm-legal-ink);
+  }
+
+  .mm-legal__head {
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--mm-legal-line);
+  }
+
+  .mm-legal__eyebrow {
+    margin: 0 0 10px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mm-legal-pink);
+  }
+
+  .mm-legal__title {
+    margin: 0;
+    font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Enlaces entre políticas: pastillas que se deslizan en el celular */
+  .mm-legal__tabs {
+    display: flex;
+    gap: 8px;
+    margin: 20px -16px 0;
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mm-legal__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mm-legal__tabs a {
+    flex: none;
+    padding: 8px 14px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--mm-legal-ink);
+    text-decoration: none;
+    border: 1px solid #dcdcdc;
+    border-radius: 999px;
+    transition: border-color 0.2s ease;
+  }
+
+  .mm-legal__tabs a:hover {
+    border-color: var(--mm-legal-ink);
+  }
+
+  .mm-legal__tabs a[aria-current='page'] {
+    color: #fff;
+    background: var(--mm-legal-ink);
+    border-color: var(--mm-legal-ink);
+  }
+
+  /* Índice */
+  .mm-legal__toc {
+    margin-top: 20px;
+    background: #f7f7f7;
+    border-radius: 12px;
+  }
+
+  .mm-legal__toc summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .mm-legal__toc summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mm-legal__toc summary::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform 0.2s ease;
+  }
+
+  .mm-legal__toc[open] summary::after {
+    transform: rotate(-135deg) translateY(-2px);
+  }
+
+  .mm-legal__toc ol {
+    margin: 0;
+    padding: 0 16px 14px;
+    list-style: none;
+  }
+
+  .mm-legal__toc li + li {
+    margin-top: 2px;
+  }
+
+  .mm-legal__toc a {
+    display: block;
+    padding: 6px 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--mm-legal-soft);
+    text-decoration: none;
+  }
+
+  .mm-legal__toc a:hover {
+    color: var(--mm-legal-ink);
+  }
+
+  /* Texto */
+  .mm-legal__body {
+    max-width: 680px;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--mm-legal-soft);
+  }
+
+  .mm-legal__body > p:first-child {
+    margin-top: 28px;
+  }
+
+  .mm-legal__body h2 {
+    margin: 40px 0 12px;
+    padding-top: 28px;
+    font-size: 1.125rem;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--mm-legal-ink);
+    border-top: 1px solid var(--mm-legal-line);
+    scroll-margin-top: 110px;
+  }
+
+  .mm-legal__body > h2:first-child {
+    margin-top: 28px;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .mm-legal__body p {
+    margin: 0 0 14px;
+  }
+
+  .mm-legal__body strong {
+    font-weight: 600;
+    color: var(--mm-legal-ink);
+  }
+
+  .mm-legal__body ul,
+  .mm-legal__body ol {
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mm-legal__body li {
+    position: relative;
+    margin: 0 0 8px;
+    padding-left: 18px;
+  }
+
+  .mm-legal__body ul > li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.72em;
+    width: 6px;
+    height: 6px;
+    background: var(--mm-legal-pink);
+    border-radius: 50%;
+  }
+
+  .mm-legal__body a {
+    color: var(--mm-legal-ink);
+    text-underline-offset: 3px;
+  }
+
+  /* Tarjeta de contacto */
+  .mm-legal__body .mm-legal__contact {
+    margin-top: 48px;
+    padding: 24px 20px;
+    background: var(--mm-legal-blush);
+    border-radius: 14px;
+  }
+
+  .mm-legal__body .mm-legal__contact h2 {
+    margin: 0 0 6px;
+    padding: 0;
+    border: 0;
+  }
+
+  .mm-legal__contact p {
+    margin: 0;
+    color: #5a3a46;
+  }
+
+  .mm-legal__actions {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .mm-legal__body .mm-legal__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 18px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #fff;
+    text-decoration: none;
+    background: var(--mm-legal-ink);
+    border: 1px solid var(--mm-legal-ink);
+    border-radius: 6px;
+  }
+
+  .mm-legal__body .mm-legal__btn--ghost {
+    color: var(--mm-legal-ink);
+    background: #fff;
+    border-color: #fff;
+  }
+
+  @media screen and (min-width: 750px) {
+    .mm-legal {
+      padding: 48px 32px 96px;
+    }
+
+    .mm-legal__tabs {
+      flex-wrap: wrap;
+      margin: 24px 0 0;
+      padding: 0;
+    }
+
+    .mm-legal__actions {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  }
+
+  /* Compu: índice fijo al costado */
+  @media screen and (min-width: 990px) {
+    .mm-legal__grid {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 680px);
+      gap: 64px;
+      align-items: start;
+    }
+
+    .mm-legal__aside {
+      position: sticky;
+      top: 120px;
+      padding-top: 28px;
+    }
+
+    .mm-legal__toc {
+      margin: 0;
+      background: none;
+    }
+
+    .mm-legal__toc summary {
+      padding: 0 0 10px;
+      pointer-events: none;
+    }
+
+    .mm-legal__toc summary::after {
+      display: none;
+    }
+
+    .mm-legal__toc ol {
+      padding: 0;
+      border-left: 1px solid var(--mm-legal-line);
+    }
+
+    .mm-legal__toc a {
+      padding: 6px 0 6px 14px;
+      margin-left: -1px;
+      border-left: 1px solid transparent;
+    }
+
+    .mm-legal__toc a:hover {
+      border-left-color: var(--mm-legal-ink);
+    }
+
+    .mm-legal__grid:not(:has(.mm-legal__aside)) {
+      grid-template-columns: minmax(0, 680px);
+      justify-content: center;
+    }
+  }
+{% endstylesheet %}
