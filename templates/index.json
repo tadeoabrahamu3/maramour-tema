@@ -219,7 +219,7 @@
     "sale": {
       "type": "maramour-featured-products",
       "settings": {
-        "heading": "SALE",
+        "heading": "Descuentos",
         "products": [],
         "collection": "sale",
         "main_tab_label": "",
@@ -238,8 +238,8 @@
     "hero_video",
     "featured",
     "categories",
-    "sale",
     "lookbook",
-    "custom_promo"
+    "custom_promo",
+    "sale"
   ]
 }
